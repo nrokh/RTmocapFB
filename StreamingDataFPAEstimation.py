@@ -5,6 +5,7 @@ import time
 import math
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 # create arg to host (Vicon Nexus)
 parser = argparse.ArgumentParser(description=__doc__)
@@ -14,7 +15,7 @@ args = parser.parse_args()
 client = ViconDataStream.Client()
 
 try:
-    # Connect to Nexus (Nexus needs to be on and either Live or replaying previosly collected data)
+    # Connect to Nexus (Nexus needs to be on and either Live or replaying previously collected data)
     client.Connect( args.host)
     print( '        Connected to Nexus')
 
@@ -25,7 +26,7 @@ try:
     print ( '        Markers enabled? ', client.IsMarkerDataEnabled() )
 
 
-    # start getting frames (check if this is needed??)
+    # start getting frames 
     HasFrame = False
     timeout = 50
     while not HasFrame:
@@ -48,19 +49,63 @@ try:
     subjectNames = client.GetSubjectNames()
     print('        Subject name: ', subjectNames)
 
-    # create a list to store FPA values
+    # create a list to store FPA and marker values
     FPA_store = []
+    CAL_store = []
+    PSI_store = []
+    DIFFDV_store = [10,10,10] # TODO: check if this is how you want to initialize
 
     while True: # wait for keyboard interrupt
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
 
+        ################# CALCULATE FPA ####################
+
         # calculate FPA (horizontal plane, so X and Y components only):
-        footVec = (client.GetMarkerGlobalTranslation( subjectName, 'LTOE')[0][0]- client.GetMarkerGlobalTranslation( subjectName, 'LHEE')[0][0],
-                   client.GetMarkerGlobalTranslation( subjectName, 'LTOE')[0][1] - client.GetMarkerGlobalTranslation( subjectName, 'LHEE')[0][1])
 
-        FPA = math.degrees(math.atan(footVec[1]/footVec[0]))
+        # TODO: include error exception for an occluded marker
+        footVec = (client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][0]- client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][0],
+                   client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][1] - client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][1])
 
+        FPA = -math.degrees(math.atan(footVec[1]/footVec[0])) # check signs for right foot
+
+
+
+
+
+        ################# STEP DETECTION ####################
+        # TODO: wait for keyboard input before starting step detection; experimenter waits for steady-state
+
+        # get AP CAL and PSI markers (TODO: should be 0th index -- X component-- but check)
+        CAL = client.GetMarkerGlobalTranslation( subjectName, 'RCAL')[0][0]
+        CAL_store.append(CAL)
+        PSI = client.GetMarkerGlobalTranslation( subjectName, 'RPSI')[0][0]
+        PSI_store.append(CAL)
+
+        # take derivative of difference between heel and hip:
+        DIFF = CAL - PSI
+        DIFFDV_store.append(DIFF)
+
+        # get heel-strike; search for local max
+        if DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
+            # TODO store stanceFPA
+
+            # get toe-off (continue getting this value while in IF condition; TODO check if this makes sense)
+            DIFF = CAL - PSI
+            DIFFDV_store.append(DIFF)
+
+            # get toe-off; search for local min
+            if DIFFDV_store[-1]>=0 and DIFFDV_store[-2]<=0 and DIFFDV_store[-3]<=0 and DIFFDV_store[-4]<=0:
+                # TODO average FPA throughout stance
+
+                # TODO compare avg FPA to target
+
+                ################# CUE GAITGUIDE ###############
+                # SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET
+                ;  
+                
+        
+        
         # save FPA value to the list
         FPA_store.append(FPA)
 
@@ -79,3 +124,5 @@ except KeyboardInterrupt: # CTRL-C to exit
 
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
+
+
