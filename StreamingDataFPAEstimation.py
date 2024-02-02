@@ -6,6 +6,7 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import keyboard #TODO: make sure this is installed
 
 # create arg to host (Vicon Nexus)
 parser = argparse.ArgumentParser(description=__doc__)
@@ -59,6 +60,11 @@ try:
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
 
+
+
+        ################# ENTER BASELINE FPA ###############
+        baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
+
         ################# CALCULATE FPA ####################
 
         # calculate FPA (horizontal plane, so X and Y components only):
@@ -67,14 +73,14 @@ try:
         footVec = (client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][0]- client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][0],
                    client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][1] - client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][1])
 
-        FPA = -math.degrees(math.atan(footVec[1]/footVec[0])) # check signs for right foot
+        FPA = -math.degrees(math.atan(footVec[1]/footVec[0])) # TODO: check signs for right foot
 
 
 
 
 
-        ################# STEP DETECTION ####################
-        # TODO: wait for keyboard input before starting step detection; experimenter waits for steady-state
+        ################# STEP DETECTION ###################
+        keyboard.wait('space')         # TODO: check if keyboard input works; experimenter waits for steady-state
 
         # get AP CAL and PSI markers (TODO: should be 0th index -- X component-- but check)
         CAL = client.GetMarkerGlobalTranslation( subjectName, 'RCAL')[0][0]
