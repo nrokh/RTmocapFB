@@ -7,7 +7,59 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import keyboard #TODO: make sure this is installed
+import asyncio
+from bleak import BleakScanner, BleakClient
 
+############# GAIT GUIDE SETUP #####################
+
+# gaitguide BLE settings:
+BLE_DURATION_STIM_SERVICE_UUID = '1111'
+BLE_DURATION_RIGHT_CHARACTERISTIC_UUID = '1113'  # these need to be chaned at some point for BLE specificatin reasons '48e47602-1b27-11ee-be56-0242ac120002'
+BLE_DURATION_LEFT_CHARACTERISTIC_UUID = '1114'  # '63bae092-1b27-11ee-be56-0242ac120002'
+timeout = 5
+
+async def connect_to_device():
+    devices = await BleakScanner.discover()
+    for d in devices:
+        if d.name == 'GaitGuide':
+            print('Device found - MAC [', d.address, ']')
+            client = BleakClient(d.address)
+            await client.connect(timeout=timeout)
+            print('Connected [', d.address, ']')
+            return client
+
+async def get_characteristic(service, characteristic_uuid):
+    characteristic = service.get_characteristic(characteristic_uuid)
+    return characteristic
+
+async def write_characteristic(client, characteristic, value):
+    await client.write_gatt_char(characteristic, bytearray([value]))
+
+async def run():
+    
+    print("Searching for BLE GaitGuide...")
+    GaitGuide = await connect_to_device()
+    service = GaitGuide.services.get_service(BLE_DURATION_STIM_SERVICE_UUID)
+
+    if service:
+        Right = await get_characteristic(service, BLE_DURATION_RIGHT_CHARACTERISTIC_UUID)
+        Left = await get_characteristic(service, BLE_DURATION_LEFT_CHARACTERISTIC_UUID)
+
+    count = 0
+    while (GaitGuide.is_connected and count < 11):
+        await write_characteristic(GaitGuide, Right, 120)
+        time.sleep(1)  # Sleep for 1 second
+
+        await write_characteristic(GaitGuide, Left, 120)
+        time.sleep(1)  # Sleep for 1 second
+
+        count = count +1
+
+    await GaitGuide.disconnect()
+    print('GaitGuide Disconnected [', GaitGuide.address, ']')
+
+
+############### VICON SETUP ########################
 # create arg to host (Vicon Nexus)
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('host', nargs='?', help="Host name, in the format of server:port", default = "localhost:801")
@@ -74,10 +126,6 @@ try:
                    client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][1] - client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][1])
 
         FPA = -math.degrees(math.atan(footVec[1]/footVec[0])) # TODO: check signs for right foot
-
-
-
-
 
         ################# STEP DETECTION ###################
         print("Press space when ready to start step detection: ")
