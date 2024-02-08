@@ -102,11 +102,11 @@ try:
     subjectNames = client.GetSubjectNames()
     print('        Subject name: ', subjectNames)
 
-    '''
+
     # Connect to Bluetooth
     print(' Connecting to GaitGuide...')
-    GaitGuide = asyncio.run(connect_to_device) #TODO: check if this works
-    '''
+    GaitGuide = asyncio.run(connect_to_device()) #TODO: check if this works
+
 
     # create a list to store FPA and marker values
     FPA_store = []
