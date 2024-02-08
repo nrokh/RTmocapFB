@@ -11,7 +11,7 @@ import asyncio
 from bleak import BleakScanner, BleakClient
 
 ############# GAIT GUIDE SETUP #####################
-'''
+
 # gaitguide BLE settings:
 BLE_DURATION_STIM_SERVICE_UUID = '1111'
 BLE_DURATION_RIGHT_CHARACTERISTIC_UUID = '1113'  # these need to be chaned at some point for BLE specificatin reasons '48e47602-1b27-11ee-be56-0242ac120002'
@@ -27,7 +27,7 @@ async def connect_to_device():
             await client.connect(timeout=timeout)
             print('Connected [', d.address, ']')
             return client
-
+'''
 async def get_characteristic(service, characteristic_uuid):
     characteristic = service.get_characteristic(characteristic_uuid)
     return characteristic
@@ -102,12 +102,23 @@ try:
     subjectNames = client.GetSubjectNames()
     print('        Subject name: ', subjectNames)
 
+    '''
+    # Connect to Bluetooth
+    print(' Connecting to GaitGuide...')
+    GaitGuide = asyncio.run(connect_to_device) #TODO: check if this works
+    '''
+
     # create a list to store FPA and marker values
     FPA_store = []
     CAL_store = []
     PSI_store = []
     DIFF_store = [0,0,0]
     DIFFDV_store = [0,0,0] # TODO: check if this is how you want to initialize
+    gaitEvent_store = []
+    FPAstep_store = []
+
+    # create flag to check for systemic occlusions
+    occl_flag = 0 
 
     ################# ENTER BASELINE FPA ###############
     baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
@@ -115,6 +126,8 @@ try:
     ################# STEP DETECTION ###################
     print("Press space when ready to start step detection: ")
     keyboard.wait('space')         # TODO: check if keyboard input works; experimenter waits for steady-state
+    
+    local_max_detected = False
 
     while True: # wait for keyboard interrupt
         subjectName = subjectNames[0] # select the main subject
@@ -122,15 +135,23 @@ try:
 
 
         ################# CALCULATE FPA ####################
-        
 
-        # calculate FPA (horizontal plane, so X and Y components only):
-        footVec = (client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][0]- client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][0],
-                   client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][1] - client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][1])
-        
-        # TODO: include error exception for an occluded marker
-        FPA = -math.degrees(math.atan(footVec[1]/footVec[0])) # TODO: check signs for right foot    
+        RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
+        RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
 
+        # add error exception for occluded markers
+        if RTOE_translation == [0, 0] or RHEE_translation == [0, 0]:
+            # Flag this data and check if it's consecutively too frequent
+            occl_flag += 1
+            if occl_flag > 25:
+                print("Too many occlusions, check the markers")
+            #save FPA as a NaN value so we can discard later
+            FPA = np.nan
+        else:
+            # Calculate FPA
+            occl_flag = 0
+            footVec = (RTOE_translation[0] - RHEE_translation[0], RTOE_translation[1] - RHEE_translation[1])
+            FPA = -math.degrees(math.atan(footVec[1] / footVec[0]))  # TODO: check signs for right foot
 
         # get AP CAL and PSI markers (TODO: should be 0th index -- X component-- but check)
         CAL = client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][0]
@@ -145,53 +166,43 @@ try:
         DIFFDV_store.append(DIFFDV)
 
         # search for local max 
-
-        if DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
+        if DIFFDV_store[-1]>=0 and DIFFDV_store[-2]<=0 and DIFFDV_store[-3]<=0 and DIFFDV_store[-4]<=0:
 
             print("local max")
             FPAstep_store = []
-            local_min_detected = False
+            local_max_detected = True
+            gaitEvent_store.append((time.time(), 1.0))
 
-            while not local_min_detected:
-                
-                # continue to take derivative of difference between heel and hip:
-                        # calculate FPA (horizontal plane, so X and Y components only):
-                footVec = (client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][0]- client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][0],
-                        client.GetMarkerGlobalTranslation( subjectName, 'RTOE')[0][1] - client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][1])
-                
-                # TODO: include error exception for an occluded marker
-                FPA = -math.degrees(math.atan(footVec[1]/footVec[0])) # TODO: check signs for right foot    
+        FPAstep_store.append(FPA)
 
-                DIFF = CAL - PSI
-                DIFF_store.append(DIFF)
-                DIFFDV = DIFF_store[-2] - DIFF_store[-3] #one frame lag to compensate for zeros
-                DIFFDV_store.append(DIFFDV)
+        # search for min:
+        if local_max_detected and DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
+            print("local min")
+            meanFPAstep = np.nanmean(FPAstep_store)
 
-                FPAstep_store.append(FPA)
+            print("mean FPA for step = " + str(meanFPAstep))
+            gaitEvent_store.append((time.time(), 2.0))
 
-                # search for local min
-                if DIFFDV_store[-1]>=0 and DIFFDV_store[-2]<=0 and DIFFDV_store[-3]<=0 and DIFFDV_store[-4]<=0:
-                    
-                    local_min_detected = True
-                    print("local min")
-                    # average FPA throughout stance
-                    meanFPAstep = np.mean(FPAstep_store)
-
-                    print("mean FPA for step = " + str(meanFPAstep))
-
-                    # TODO compare avg FPA to target
+            local_max_detected = False
 
                 ################# CUE GAITGUIDE ###############
                 # SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET 
 
 
         # save FPA value to the list
-        FPA_store.append(FPA)
+        #FPA_store.append(FPA)
+
+        FPA_store.append((time.time(), FPA))
 
 except KeyboardInterrupt: # CTRL-C to exit
     # save calculated FPA
     df = pd.DataFrame(FPA_store)
     csv_file = 'D:\stepdetect_debugging\FPA_Python.csv'
+    df.to_csv(csv_file)
+
+    # save gait events
+    df = pd.DataFrame(gaitEvent_store)
+    csv_file = 'D:\stepdetect_debugging\GaitEvent_Python.csv'
     df.to_csv(csv_file)
 
     # save DIFF
@@ -203,14 +214,14 @@ except KeyboardInterrupt: # CTRL-C to exit
     df = pd.DataFrame(DIFFDV_store)
     csv_file = 'D:\stepdetect_debugging\DIFFDV_Python.csv'
     df.to_csv(csv_file)
-
-    # TODO: save HS/TO events with time stamps?
     
     # plot the FPA
+    '''
     plt.plot(FPA_store)
     plt.xlabel('Frame')
     plt.ylabel('FPA [deg]')
     plt.show()
+    '''
 
 
 except ViconDataStream.DataStreamException as e:
