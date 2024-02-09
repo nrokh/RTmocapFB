@@ -101,16 +101,7 @@ try:
         if PSI == 0:
             occl_flag_hip += 1
             if occl_flag_hip > 25:
-                print("Too many occlusions for PSI, check marker")
-        else:
-            occl_flag_hip = 0
-            PSI_store.append(PSI)
-
-            # take derivative of difference between heel and hip:
-            DIFF = CAL - PSI
-            DIFF_store.append(DIFF)
-            DIFFDV = DIFF_store[-1] - DIFF_store[-2] 
-            DIFFDV_store.append(DIFFDV)    
+                print("Too many occlusions for PSI, check marker")   
         
         # take derivative of difference between heel and hip:
         DIFF = CAL - PSI
