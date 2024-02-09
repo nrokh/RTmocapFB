@@ -5,8 +5,9 @@ Completed:
 * Triggering haptic cue to the GaitGuide via Bluetooth
 * Integrate step-detection script into feedback loop
 * Add error catching for when a marker is occluded
+* Combine haptic triggers with feedback loop
 
 To do:
-* Combine haptic triggers with feedback loop
-  * Decide whether asyncio is right to use here?
-* Quantify delay/estimate how long it takes to send a command
+* Craft baseline FPA estimation script
+* Test feedback scaling slope 
+* Quantify delay/estimate how long it takes to detect a step and send a command
