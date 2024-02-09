@@ -180,6 +180,7 @@ try:
             occl_flag_hip = 0
             PSI_store.append(PSI)
 
+            # [NR]: this calculation should be running continually, TODO: check if it makes sense to have it here OR in the next block of code, not both places
             # take derivative of difference between heel and hip:
             DIFF = CAL - PSI
             DIFF_store.append(DIFF)
@@ -206,7 +207,7 @@ try:
         if local_max_detected and DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
             print("local min")
             meanFPAstep = np.nanmean(FPAstep_store)
-            meanFPAstep_store.append((time.time(), meanFPAstep)) #TODO: where should the timestamp for the meanFPAstep be? at the beginning or end or middle of the step? 
+            meanFPAstep_store.append((time.time(), meanFPAstep)) #TODO: where should the timestamp for the meanFPAstep be? at the beginning or end or middle of the step? [NR]: at the time local min is detected, the way you have it, works fine
 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time(), 2.0))
