@@ -1,0 +1,166 @@
+from vicon_dssdk import ViconDataStream
+import argparse
+import sys
+import time
+import math
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+import keyboard #TODO: make sure this is installed
+
+############### VICON SETUP ########################
+# create arg to host (Vicon Nexus)
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('host', nargs='?', help="Host name, in the format of server:port", default = "localhost:801")
+args = parser.parse_args()
+
+client = ViconDataStream.Client()
+
+try:
+    # Connect to Nexus (Nexus needs to be on and either Live or replaying previously collected data)
+    client.Connect( args.host)
+    print( '        Connected to Nexus')
+
+    # Enable the data type
+    client.EnableMarkerData()
+
+    # Report whether data type was enabled successfully:
+    print ( '        Markers enabled? ', client.IsMarkerDataEnabled() )
+
+    # start getting frames 
+    HasFrame = False
+    timeout = 50
+    while not HasFrame:
+        print( '.' )
+        try:
+            if client.GetFrame():
+                HasFrame = True
+            timeout=timeout-1
+            if timeout < 0:
+                print('Failed to get frame')
+                sys.exit()
+        except ViconDataStream.DataStreamException as e:
+            client.GetFrame()
+
+    # Set streaming mode to Server Push (lowest latency, but buffers could overfill, resulting in dropped frames)
+    client.SetStreamMode( ViconDataStream.Client.StreamMode.EServerPush)
+    print( '        Current frame rate: ', client.GetFrameRate() )
+
+    # Get the subject's name
+    subjectNames = client.GetSubjectNames()
+    print('        Subject name: ', subjectNames)
+
+    # create a list to store FPA and marker values
+    FPA_store = []
+    CAL_store = []
+    PSI_store = []
+    DIFF_store = [0,0,0]
+    DIFFDV_store = [0,0,0] # TODO: check if this is how you want to initialize
+    gaitEvent_store = []
+    FPAstep_store = []
+    baselineFPA = []
+
+    # create flag to check for systemic occlusions
+    occl_flag_foot = 0 
+    occl_flag_hip = 0
+
+    ################# STEP DETECTION ###################
+    print("Press space when ready to measure baseline FPA: ")
+    keyboard.wait('space')  
+    
+    local_max_detected = False
+
+    while True: # wait for keyboard interrupt
+        subjectName = subjectNames[0] # select the main subject
+        client.GetFrame() # get the frame
+
+        ################# CALCULATE FPA ####################
+
+        RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
+        RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
+        CAL = RHEE_translation[0]
+        PSI = client.GetMarkerGlobalTranslation( subjectName, 'RPSI')[0][0]
+
+        # add error exception for occluded markers
+        if RTOE_translation == [0, 0] or RHEE_translation == [0, 0]:
+            # Flag this data and check if it's consecutively too frequent
+            occl_flag_foot += 1
+            if occl_flag_foot > 25:
+                print("Too many occlusions for RHEE/RTOE, check the markers")
+            #save FPA as a NaN value so we can discard later
+            FPA = np.nan
+        else:
+            # Calculate FPA
+            occl_flag_foot = 0
+            footVec = (RTOE_translation[0] - RHEE_translation[0], RTOE_translation[1] - RHEE_translation[1])
+            FPA = -math.degrees(math.atan(footVec[1] / footVec[0]))  # TODO: check signs for right foot
+            CAL_store.append(CAL)
+
+        # get AP CAL and PSI markers (TODO: should be 0th index -- X component-- but check)
+ 
+        if PSI == 0:
+            occl_flag_hip += 1
+            if occl_flag_hip > 25:
+                print("Too many occlusions for PSI, check marker")
+        else:
+            occl_flag_hip = 0
+            PSI_store.append(PSI)
+
+            # take derivative of difference between heel and hip:
+            DIFF = CAL - PSI
+            DIFF_store.append(DIFF)
+            DIFFDV = DIFF_store[-1] - DIFF_store[-2] 
+            DIFFDV_store.append(DIFFDV)    
+        
+        # take derivative of difference between heel and hip:
+        DIFF = CAL - PSI
+        DIFF_store.append(DIFF)
+        DIFFDV = DIFF_store[-1] - DIFF_store[-2] 
+        DIFFDV_store.append(DIFFDV)
+
+        # search for local max 
+        if DIFFDV_store[-1]>=0 and DIFFDV_store[-2]<=0 and DIFFDV_store[-3]<=0 and DIFFDV_store[-4]<=0:
+
+            print("local max")
+            FPAstep_store = []
+            local_max_detected = True
+            gaitEvent_store.append((time.time(), 1.0))
+
+        FPAstep_store.append(FPA)
+
+        # search for min:
+        if local_max_detected and DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
+            print("local min")
+            meanFPAstep = np.nanmean(FPAstep_store)
+            baselineFPA.append(meanFPAstep) #TODO: ask N if this is the right FPA that we are interested in for baseline FPA
+
+            print("mean FPA for step = " + str(meanFPAstep))
+            gaitEvent_store.append((time.time(), 2.0))
+
+            local_max_detected = False
+
+        # save FPA value to the list
+        FPA_store.append((time.time(), FPA))
+
+except KeyboardInterrupt: # CTRL-C to exit
+    # save calculated FPA
+    df = pd.DataFrame(FPA_store)
+    csv_file = 'D:\stepdetect_debugging\Baseline_FPA_Python.csv'
+    df.to_csv(csv_file)
+    
+    #print avg of baseline FPA
+    print("Baseline FPA: " + str(np.nanmean(baselineFPA)))
+
+    # plot the FPA
+    '''
+    plt.plot(FPA_store)
+    plt.xlabel('Frame')
+    plt.ylabel('FPA [deg]')
+    plt.show()
+    '''
+
+
+except ViconDataStream.DataStreamException as e:
+    print( 'Handled data stream error: ', e )
+
+
