@@ -132,7 +132,7 @@ try:
         if local_max_detected and DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
             print("local min")
             meanFPAstep = np.nanmean(FPAstep_store)
-            baselineFPA.append(meanFPAstep) #TODO: ask N if this is the right FPA that we are interested in for baseline FPA
+            baselineFPA.append(meanFPAstep) 
 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time(), 2.0))
@@ -151,14 +151,13 @@ except KeyboardInterrupt: # CTRL-C to exit
     #print avg of baseline FPA
     print("Baseline FPA: " + str(np.nanmean(baselineFPA)))
 
-    # plot the FPA
+    # plot the FPA for sanity check
     '''
     plt.plot(FPA_store)
     plt.xlabel('Frame')
     plt.ylabel('FPA [deg]')
     plt.show()
     '''
-
 
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )

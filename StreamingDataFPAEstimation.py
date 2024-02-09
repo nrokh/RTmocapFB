@@ -128,6 +128,7 @@ try:
     DIFFDV_store = [0,0,0] # TODO: check if this is how you want to initialize
     gaitEvent_store = []
     FPAstep_store = []
+    meanFPAstep_store = []  
 
     # create flag to check for systemic occlusions
     occl_flag_foot = 0 
@@ -205,6 +206,7 @@ try:
         if local_max_detected and DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
             print("local min")
             meanFPAstep = np.nanmean(FPAstep_store)
+            meanFPAstep_store.append((time.time(), meanFPAstep)) #TODO: where should the timestamp for the meanFPAstep be? at the beginning or end or middle of the step? 
 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time(), 2.0))
@@ -226,6 +228,11 @@ except KeyboardInterrupt: # CTRL-C to exit
     csv_file = 'D:\stepdetect_debugging\FPA_Python.csv'
     df.to_csv(csv_file)
 
+    # save the mean FPA for each step w/ timestamps
+    df = pd.DataFrame(meanFPAstep_store)
+    csv_file = 'D:\stepdetect_debugging\meanFPAstep_Python.csv'
+    df.to_csv(csv_file)
+
     # save gait events
     df = pd.DataFrame(gaitEvent_store)
     csv_file = 'D:\stepdetect_debugging\GaitEvent_Python.csv'
@@ -241,13 +248,19 @@ except KeyboardInterrupt: # CTRL-C to exit
     csv_file = 'D:\stepdetect_debugging\DIFFDV_Python.csv'
     df.to_csv(csv_file)
     
-    # plot the FPA
-    '''
+    #TODO: don't know python well enough to know if this will work... but check! 
+    # Plot the FPA
     plt.plot(FPA_store)
     plt.xlabel('Frame')
     plt.ylabel('FPA [deg]')
+
+    # Plot meanFPAstep_store as circles
+    meanFPAstep_time = [t for t, _ in meanFPAstep_store]
+    meanFPAstep_value = [v for _, v in meanFPAstep_store]
+    plt.scatter(meanFPAstep_time, meanFPAstep_value, color='red', marker='o')
+
     plt.show()
-    '''
+    
     GaitGuide.disconnect()
     print('GaitGuide Disconnected [', GaitGuide.address, ']')
 
