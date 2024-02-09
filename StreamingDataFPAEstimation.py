@@ -27,13 +27,16 @@ async def connect_to_device():
             await client.connect(timeout=timeout)
             print('Connected [', d.address, ']')
             return client
-'''
-async def get_characteristic(service, characteristic_uuid):
+
+def get_characteristic(service, characteristic_uuid):
     characteristic = service.get_characteristic(characteristic_uuid)
     return characteristic
 
+
 async def write_characteristic(client, characteristic, value):
     await client.write_gatt_char(characteristic, bytearray([value]))
+
+'''
 
 async def run():
     
@@ -106,6 +109,15 @@ try:
     # Connect to Bluetooth
     print(' Connecting to GaitGuide...')
     GaitGuide = asyncio.run(connect_to_device()) #TODO: check if this works
+
+    print('Getting GaitGuide service...')
+    service = GaitGuide.services.get_service(BLE_DURATION_STIM_SERVICE_UUID)
+
+    if service:
+        print('Setting Right and Left GaitGuide characteristics...')
+        Right = get_characteristic(service, BLE_DURATION_RIGHT_CHARACTERISTIC_UUID)
+        Left = get_characteristic(service, BLE_DURATION_LEFT_CHARACTERISTIC_UUID)
+
 
 
     # create a list to store FPA and marker values
@@ -185,13 +197,13 @@ try:
 
             local_max_detected = False
 
-                ################# CUE GAITGUIDE ###############
-                # SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET 
+            ################# CUE GAITGUIDE ###############
+            asyncio.run(write_characteristic(GaitGuide, Right, 120))
+                # TODO: SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET 
+            # if meanFPAstep < baselineFPA, cue left; else cue right
 
 
         # save FPA value to the list
-        #FPA_store.append(FPA)
-
         FPA_store.append((time.time(), FPA))
 
 except KeyboardInterrupt: # CTRL-C to exit
@@ -222,7 +234,8 @@ except KeyboardInterrupt: # CTRL-C to exit
     plt.ylabel('FPA [deg]')
     plt.show()
     '''
-
+    GaitGuide.disconnect()
+    print('GaitGuide Disconnected [', GaitGuide.address, ']')
 
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
