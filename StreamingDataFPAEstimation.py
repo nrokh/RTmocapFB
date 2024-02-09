@@ -36,6 +36,26 @@ def get_characteristic(service, characteristic_uuid):
 async def write_characteristic(client, characteristic, value):
     await client.write_gatt_char(characteristic, bytearray([value]))
 
+def calculate_FPA(client, subjectName):
+            RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
+            RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
+
+            # add error exception for occluded markers
+            if RTOE_translation == [0, 0] or RHEE_translation == [0, 0]:
+                # Flag this data and check if it's consecutively too frequent
+                occl_flag_foot += 1
+                if occl_flag_foot > 25:
+                    print("Too many occlusions for RHEE/RTOE, check both markers")
+                # save FPA as a NaN value so we can discard later
+                FPA = np.nan
+            else:
+                # Calculate FPA
+                occl_flag_foot = 0
+                footVec = (RTOE_translation[0] - RHEE_translation[0], RTOE_translation[1] - RHEE_translation[1])
+                FPA = -math.degrees(math.atan(footVec[1] / footVec[0]))  # TODO: check signs for right foot
+
+            return FPA
+
 '''
 
 async def run():
@@ -81,7 +101,6 @@ try:
     # Report whether data type was enabled successfully:
     print ( '        Markers enabled? ', client.IsMarkerDataEnabled() )
 
-
     # start getting frames 
     HasFrame = False
     timeout = 50
@@ -105,7 +124,6 @@ try:
     subjectNames = client.GetSubjectNames()
     print('        Subject name: ', subjectNames)
 
-
     # Connect to Bluetooth
     print(' Connecting to GaitGuide...')
     GaitGuide = asyncio.run(connect_to_device()) #TODO: check if this works
@@ -118,8 +136,6 @@ try:
         Right = get_characteristic(service, BLE_DURATION_RIGHT_CHARACTERISTIC_UUID)
         Left = get_characteristic(service, BLE_DURATION_LEFT_CHARACTERISTIC_UUID)
 
-
-
     # create a list to store FPA and marker values
     FPA_store = []
     CAL_store = []
@@ -130,10 +146,30 @@ try:
     FPAstep_store = []
 
     # create flag to check for systemic occlusions
-    occl_flag = 0 
+    occl_flag_foot = 0
+    occl_flag_hip = 0 
 
     ################# ENTER BASELINE FPA ###############
-    baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
+    print("Press space when ready to measure baseline FPA: ")
+    keyboard.wait('space')  
+    try:
+        while True:
+            subjectName = subjectNames[0] # select the main subject
+            client.GetFrame() # get the frame
+            baselineFPA = calculate_FPA(client, subjectName)
+            CAL = client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][0]
+            PSI = client.GetMarkerGlobalTranslation( subjectName, 'RPSI')[0][0]
+            if CAL == 0 or PSI == 0:
+                occl_flag_hip += 1
+            if occl_flag_hip > 25:
+                print("Too many occlusions for CAL/PSI, check both markers")
+    except KeyboardInterrupt:
+        occl_flag_foot = 0
+        occl_flag_hip = 0
+        print("Baseline FPA = " + str(baselineFPA))
+        pass
+        
+    # baselineFPA = float(input("Enter subject's baseline FPA and hit enter: ")) #TODO: make a script that runs this baseline FPA measurement/calculation   
 
     ################# STEP DETECTION ###################
     print("Press space when ready to start step detection: ")
@@ -145,37 +181,44 @@ try:
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
 
-
         ################# CALCULATE FPA ####################
 
-        RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
-        RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
+        FPA = calculate_FPA(client, subjectName)
+
+        # RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
+        # RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
+        CAL = client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][0]
+        PSI = client.GetMarkerGlobalTranslation( subjectName, 'RPSI')[0][0]
 
         # add error exception for occluded markers
-        if RTOE_translation == [0, 0] or RHEE_translation == [0, 0]:
-            # Flag this data and check if it's consecutively too frequent
-            occl_flag += 1
-            if occl_flag > 25:
-                print("Too many occlusions, check the markers")
-            #save FPA as a NaN value so we can discard later
-            FPA = np.nan
-        else:
-            # Calculate FPA
-            occl_flag = 0
-            footVec = (RTOE_translation[0] - RHEE_translation[0], RTOE_translation[1] - RHEE_translation[1])
-            FPA = -math.degrees(math.atan(footVec[1] / footVec[0]))  # TODO: check signs for right foot
+        # if RTOE_translation == [0, 0] or RHEE_translation == [0, 0]:
+        #     # Flag this data and check if it's consecutively too frequent
+        #     occl_flag_foot += 1
+        #     if occl_flag_foot > 25:
+        #         print("Too many occlusions for RHEE/RTOE, check both markers")
+        #     #save FPA as a NaN value so we can discard later
+        #     FPA = np.nan
+        # else:
+        #     # Calculate FPA
+        #     occl_flag_foot = 0
+        #     footVec = (RTOE_translation[0] - RHEE_translation[0], RTOE_translation[1] - RHEE_translation[1])
+        #     FPA = -math.degrees(math.atan(footVec[1] / footVec[0]))  # TODO: check signs for right foot
 
         # get AP CAL and PSI markers (TODO: should be 0th index -- X component-- but check)
-        CAL = client.GetMarkerGlobalTranslation( subjectName, 'RHEE')[0][0]
-        CAL_store.append(CAL)
-        PSI = client.GetMarkerGlobalTranslation( subjectName, 'RPSI')[0][0]
-        PSI_store.append(CAL)
+        if CAL == 0 or PSI == 0:
+            occl_flag_hip += 1
+            if occl_flag_hip > 25:
+                print("Too many occlusions for CAL/PSI, check both markers")
+        else:
+            occl_flag_hip = 0
+            CAL_store.append(CAL)
+            PSI_store.append(PSI)
 
-        # take derivative of difference between heel and hip:
-        DIFF = CAL - PSI
-        DIFF_store.append(DIFF)
-        DIFFDV = DIFF_store[-1] - DIFF_store[-2] 
-        DIFFDV_store.append(DIFFDV)
+            # take derivative of difference between heel and hip:
+            DIFF = CAL - PSI
+            DIFF_store.append(DIFF)
+            DIFFDV = DIFF_store[-1] - DIFF_store[-2] 
+            DIFFDV_store.append(DIFFDV)
 
         # search for local max 
         if DIFFDV_store[-1]>=0 and DIFFDV_store[-2]<=0 and DIFFDV_store[-3]<=0 and DIFFDV_store[-4]<=0:
