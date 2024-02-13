@@ -244,7 +244,7 @@ except KeyboardInterrupt: # CTRL-C to exit
     plt.xlabel('Frame')
     plt.ylabel('FPA [deg]')
 
-    # Plot meanFPAstep_store as circles
+    # Plot meanFPAstep_store as circles TODO: fix this vis
     '''
     meanFPAstep_time = [t for t, _ in meanFPAstep_store]
     meanFPAstep_value = [v for _, v in meanFPAstep_store]
