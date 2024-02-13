@@ -205,7 +205,7 @@ try:
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
-            asyncio.run(write_characteristic(GaitGuide, Right, 120))
+            asyncio.run(write_characteristic(GaitGuide, Right, 10))
                 # TODO: SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET 
             # if meanFPAstep < baselineFPA, cue left; else cue right
 
@@ -215,19 +215,19 @@ try:
 
 except KeyboardInterrupt: # CTRL-C to exit
     # save calculated FPA
-    df = pd.DataFrame(FPA_store)
+    df_FPA = pd.DataFrame(FPA_store)
     csv_file = 'D:\stepdetect_debugging\FPA_Python.csv'
-    df.to_csv(csv_file)
+    df_FPA.to_csv(csv_file)
 
     # save the mean FPA for each step w/ timestamps
-    df = pd.DataFrame(meanFPAstep_store)
+    df_mFPA = pd.DataFrame(meanFPAstep_store)
     csv_file = 'D:\stepdetect_debugging\meanFPAstep_Python.csv'
-    df.to_csv(csv_file)
+    df_mFPA.to_csv(csv_file)
 
     # save gait events
-    df = pd.DataFrame(gaitEvent_store)
+    df_GE = pd.DataFrame(gaitEvent_store)
     csv_file = 'D:\stepdetect_debugging\GaitEvent_Python.csv'
-    df.to_csv(csv_file)
+    df_GE.to_csv(csv_file)
 
     # save DIFF
     df = pd.DataFrame(DIFF_store)
@@ -239,16 +239,17 @@ except KeyboardInterrupt: # CTRL-C to exit
     csv_file = 'D:\stepdetect_debugging\DIFFDV_Python.csv'
     df.to_csv(csv_file)
     
-    #TODO: don't know python well enough to know if this will work... but check! 
     # Plot the FPA
-    plt.plot(FPA_store)
+    plt.plot(df_FPA.iloc[:,1])
     plt.xlabel('Frame')
     plt.ylabel('FPA [deg]')
 
     # Plot meanFPAstep_store as circles
+    '''
     meanFPAstep_time = [t for t, _ in meanFPAstep_store]
     meanFPAstep_value = [v for _, v in meanFPAstep_store]
     plt.scatter(meanFPAstep_time, meanFPAstep_value, color='red', marker='o')
+    '''
 
     plt.show()
     
