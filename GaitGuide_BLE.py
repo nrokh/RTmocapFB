@@ -39,9 +39,11 @@ async def run():
     while (GaitGuide.is_connected and count < 11):
         await write_characteristic(GaitGuide, Right, 120)
         time.sleep(1)  # Sleep for 1 second
+        print('Right')
 
         await write_characteristic(GaitGuide, Left, 120)
         time.sleep(1)  # Sleep for 1 second
+        print('Left')
 
         count = count +1
 
