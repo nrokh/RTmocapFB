@@ -14,6 +14,7 @@ from bleak import BleakScanner, BleakClient
 
 # gaitguide BLE settings:
 BLE_DURATION_STIM_SERVICE_UUID = '1111'
+BLE_AMPLITUDE_CHARACTERISTIC_UUID = '1112' 
 BLE_DURATION_RIGHT_CHARACTERISTIC_UUID = '1113'  # these need to be chaned at some point for BLE specificatin reasons '48e47602-1b27-11ee-be56-0242ac120002'
 BLE_DURATION_LEFT_CHARACTERISTIC_UUID = '1114'  # '63bae092-1b27-11ee-be56-0242ac120002'
 timeout = 5
@@ -32,6 +33,8 @@ def get_characteristic(service, characteristic_uuid):
     characteristic = service.get_characteristic(characteristic_uuid)
     return characteristic
 
+async def set_amp(client, characteristic, value):
+    await client.write_gatt_char(characteristic,  bytearray([value]))
 
 async def write_characteristic(client, characteristic, value):
     await client.write_gatt_char(characteristic, bytearray([value]))
@@ -47,6 +50,7 @@ async def run():
     if service:
         Right = await get_characteristic(service, BLE_DURATION_RIGHT_CHARACTERISTIC_UUID)
         Left = await get_characteristic(service, BLE_DURATION_LEFT_CHARACTERISTIC_UUID)
+        
 
     count = 0
     while (GaitGuide.is_connected and count < 11):
@@ -114,11 +118,13 @@ try:
     service = GaitGuide.services.get_service(BLE_DURATION_STIM_SERVICE_UUID)
 
     if service:
-        print('Setting Right and Left GaitGuide characteristics...')
+        print('Setting Amp, Right and Left GaitGuide characteristics...')
         Right = get_characteristic(service, BLE_DURATION_RIGHT_CHARACTERISTIC_UUID)
         Left = get_characteristic(service, BLE_DURATION_LEFT_CHARACTERISTIC_UUID)
+        Ampl = get_characteristic(service, BLE_AMPLITUDE_CHARACTERISTIC_UUID)
 
-
+    print('Setting GaitGuide amplitude to max...')
+    asyncio.run(set_amp(GaitGuide, Ampl, 127))
 
     # create a list to store FPA and marker values
     FPA_store = []
@@ -205,7 +211,7 @@ try:
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
-            asyncio.run(write_characteristic(GaitGuide, Right, 10))
+            asyncio.run(write_characteristic(GaitGuide, Right, 120))
                 # TODO: SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET 
             # if meanFPAstep < baselineFPA, cue left; else cue right
 
