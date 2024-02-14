@@ -6,7 +6,7 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import keyboard #TODO: make sure this is installed
+import keyboard
 import asyncio
 from bleak import BleakScanner, BleakClient
 
@@ -86,7 +86,7 @@ try:
 
     # Connect to Bluetooth
     print(' Connecting to GaitGuide...')
-    GaitGuide = asyncio.run(connect_to_device()) #TODO: check if this works
+    GaitGuide = asyncio.run(connect_to_device()) 
 
     print('Getting GaitGuide service...')
     service = GaitGuide.services.get_service(BLE_DURATION_STIM_SERVICE_UUID)
@@ -105,7 +105,7 @@ try:
     CAL_store = []
     PSI_store = []
     DIFF_store = [0,0,0]
-    DIFFDV_store = [0,0,0] # TODO: check if this is how you want to initialize
+    DIFFDV_store = [0,0,0] 
     gaitEvent_store = []
     FPAstep_store = []
     meanFPAstep_store = []  
@@ -129,8 +129,8 @@ try:
 
     ################# STEP DETECTION ###################
     print("Press space when ready to start step detection: ")
-    keyboard.wait('space')         # TODO: check if keyboard input works; experimenter waits for steady-state
-    
+    keyboard.wait('space')        
+
     local_max_detected = False
 
     while True: # wait for keyboard interrupt
@@ -157,11 +157,10 @@ try:
             # Calculate FPA
             occl_flag_foot = 0
             footVec = (RTOE_translation[0] - RHEE_translation[0], RTOE_translation[1] - RHEE_translation[1])
-            FPA = -math.degrees(math.atan(footVec[1] / footVec[0]))  # TODO: check signs for right foot
+            FPA = -math.degrees(math.atan(footVec[1] / footVec[0])) 
             CAL_store.append(CAL)
 
-        # get AP CAL and PSI markers (TODO: should be 0th index -- X component-- but check)
- 
+        # get AP CAL and PSI markers  
         if PSI == 0:
             occl_flag_hip += 1
             if occl_flag_hip > 25:
@@ -187,8 +186,7 @@ try:
         if local_max_detected and DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
             print("local min")
             meanFPAstep = np.nanmean(FPAstep_store)
-            meanFPAstep_store.append((time.time(), meanFPAstep)) #TODO: where should the timestamp for the meanFPAstep be? at the beginning or end or middle of the step? [NR]: at the time local min is detected, the way you have it, works fine
-
+            meanFPAstep_store.append((time.time(), meanFPAstep)) 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time(), 2.0))
 
@@ -210,8 +208,6 @@ try:
                 elif meanFPAstep > targetFPA + band:
                     duration = 100 + (meanFPAstep - targetFPA)*10
                     asyncio.run(write_characteristic(GaitGuide, Right, int(duration)))
-
-                # TODO: SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET 
 
 
 
