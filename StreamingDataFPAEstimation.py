@@ -115,10 +115,17 @@ try:
     occl_flag_hip = 0
 
     ############## SCALED FEEDBACK SETUP ###############
-    band = 1.0
+    band = 0.5
+    feedbackType = float(input("Select feedback type: (1) = trinary; (2) = scaled: "))
+    if feedbackType == 1.0:
+        print("Starting trinary feedback mode...")
+    elif feedbackType == 2.0:
+        print("Starting scaled feedback mode...")
 
     ################# ENTER BASELINE FPA ###############
     baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
+    targetFPA = baselineFPA - 10.0
+    print("Target toe-in angle is: ", targetFPA)
 
     ################# STEP DETECTION ###################
     print("Press space when ready to start step detection: ")
@@ -188,12 +195,22 @@ try:
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
-            if meanFPAstep < baselineFPA - band:
-                asyncio.run(write_characteristic(GaitGuide, Left, 120))
+            if feedbackType == 1.0: #trinary mode
+                if meanFPAstep < targetFPA - band:
+                    asyncio.run(write_characteristic(GaitGuide, Left, 200))
 
-            elif meanFPAstep > baselineFPA + band:
-                asyncio.run(write_characteristic(GaitGuide, Right, 120))
-                
+                elif meanFPAstep > targetFPA + band:
+                    asyncio.run(write_characteristic(GaitGuide, Right, 200))
+
+            elif feedbackType == 2.0: # scaled feedback mode
+                if meanFPAstep < targetFPA - band:
+                    duration = 100 + (targetFPA - meanFPAstep)*10
+                    asyncio.run(write_characteristic(GaitGuide, Left, int(duration)))
+
+                elif meanFPAstep > targetFPA + band:
+                    duration = 100 + (meanFPAstep - targetFPA)*10
+                    asyncio.run(write_characteristic(GaitGuide, Right, int(duration)))
+
                 # TODO: SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET 
 
 
