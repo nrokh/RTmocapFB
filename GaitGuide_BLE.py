@@ -43,11 +43,11 @@ async def run():
     await set_amp(GaitGuide, Ampl, 127)
     count = 0
     while (GaitGuide.is_connected and count < 11):
-        await write_characteristic(GaitGuide, Right, 120)
+        await write_characteristic(GaitGuide, Right, 255)
         time.sleep(1)  # Sleep for 1 second
         print('Right')
 
-        await write_characteristic(GaitGuide, Left, 120)
+        await write_characteristic(GaitGuide, Left, 50)
         time.sleep(1)  # Sleep for 1 second
         print('Left')
 
