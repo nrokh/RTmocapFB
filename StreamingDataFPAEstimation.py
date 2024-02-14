@@ -39,32 +39,6 @@ async def set_amp(client, characteristic, value):
 async def write_characteristic(client, characteristic, value):
     await client.write_gatt_char(characteristic, bytearray([value]))
 
-'''
-
-async def run():
-    
-    print("Searching for BLE GaitGuide...")
-    GaitGuide = await connect_to_device()
-    service = GaitGuide.services.get_service(BLE_DURATION_STIM_SERVICE_UUID)
-
-    if service:
-        Right = await get_characteristic(service, BLE_DURATION_RIGHT_CHARACTERISTIC_UUID)
-        Left = await get_characteristic(service, BLE_DURATION_LEFT_CHARACTERISTIC_UUID)
-        
-
-    count = 0
-    while (GaitGuide.is_connected and count < 11):
-        await write_characteristic(GaitGuide, Right, 120)
-        time.sleep(1)  # Sleep for 1 second
-
-        await write_characteristic(GaitGuide, Left, 120)
-        time.sleep(1)  # Sleep for 1 second
-
-        count = count +1
-
-    await GaitGuide.disconnect()
-    print('GaitGuide Disconnected [', GaitGuide.address, ']')
-'''
 
 ############### VICON SETUP ########################
 # create arg to host (Vicon Nexus)
@@ -140,6 +114,9 @@ try:
     occl_flag_foot = 0 
     occl_flag_hip = 0
 
+    ############## SCALED FEEDBACK SETUP ###############
+    band = 1.0
+
     ################# ENTER BASELINE FPA ###############
     baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
 
@@ -211,9 +188,14 @@ try:
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
-            asyncio.run(write_characteristic(GaitGuide, Right, 120))
+            if meanFPAstep < baselineFPA - band:
+                asyncio.run(write_characteristic(GaitGuide, Left, 120))
+
+            elif meanFPAstep > baselineFPA + band:
+                asyncio.run(write_characteristic(GaitGuide, Right, 120))
+                
                 # TODO: SCALE FEEDBACK ACCORDING TO DISTANCE FROM TARGET 
-            # if meanFPAstep < baselineFPA, cue left; else cue right
+
 
 
         # save FPA value to the list
