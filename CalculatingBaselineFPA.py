@@ -70,7 +70,7 @@ try:
     
     local_max_detected = False
 
-    while True: # wait for keyboard interrupt
+    while True: # wait for keyboard interrupt TODO: run this for a certain about of time (fixed)
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
 
@@ -136,7 +136,7 @@ try:
 except KeyboardInterrupt: # CTRL-C to exit
     # save calculated FPA
     df = pd.DataFrame(FPA_store)
-    csv_file = 'D:\stepdetect_debugging\Baseline_FPA_Python.csv'
+    csv_file = 'D:\stepdetect_debugging\Baseline_FPA_Python_NR.csv'
     df.to_csv(csv_file)
     
     #print avg of baseline FPA
