@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import keyboard
 import asyncio
+import struct
 from bleak import BleakScanner, BleakClient
 
 ############# GAIT GUIDE SETUP #####################
@@ -37,7 +38,7 @@ async def set_amp(client, characteristic, value):
     await client.write_gatt_char(characteristic,  bytearray([value]))
 
 async def write_characteristic(client, characteristic, value):
-    await client.write_gatt_char(characteristic, bytearray([value]))
+    await client.write_gatt_char(characteristic, bytearray(value))
 
 
 ############### VICON SETUP ########################
@@ -115,7 +116,8 @@ try:
     occl_flag_hip = 0
 
     ############## SCALED FEEDBACK SETUP ###############
-    band = 0.5
+    band = 2 #degrees to either side
+
     feedbackType = float(input("Select feedback type: (1) = trinary; (2) = scaled: "))
     if feedbackType == 1.0:
         print("Starting trinary feedback mode...")
@@ -202,12 +204,14 @@ try:
 
             elif feedbackType == 2.0: # scaled feedback mode
                 if meanFPAstep < targetFPA - band:
-                    duration = 100 + (targetFPA - meanFPAstep)*10 #max: 255
-                    asyncio.run(write_characteristic(GaitGuide, Left, int(duration)))
+                    duration = 100 + (targetFPA - meanFPAstep)*50 
+                    duration_packed = struct.pack('<H', int(duration))
+                    asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
 
                 elif meanFPAstep > targetFPA + band:
-                    duration = 100 + (meanFPAstep - targetFPA)*10
-                    asyncio.run(write_characteristic(GaitGuide, Right, int(duration)))
+                    duration = 100 + (meanFPAstep - targetFPA)*50
+                    duration_packed = struct.pack('<H', int(duration))
+                    asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
 
 
 
@@ -217,7 +221,7 @@ try:
 except KeyboardInterrupt: # CTRL-C to exit
     # save calculated FPA
     df_FPA = pd.DataFrame(FPA_store)
-    csv_file = 'D:\stepdetect_debugging\FPA_Python.csv'
+    csv_file = 'D:\stepdetect_debugging\FPA_ Python.csv'
     df_FPA.to_csv(csv_file)
 
     # save the mean FPA for each step w/ timestamps
