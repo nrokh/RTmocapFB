@@ -10,6 +10,9 @@ import keyboard
 import asyncio
 import struct
 from bleak import BleakScanner, BleakClient
+import tkinter as tk
+from tkinter import filedialog
+import os
 
 ############# GAIT GUIDE SETUP #####################
 
@@ -40,6 +43,15 @@ async def set_amp(client, characteristic, value):
 async def write_characteristic(client, characteristic, value):
     await client.write_gatt_char(characteristic, bytearray(value))
 
+############# FILE SAVING #####################
+
+def generate_csv_filename(directory, subject_name, parameter):
+    csv_file = os.path.join(directory, subject_name, parameter, '.csv')
+    counter = 0
+    while os.path.exists(csv_file):
+        counter += 1
+        csv_file = os.path.join(directory, subject_name, '_Baseline_FPA' + str(counter) + '.csv')
+    return csv_file
 
 ############### VICON SETUP ########################
 # create arg to host (Vicon Nexus)
@@ -84,6 +96,10 @@ try:
     subjectNames = client.GetSubjectNames()
     print('        Subject name: ', subjectNames)
 
+    # Get the desired directory to save the data
+    root = tk.Tk()
+    root.withdraw() # we don't want a full GUI, so keep the root window from appearing
+    directory = filedialog.askdirectory()
 
     # Connect to Bluetooth
     print(' Connecting to GaitGuide...')
@@ -218,31 +234,33 @@ try:
         # save FPA value to the list
         FPA_store.append((time.time(), FPA))
 
-except KeyboardInterrupt: # CTRL-C to exit
+
+
+except KeyboardInterrupt: # CTRL-C to exit #TODO: change subjectNames to what we want
     # save calculated FPA
     df_FPA = pd.DataFrame(FPA_store)
-    csv_file = 'D:\stepdetect_debugging\FPA_ Python_NR.csv'
-    df_FPA.to_csv(csv_file)
+    csv_file_FPA = generate_csv_filename(directory, subjectNames, 'FPA')
+    df_FPA.to_csv(csv_file_FPA)
 
     # save the mean FPA for each step w/ timestamps
     df_mFPA = pd.DataFrame(meanFPAstep_store)
-    csv_file = 'D:\stepdetect_debuggi2ng\meanFPAstep_Python_NR.csv'
-    df_mFPA.to_csv(csv_file)
+    csv_file_mFPA = generate_csv_filename(directory, subjectNames, 'meanFPA')
+    df_mFPA.to_csv(csv_file_mFPA)
 
     # save gait events
     df_GE = pd.DataFrame(gaitEvent_store)
-    csv_file = 'D:\stepdetect_debugging\GaitEvent_Python_NR.csv'
-    df_GE.to_csv(csv_file)
+    csv_file_GE = generate_csv_filename(directory, subjectNames, 'gaitEvents')
+    df_GE.to_csv(csv_file_GE)
 
     # save DIFF
     df = pd.DataFrame(DIFF_store)
-    csv_file = 'D:\stepdetect_debugging\DIFF_Python_NR.csv'
-    df.to_csv(csv_file) 
+    csv_file_df = generate_csv_filename(directory, subjectNames, 'DIFF')
+    df.to_csv(csv_file_df) 
 
     # save DIFFDV
-    df = pd.DataFrame(DIFFDV_store)
-    csv_file = 'D:\stepdetect_debugging\DIFFDV_Python_NR.csv'
-    df.to_csv(csv_file)
+    dfdv = pd.DataFrame(DIFFDV_store)
+    csv_file_dfdv = generate_csv_filename(directory, subjectNames, 'DIFFDV')
+    dfdv.to_csv(csv_file_dfdv)
     
     # Plot the FPA
     plt.plot(df_FPA.iloc[:,1])

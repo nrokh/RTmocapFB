@@ -6,7 +6,11 @@ import math
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import time
 import keyboard #TODO: make sure this is installed
+import tkinter as tk
+from tkinter import filedialog
+import os
 
 ############### VICON SETUP ########################
 # create arg to host (Vicon Nexus)
@@ -50,6 +54,18 @@ try:
     subjectNames = client.GetSubjectNames()
     print('        Subject name: ', subjectNames)
 
+    # Get the desired directory to save the data
+    root = tk.Tk()
+    root.withdraw() # we don't want a full GUI, so keep the root window from appearing
+    directory = filedialog.askdirectory()
+    csv_file = os.path.join(directory, subjectNames[0],'_Baseline_FPA.csv') #TODO: change subjectNames[0] to what we need
+    counter = 0
+    # Check if the file already exists
+    while os.path.exists(csv_file):
+        counter += 1
+        csv_file = os.path.join(directory, subjectNames[0],'_Baseline_FPA' + str(counter) + '.csv')
+    print('        Data will be saved to: ', csv_file)
+
     # create a list to store FPA and marker values
     FPA_store = []
     CAL_store = []
@@ -70,16 +86,17 @@ try:
     
     local_max_detected = False
 
-    while True: # wait for keyboard interrupt TODO: run this for a certain about of time (fixed)
-        subjectName = subjectNames[0] # select the main subject
-        client.GetFrame() # get the frame
+    start_time = time.time()
+    while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
+        subjectName = subjectNames[0]  # select the main subject
+        client.GetFrame()  # get the frame
 
         ################# CALCULATE FPA ####################
 
         RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
         RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
         CAL = RHEE_translation[0]
-        PSI = client.GetMarkerGlobalTranslation( subjectName, 'RPSI')[0][0]
+        PSI = client.GetMarkerGlobalTranslation(subjectName, 'RPSI')[0][0]
 
         # add error exception for occluded markers
         if RTOE_translation == [0, 0] or RHEE_translation == [0, 0]:
@@ -87,7 +104,7 @@ try:
             occl_flag_foot += 1
             if occl_flag_foot > 25:
                 print("Too many occlusions for RHEE/RTOE, check the markers")
-            #save FPA as a NaN value so we can discard later
+            # save FPA as a NaN value so we can discard later
             FPA = np.nan
         else:
             # Calculate FPA
@@ -96,22 +113,20 @@ try:
             FPA = -math.degrees(math.atan(footVec[1] / footVec[0]))  # TODO: check signs for right foot
             CAL_store.append(CAL)
 
-        # get AP CAL and PSI markers (TODO: should be 0th index -- X component-- but check)
- 
+        # get AP CAL and PSI markers 
         if PSI == 0:
             occl_flag_hip += 1
             if occl_flag_hip > 25:
-                print("Too many occlusions for PSI, check marker")   
-        
+                print("Too many occlusions for PSI, check marker")
+
         # take derivative of difference between heel and hip:
         DIFF = CAL - PSI
         DIFF_store.append(DIFF)
-        DIFFDV = DIFF_store[-1] - DIFF_store[-2] 
+        DIFFDV = DIFF_store[-1] - DIFF_store[-2]
         DIFFDV_store.append(DIFFDV)
 
-        # search for local max 
-        if DIFFDV_store[-1]>=0 and DIFFDV_store[-2]<=0 and DIFFDV_store[-3]<=0 and DIFFDV_store[-4]<=0:
-
+        # search for local max
+        if DIFFDV_store[-1] >= 0 and DIFFDV_store[-2] <= 0 and DIFFDV_store[-3] <= 0 and DIFFDV_store[-4] <= 0:
             print("local max")
             FPAstep_store = []
             local_max_detected = True
@@ -120,10 +135,10 @@ try:
         FPAstep_store.append(FPA)
 
         # search for min:
-        if local_max_detected and DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
+        if local_max_detected and DIFFDV_store[-1] <= 0 and DIFFDV_store[-2] >= 0 and DIFFDV_store[-3] >= 0 and DIFFDV_store[-4] >= 0:
             print("local min")
             meanFPAstep = np.nanmean(FPAstep_store)
-            baselineFPA.append(meanFPAstep) 
+            baselineFPA.append(meanFPAstep)
 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time(), 2.0))
@@ -133,24 +148,26 @@ try:
         # save FPA value to the list
         FPA_store.append((time.time(), FPA))
 
-except KeyboardInterrupt: # CTRL-C to exit
     # save calculated FPA
     df = pd.DataFrame(FPA_store)
     csv_file = 'D:\stepdetect_debugging\Baseline_FPA_Python_NR.csv'
     df.to_csv(csv_file)
-    
-    #print avg of baseline FPA
+    # print avg of baseline FPA
     print("Baseline FPA: " + str(np.nanmean(baselineFPA)))
-
-    # plot the FPA for sanity check
-    '''
-    plt.plot(FPA_store)
-    plt.xlabel('Frame')
-    plt.ylabel('FPA [deg]')
-    plt.show()
-    '''
-
+        
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
+except KeyboardInterrupt:
+    print( 'Keyboard interrupt detected, trial ended early and data was not saved' )
+
+# TODO: plot the FPA for sanity check
+'''
+plt.plot(FPA_store)
+plt.xlabel('Frame')
+plt.ylabel('FPA [deg]')
+plt.show()
+'''
+
+
 
 
