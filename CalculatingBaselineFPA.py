@@ -54,18 +54,18 @@ try:
 
     # Get the subject's name
     subjectNames = client.GetSubjectNames()
-    print('        Subject name: ', subjectNames)
+    print('        Subject name: ', subjectNames[0])
 
     # Get the desired directory to save the data
     root = tk.Tk()
     root.withdraw() # we don't want a full GUI, so keep the root window from appearing
     directory = filedialog.askdirectory()
-    csv_file = os.path.join(directory, subjectNames[0],'_Baseline_FPA.csv') #TODO: change subjectNames[0] to what we need
+    csv_file = os.path.join(directory, subjectNames[0] + '_Baseline_FPA.csv')
     counter = 0
     # Check if the file already exists
     while os.path.exists(csv_file):
         counter += 1
-        csv_file = os.path.join(directory, subjectNames[0],'_Baseline_FPA' + str(counter) + '.csv')
+        csv_file = os.path.join(directory, subjectNames[0] + '_Baseline_FPA' + str(counter) + '.csv')
     print('        Data will be saved to: ', csv_file)
 
     # create a list to store FPA and marker values
@@ -152,7 +152,6 @@ try:
 
     # save calculated FPA
     df = pd.DataFrame(FPA_store)
-    csv_file = 'D:\stepdetect_debugging\Baseline_FPA_Python_NR.csv'
     df.to_csv(csv_file)
     # print avg of baseline FPA
     print("Baseline FPA: " + str(np.nanmean(baselineFPA)))

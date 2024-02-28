@@ -46,13 +46,16 @@ async def write_characteristic(client, characteristic, value):
 ############# FILE SAVING #####################
 
 def generate_csv_filename(directory, subject_name, parameter):
-    csv_file = os.path.join(directory, subject_name, parameter, '.csv')
+    
+    csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + '.csv')
     counter = 0
+
     while os.path.exists(csv_file):
         counter += 1
-        csv_file = os.path.join(directory, subject_name, '_Baseline_FPA' + str(counter) + '.csv')
+        csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + str(counter) + '.csv')
+    print('      Data will be saved to file: ', csv_file)
     return csv_file
-
+    
 ############### VICON SETUP ########################
 # create arg to host (Vicon Nexus)
 parser = argparse.ArgumentParser(description=__doc__)
@@ -94,7 +97,7 @@ try:
 
     # Get the subject's name
     subjectNames = client.GetSubjectNames()
-    print('        Subject name: ', subjectNames)
+    print('        Subject name: ', subjectNames[0])
 
     # Get the desired directory to save the data
     root = tk.Tk()
@@ -236,7 +239,7 @@ try:
 
 
 
-except KeyboardInterrupt: # CTRL-C to exit #TODO: change subjectNames to what we want
+except KeyboardInterrupt: # CTRL-C to exit
     # save calculated FPA
     df_FPA = pd.DataFrame(FPA_store)
     csv_file_FPA = generate_csv_filename(directory, subjectNames, 'FPA')
