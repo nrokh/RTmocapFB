@@ -226,7 +226,7 @@ except KeyboardInterrupt: # CTRL-C to exit
 
     # save the mean FPA for each step w/ timestamps
     df_mFPA = pd.DataFrame(meanFPAstep_store)
-    csv_file = 'D:\stepdetect_debuggi2ng\meanFPAstep_Python_NR.csv'
+    csv_file = 'D:\stepdetect_debugging\meanFPAstep_Python_NR.csv'
     df_mFPA.to_csv(csv_file)
 
     # save gait events
