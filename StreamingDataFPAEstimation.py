@@ -223,12 +223,16 @@ try:
 
             elif feedbackType == 2.0: # scaled feedback mode
                 if meanFPAstep < targetFPA - band:
-                    duration = 100 + (targetFPA - meanFPAstep)*50 
+                    duration = (targetFPA - meanFPAstep)*50 - 50
+                    if duration > 600:
+                        duration = 600
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
 
                 elif meanFPAstep > targetFPA + band:
-                    duration = 100 + (meanFPAstep - targetFPA)*50
+                    duration = (meanFPAstep - targetFPA)*50 - 50
+                    if duration > 600:
+                        duration = 600
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
 
