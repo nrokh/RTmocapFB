@@ -8,9 +8,11 @@ Completed:
 * Combine haptic triggers with feedback loop
 * Craft baseline FPA estimation script
 * Set naming and saving conventions, folder structure
-* Test feedback scaling slope 
+* Test feedback scaling slope
+* Pilot test vibrotactile sensitivity ML App
 
 To do:
-* Pilot test vibrotactile sensitivity ML App
+* Write Python script for Vicon for proprioceptive sensitivity test
+* Pilot test proprioceptive sensitivity
 * Quantify delay/estimate how long it takes to detect a step and send a command
 * Run pilot trial start to finish
