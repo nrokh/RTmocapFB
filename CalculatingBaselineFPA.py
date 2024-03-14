@@ -89,7 +89,7 @@ try:
     local_max_detected = False
 
     start_time = time.time()
-    while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
+    while time.time() - start_time < 30:  # Run for 3 minutes (180 seconds)
         subjectName = subjectNames[0]  # select the main subject
         client.GetFrame()  # get the frame
 
@@ -143,12 +143,12 @@ try:
             baselineFPA.append(meanFPAstep)
 
             print("mean FPA for step = " + str(meanFPAstep))
-            gaitEvent_store.append((time.time(), 2.0))
+            gaitEvent_store.append((time.time_ns(), 2.0))
 
             local_max_detected = False
 
         # save FPA value to the list
-        FPA_store.append((time.time(), FPA))
+        FPA_store.append((time.time_ns(), FPA))
 
     # save calculated FPA
     df = pd.DataFrame(FPA_store)

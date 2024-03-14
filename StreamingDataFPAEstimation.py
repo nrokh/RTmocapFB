@@ -199,7 +199,7 @@ try:
             print("local max")
             FPAstep_store = []
             local_max_detected = True
-            gaitEvent_store.append((time.time(), 1.0))
+            gaitEvent_store.append((time.time_ns(), 1.0))
 
         FPAstep_store.append(FPA)
 
@@ -207,9 +207,9 @@ try:
         if local_max_detected and DIFFDV_store[-1]<=0 and DIFFDV_store[-2]>=0 and DIFFDV_store[-3]>=0 and DIFFDV_store[-4]>=0:
             print("local min")
             meanFPAstep = np.nanmean(FPAstep_store)
-            meanFPAstep_store.append((time.time(), meanFPAstep)) 
+            meanFPAstep_store.append((time.time_ns(), meanFPAstep)) 
             print("mean FPA for step = " + str(meanFPAstep))
-            gaitEvent_store.append((time.time(), 2.0))
+            gaitEvent_store.append((time.time_ns(), 2.0))
 
             local_max_detected = False
 
@@ -239,7 +239,7 @@ try:
 
 
         # save FPA value to the list
-        FPA_store.append((time.time(), FPA))
+        FPA_store.append((time.time_ns(), FPA))
 
 
 
