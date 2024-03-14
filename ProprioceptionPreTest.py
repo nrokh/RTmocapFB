@@ -69,11 +69,12 @@ try:
 
     ################# Proprioception Test ###################
     FPA_store = []
-    deg_test = [-15, -10, -5, 0, 5, 10, 15] #angles to test for FPA proprioception
+    err_prop = []
+    deg_test = [15] #[-15, -10, -5, 0, 5, 10, 15] #angles to test for FPA proprioception
     for deg_i in range(len(deg_test)):
 
         ################# Manually moving the participant's foot to the desired angle #################
-        print("Press space after moving the participant's foot to" + deg_test[deg_i] + "deg: ")
+        print("Press space after moving the participant's foot to " + str(deg_test[deg_i]) + " deg: ")
         keyboard.wait('space')  
     
         client.GetFrame()  # get the frame
@@ -90,6 +91,9 @@ try:
         RTOE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
         RHEE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
 
+        #Heading vector to look at FPA
+        headingVec = (deg_0[0] - RHEE_manual[0], deg_0[1] - RHEE_manual[1])
+
         # add error exception for occluded markers
         if RTOE_manual == [0, 0] or RHEE_manual == [0, 0]:
             # Flag this data 
@@ -99,10 +103,11 @@ try:
             # Calculate FPA
             footVec_manual = (RTOE_manual[0] - RHEE_manual[0], RTOE_manual[1] - RHEE_manual[1])
             FPA_manual = -math.degrees(math.atan(footVec_manual[1] / footVec_manual[0])) 
+            print("The manual angle is: " + str(FPA_manual))
 
         ################# Allowing the participant to move foot to the desired angle #################
              
-        print("Press space after allowing the participant to move their own foot to", deg_test[deg_i], "deg: ")
+        print("Press space after allowing the participant to move their own foot to " + str(deg_test[deg_i]) + " deg: ")
         keyboard.wait('space')  
     
         client.GetFrame()  # get the frame
@@ -120,15 +125,18 @@ try:
             # Calculate FPA
             footVec_prop = (RTOE_prop[0] - RHEE_prop[0], RTOE_prop[1] - RHEE_prop[1])
             FPA_prop = -math.degrees(math.atan(footVec_prop[1] / footVec_prop[0]))
+            print("The current angle is: " + str(FPA_prop))
 
         # save FPA value to the list
-        FPA_store.append((time.time_ns(), deg_test[deg_i], FPA_manual, FPA_prop, FPA_prop - FPA_manual))
+        err_prop.append(FPA_prop - FPA_manual)
+        FPA_store.append((time.time_ns(), deg_test[deg_i], FPA_manual, FPA_prop, err_prop[deg_i]))
+        
 
     # save calculated FPA
     df = pd.DataFrame(FPA_store)
     df.to_csv(csv_file)
     # print avg error
-    print("Average error: " + str(np.nanmean(FPA_store[:,4])))
+    print("**--------------Average error: " + str(np.nanmean(err_prop))+ "--------------**")
         
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
