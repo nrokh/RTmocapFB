@@ -78,6 +78,7 @@ try:
         keyboard.wait('space')  
     
         client.GetFrame()  # get the frame
+        names = client.GetMarkerNames(subjectName)
         # Baseline markers
         deg_15_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_15_in')[0]
         deg_10_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_10_in')[0]
