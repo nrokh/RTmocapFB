@@ -132,14 +132,14 @@ try:
             FPA_prop = -math.degrees(math.atan(footVec_prop[1] / footVec_prop[0]))
             # print("The current angle is: " + str(FPA_prop))
 
-        # save FPA value to the list
-        err_prop.append(FPA_prop - FPA_manual)
-        print("        The error for this trial was: " + str(err_prop[deg_i]))
         if deg_test[deg_i] > 0:
+            err_prop.append(FPA_prop - FPA_manual)
             err_prop_out.append(err_prop[deg_i])
         elif deg_test[deg_i] < 0:
+            err_prop.append(-1*(FPA_prop - FPA_manual)) #flipping this so all positive errors mean over-correction in both directions 
             err_prop_in.append(err_prop[deg_i])
-
+        
+        print("        The error for this trial was: " + str(err_prop[deg_i]))
         FPA_store.append((time.time_ns(), deg_test[deg_i], FPA_manual, FPA_prop, err_prop[deg_i]))
         
 
@@ -150,7 +150,7 @@ try:
     print("**---------------------------------------------------------------------------------------------------**")
     print("        Average error: " + str(np.nanmean(err_prop)) + "+/-" + str(np.nanstd(err_prop_in)))
     print("        Average toe-in error: " + str(np.nanmean(err_prop_in)) + "+/-" + str(np.nanstd(err_prop_in)))
-    print("        Average toe-out error: " + str(np.nanmean(err_prop_out)) + "+/-" + str(np.nanstd(err_prop_in)))
+    print("        Average toe-out error: " + str(np.nanmean(err_prop_out)) + "+/-" + str(np.nanstd(err_prop_out)))
     print("**---------------------------------------------------------------------------------------------------**")
         
 except ViconDataStream.DataStreamException as e:
