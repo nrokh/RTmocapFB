@@ -139,7 +139,7 @@ try:
             err_prop.append(-1*(FPA_prop - FPA_manual)) #flipping this so all positive errors mean over-correction in both directions 
             err_prop_in.append(err_prop[deg_i])
         
-        print("        The error for this trial was: " + str(err_prop[deg_i]))
+        print("                The error for this trial was: " + str(err_prop[deg_i]))
         FPA_store.append((time.time_ns(), deg_test[deg_i], FPA_manual, FPA_prop, err_prop[deg_i]))
         
 
