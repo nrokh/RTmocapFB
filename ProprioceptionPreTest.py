@@ -65,21 +65,25 @@ try:
         counter += 1
         csv_file = os.path.join(directory, subjectNames[0] + '_Baseline_FPA' + str(counter) + '.csv')
     print('        Data will be saved to: ', csv_file)
+    print("        NOTE TO USER: Make sure the proprioception testing device is in the correct spot (aligned with the treadmil)")
 
 
     ################# Proprioception Test ###################
     FPA_store = []
     err_prop = []
-    deg_test = [15] #[-15, -10, -5, 0, 5, 10, 15] #angles to test for FPA proprioception
+    err_prop_in = []
+    err_prop_out = []
+    deg_test = [-15, -10, -5, 5, 10, 15] #angles to test for FPA proprioception
     for deg_i in range(len(deg_test)):
 
         ################# Manually moving the participant's foot to the desired angle #################
-        print("Press space after moving the participant's foot to " + str(deg_test[deg_i]) + " deg: ")
+        print("        Press space after moving the participant's foot to " + str(deg_test[deg_i]) + " deg: ")
         keyboard.wait('space')  
     
         client.GetFrame()  # get the frame
         names = client.GetMarkerNames(subjectName)
-        # Baseline markers
+        # Baseline markers - note: if there is a marker issue, then delete the segment in VICON and label the markers in the properties section, not in the subjects tab
+        #TODO: check if the symmetric nature of the device messes with the coordination system 
         deg_15_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_15_in')[0]
         deg_10_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_10_in')[0]
         deg_5_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_5_in')[0]
@@ -92,8 +96,8 @@ try:
         RTOE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
         RHEE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
 
-        #Heading vector to look at FPA
-        headingVec = (deg_0[0] - RHEE_manual[0], deg_0[1] - RHEE_manual[1])
+        # #Heading vector to look at FPA
+        # headingVec = (deg_0[0] - RHEE_manual[0], deg_0[1] - RHEE_manual[1])
 
         # add error exception for occluded markers
         if RTOE_manual == [0, 0] or RHEE_manual == [0, 0]:
@@ -104,11 +108,11 @@ try:
             # Calculate FPA
             footVec_manual = (RTOE_manual[0] - RHEE_manual[0], RTOE_manual[1] - RHEE_manual[1])
             FPA_manual = -math.degrees(math.atan(footVec_manual[1] / footVec_manual[0])) 
-            print("The manual angle is: " + str(FPA_manual))
+            # print("The manual angle is: " + str(FPA_manual))
 
         ################# Allowing the participant to move foot to the desired angle #################
              
-        print("Press space after allowing the participant to move their own foot to " + str(deg_test[deg_i]) + " deg: ")
+        print("        Press space after allowing the participant to move their own foot to " + str(deg_test[deg_i]) + " deg: ")
         keyboard.wait('space')  
     
         client.GetFrame()  # get the frame
@@ -126,10 +130,16 @@ try:
             # Calculate FPA
             footVec_prop = (RTOE_prop[0] - RHEE_prop[0], RTOE_prop[1] - RHEE_prop[1])
             FPA_prop = -math.degrees(math.atan(footVec_prop[1] / footVec_prop[0]))
-            print("The current angle is: " + str(FPA_prop))
+            # print("The current angle is: " + str(FPA_prop))
 
         # save FPA value to the list
         err_prop.append(FPA_prop - FPA_manual)
+        print("        The error for this trial was: " + str(err_prop[deg_i]))
+        if deg_test[deg_i] > 0:
+            err_prop_out.append(err_prop[deg_i])
+        elif deg_test[deg_i] < 0:
+            err_prop_in.append(err_prop[deg_i])
+
         FPA_store.append((time.time_ns(), deg_test[deg_i], FPA_manual, FPA_prop, err_prop[deg_i]))
         
 
@@ -137,7 +147,11 @@ try:
     df = pd.DataFrame(FPA_store)
     df.to_csv(csv_file)
     # print avg error
-    print("**--------------Average error: " + str(np.nanmean(err_prop))+ "--------------**")
+    print("**---------------------------------------------------------------------------------------------------**")
+    print("        Average error: " + str(np.nanmean(err_prop)) + "+/-" + str(np.nanstd(err_prop_in)))
+    print("        Average toe-in error: " + str(np.nanmean(err_prop_in)) + "+/-" + str(np.nanstd(err_prop_in)))
+    print("        Average toe-out error: " + str(np.nanmean(err_prop_out)) + "+/-" + str(np.nanstd(err_prop_in)))
+    print("**---------------------------------------------------------------------------------------------------**")
         
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
