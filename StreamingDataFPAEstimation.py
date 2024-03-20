@@ -135,7 +135,7 @@ try:
     occl_flag_hip = 0
 
     ############## SCALED FEEDBACK SETUP ###############
-    band = 2 #degrees to either side
+    band = 3 #degrees to either side
 
     feedbackType = float(input("Select feedback type: (1) = trinary; (2) = scaled: "))
     if feedbackType == 1.0:
