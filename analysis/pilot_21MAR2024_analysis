@@ -17,7 +17,8 @@ plt.hlines(y = 4.87-10, xmin = len(baselineFPA)+1, xmax = 320)
 plt.ylim([-15,15])
 plt.xlabel('Time (s)')
 plt.ylabel('FPA (deg)')
-plt.show()
 
 # save plot as svg
 plt.savefig('analysis/pilot_21MARCH2024_FPA.svg')
+
+plt.show()
