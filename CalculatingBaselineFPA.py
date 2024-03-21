@@ -20,6 +20,19 @@ args = parser.parse_args()
 
 client = ViconDataStream.Client()
 
+    ############# FILE SAVING #####################
+
+def generate_csv_filename(directory, subject_name, parameter):
+            
+    csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + '.csv')
+    counter = 0
+
+    while os.path.exists(csv_file):
+        counter += 1
+        csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + str(counter) + '.csv')
+    print('      Data will be saved to file: ', csv_file)
+    return csv_file
+
 try:
     # Connect to Nexus (Nexus needs to be on and either Live or replaying previously collected data)
     client.Connect( args.host)
@@ -58,13 +71,6 @@ try:
     root = tk.Tk()
     root.withdraw() # we don't want a full GUI, so keep the root window from appearing
     directory = filedialog.askdirectory()
-    csv_file = os.path.join(directory, subjectNames[0] + '_Baseline_FPA.csv')
-    counter = 0
-    # Check if the file already exists
-    while os.path.exists(csv_file):
-        counter += 1
-        csv_file = os.path.join(directory, subjectNames[0] + '_Baseline_FPA' + str(counter) + '.csv')
-    print('        Data will be saved to: ', csv_file)
 
     # create a list to store FPA and marker values
     FPA_store = []
@@ -75,6 +81,7 @@ try:
     gaitEvent_store = []
     FPAstep_store = []
     baselineFPA = []
+    meanFPAstep_store = []
 
     # create flag to check for systemic occlusions
     occl_flag_foot = 0 
@@ -138,6 +145,8 @@ try:
         if local_max_detected and DIFFDV_store[-1] <= 0 and DIFFDV_store[-2] >= 0 and DIFFDV_store[-3] >= 0 and DIFFDV_store[-4] >= 0:
             print("local min")
             meanFPAstep = np.nanmean(FPAstep_store)
+            meanFPAstep_store.append((time.time_ns(), meanFPAstep)) 
+
             baselineFPA.append(meanFPAstep)
 
             print("mean FPA for step = " + str(meanFPAstep))
@@ -149,8 +158,20 @@ try:
         FPA_store.append((time.time_ns(), FPA))
 
     # save calculated FPA
-    df = pd.DataFrame(FPA_store)
-    df.to_csv(csv_file)
+    df_FPA = pd.DataFrame(FPA_store)
+    csv_file_FPA = generate_csv_filename(directory, subjectNames, 'baselineFPA')
+    df_FPA.to_csv(csv_file_FPA)
+
+    # save the mean FPA for each step w/ timestamps
+    df_mFPA = pd.DataFrame(meanFPAstep_store)
+    csv_file_mFPA = generate_csv_filename(directory, subjectNames, 'baselinemeanFPA')
+    df_mFPA.to_csv(csv_file_mFPA)
+
+    # save gait events
+    df_GE = pd.DataFrame(gaitEvent_store)
+    csv_file_GE = generate_csv_filename(directory, subjectNames, 'baselinegaitEvents')
+    df_GE.to_csv(csv_file_GE)
+
     # print avg of baseline FPA
     print("Baseline FPA: " + str(np.nanmean(baselineFPA)))
         
