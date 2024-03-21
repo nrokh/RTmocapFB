@@ -216,10 +216,14 @@ try:
             ################# CUE GAITGUIDE ###############
             if feedbackType == 1.0: #trinary mode
                 if meanFPAstep < targetFPA - band: # too far in
-                    asyncio.run(write_characteristic(GaitGuide, Right, 255))
+                    duration = 330
+                    duration_packed = struct.pack('<H', int(duration))
+                    asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
 
                 elif meanFPAstep > targetFPA + band: # too far out
-                    asyncio.run(write_characteristic(GaitGuide, Left, 255))
+                    duration = 330
+                    duration_packed = struct.pack('<H', int(duration))
+                    asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
 
             elif feedbackType == 2.0: # scaled feedback mode
                 if meanFPAstep < targetFPA - band:
