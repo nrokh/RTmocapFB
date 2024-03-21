@@ -14,6 +14,7 @@ Completed:
 * Pilot test proprioceptive sensitivity
 
 To do:
+* add L and R sides to vibro sensitivity testing
 * get metronome app
 * add timeout for toe-in trial (5 min)
 * add catch trials at set number of steps
