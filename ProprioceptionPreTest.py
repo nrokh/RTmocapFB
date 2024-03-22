@@ -99,7 +99,7 @@ try:
         RHEE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
         RANK_manual = client.GetMarkerGlobalTranslation(subjectName, 'RANK')[0]
 
-        print(str(deg_0))
+        # print(str(deg_0))
         # #Heading vector to look at FPA
         # headingVec = (deg_0[0] - RHEE_manual[0], deg_0[1] - RHEE_manual[1])
 
@@ -146,7 +146,7 @@ try:
         print("                The error for this trial was: " + str(err_prop[deg_i]))
         FPA_store.append((time.time_ns(), deg_test[deg_i], err_prop[deg_i], RHEE_manual[0], RHEE_manual[1], RHEE_prop[0], RHEE_prop[1], RTOE_manual[0], RTOE_manual[1], RTOE_prop[0], RTOE_prop[1])) 
         #TODO: save the angle marker coordinate data so we have that for reference, and the coordinates for the Heel and Toe markers
-        base_angle_store.append(deg_15_in, deg_10_in, deg_5_in, deg_0, deg_5_out, deg_10_out, deg_15_out)
+        base_angle_store.append((deg_15_in, deg_10_in, deg_5_in, deg_0, deg_5_out, deg_10_out, deg_15_out))
         
 
     # save calculated FPA
