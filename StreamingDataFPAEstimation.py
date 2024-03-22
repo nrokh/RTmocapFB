@@ -154,7 +154,8 @@ try:
 
     local_max_detected = False
 
-    while True: # wait for keyboard interrupt
+    start_time = time.time()
+    while time.time() - start_time < 300:  # Run for 5 minutes (300 seconds)
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
 
