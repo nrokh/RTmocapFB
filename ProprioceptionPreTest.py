@@ -74,7 +74,8 @@ try:
     err_prop = []
     err_prop_in = []
     err_prop_out = []
-    deg_test = [-5, 10, -10, -15, 5, 15, 15, -15, 10, -5, 5, -10, 10, -5, 15, -15, 5, -10] #angles to test for FPA proprioception [-15, -10, -5, 5, 10, 15]
+    deg_test = [-5, 10]
+    # deg_test = [-5, 10, -10, -15, 5, 15, 15, -15, 10, -5, 5, -10, 10, -5, 15, -15, 5, -10] #angles to test for FPA proprioception [-15, -10, -5, 5, 10, 15]
     for deg_i in range(len(deg_test)):
 
         ################# Manually moving the participant's foot to the desired angle #################
@@ -144,12 +145,17 @@ try:
         
         print("                The error for this trial was: " + str(err_prop[deg_i]))
         FPA_store.append((time.time_ns(), deg_test[deg_i], err_prop[deg_i], RHEE_manual[0], RHEE_manual[1], RHEE_prop[0], RHEE_prop[1], RTOE_manual[0], RTOE_manual[1], RTOE_prop[0], RTOE_prop[1])) 
-        base_angle_store.append()#TODO: save the angle marker coordinate data so we have that for reference, and the coordinates for the Heel and Toe markers
+        #TODO: save the angle marker coordinate data so we have that for reference, and the coordinates for the Heel and Toe markers
+        base_angle_store.append(deg_15_in, deg_10_in, deg_5_in, deg_0, deg_5_out, deg_10_out, deg_15_out)
         
 
     # save calculated FPA
     df = pd.DataFrame(FPA_store, columns = ['time (ns)', 'deg test', 'absolute error (deg)', 'RHEE manual x-', 'RHEE manual y-', 'RHEE proprio x-', 'RHEE proprio y-', 'RTOE manual x-', 'RTOE manual y-', 'RTOE proprio x-', 'RTOE proprio y-'])
-    df.to_csv(csv_file)
+    df_base = pd.DataFrame(base_angle_store, columns = ['deg_15_in', 'deg_10_in', 'deg_5_in', 'deg_0', 'deg_5_out', 'deg_10_out', 'deg_15_out'])
+    with pd.ExcelWriter(csv_file) as writer:
+        df.to_excel(writer, sheet_name='Proprioception Test')
+        df_base.to_excel(writer, sheet_name='Base Angles')
+    # df.to_csv(csv_file)
     # print avg error
     print("**---------------------------------------------------------------------------------------------------**")
     print("        Average error: " + str(np.nanmean(err_prop)) + "+/-" + str(np.nanstd(err_prop_in)))
