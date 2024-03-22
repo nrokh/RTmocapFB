@@ -70,10 +70,11 @@ try:
 
     ################# Proprioception Test ###################
     FPA_store = []
+    base_angle_store = []
     err_prop = []
     err_prop_in = []
     err_prop_out = []
-    deg_test = [-15, -10, -5, 5, 10, 15] #angles to test for FPA proprioception #TODO: do each of these 3 times in a fixed random order
+    deg_test = [-5, 10, -10, -15, 5, 15, 15, -15, 10, -5, 5, -10, 10, -5, 15, -15, 5, -10] #angles to test for FPA proprioception [-15, -10, -5, 5, 10, 15]
     for deg_i in range(len(deg_test)):
 
         ################# Manually moving the participant's foot to the desired angle #################
@@ -83,31 +84,21 @@ try:
         client.GetFrame()  # get the frame
         names = client.GetMarkerNames(subjectName)
         # Baseline markers - note: if there is a marker issue, then delete the segment in VICON and label the markers in the properties section, not in the subjects tab
-        #TODO: add ankle marker to the segment so it's a-sym
-        #TODO: still says invalidmarkername, fix this in VICON
-        deg_15_in = client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device6')[0]
-        deg_10_in = client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device7')[0]
-        deg_5_in = client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device8')[0]
-        deg_0 = client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device2')[0]
-        deg_5_out = client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device5')[0]
-        deg_10_out = client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device4')[0]
-        deg_15_out= client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device3')[0]
 
-        # deg_15_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_15_in')[0]
-        # deg_10_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_10_in')[0]
-        # deg_5_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_5_in')[0]
-        # deg_0 = client.GetMarkerGlobalTranslation(subjectName, 'deg_0')[0]
-        # deg_5_out = client.GetMarkerGlobalTranslation(subjectName, 'deg_5_out')[0]
-        # deg_10_out = client.GetMarkerGlobalTranslation(subjectName, 'deg_10_out')[0]
-        # deg_15_out= client.GetMarkerGlobalTranslation(subjectName, 'deg_15_out')[0]
+        deg_15_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_15_in')[0]
+        deg_10_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_10_in')[0]
+        deg_5_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_5_in')[0]
+        deg_0 = client.GetMarkerGlobalTranslation(subjectName, 'deg_0')[0]
+        deg_5_out = client.GetMarkerGlobalTranslation(subjectName, 'deg_5_out')[0]
+        deg_10_out = client.GetMarkerGlobalTranslation(subjectName, 'deg_10_out')[0]
+        deg_15_out= client.GetMarkerGlobalTranslation(subjectName, 'deg_15_out')[0]
 
         # Foot markers
-        RTOE_manual = client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device9')[0]
-        RHEE_manual = client.GetMarkerGlobalTranslation(subjectName, 'Proprioception_Device1')[0]
-        
-        # RTOE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
-        # RHEE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
+        RTOE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
+        RHEE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
+        RANK_manual = client.GetMarkerGlobalTranslation(subjectName, 'RANK')[0]
 
+        print(str(deg_0))
         # #Heading vector to look at FPA
         # headingVec = (deg_0[0] - RHEE_manual[0], deg_0[1] - RHEE_manual[1])
 
@@ -152,11 +143,12 @@ try:
             err_prop_in.append(err_prop[deg_i])
         
         print("                The error for this trial was: " + str(err_prop[deg_i]))
-        FPA_store.append((time.time_ns(), deg_test[deg_i], FPA_manual, FPA_prop, err_prop[deg_i])) #TODO: save the angle marker coordinate data so we have that for reference, and the coordinates for the Heel and Toe markers
+        FPA_store.append((time.time_ns(), deg_test[deg_i], err_prop[deg_i], RHEE_manual[0], RHEE_manual[1], RHEE_prop[0], RHEE_prop[1], RTOE_manual[0], RTOE_manual[1], RTOE_prop[0], RTOE_prop[1])) 
+        base_angle_store.append()#TODO: save the angle marker coordinate data so we have that for reference, and the coordinates for the Heel and Toe markers
         
 
     # save calculated FPA
-    df = pd.DataFrame(FPA_store)
+    df = pd.DataFrame(FPA_store, columns = ['time (ns)', 'deg test', 'absolute error (deg)', 'RHEE manual x-', 'RHEE manual y-', 'RHEE proprio x-', 'RHEE proprio y-', 'RTOE manual x-', 'RTOE manual y-', 'RTOE proprio x-', 'RTOE proprio y-'])
     df.to_csv(csv_file)
     # print avg error
     print("**---------------------------------------------------------------------------------------------------**")
