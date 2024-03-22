@@ -58,15 +58,16 @@ try:
     root = tk.Tk()
     root.withdraw() # we don't want a full GUI, so keep the root window from appearing
     directory = filedialog.askdirectory()
-    csv_file = os.path.join(directory, subjectNames[0] + '_Baseline_FPA.csv')
+    csv_file_main = os.path.join(directory, subjectNames[0] + '_proprioception.csv')
+    csv_file_baseAngle = os.path.join(directory, subjectNames[0] + '_baseAngles_proprioception.csv')
     counter = 0
     # Check if the file already exists
-    while os.path.exists(csv_file):
+    while os.path.exists(csv_file_main):
         counter += 1
-        csv_file = os.path.join(directory, subjectNames[0] + '_Baseline_FPA' + str(counter) + '.csv')
-    print('        Data will be saved to: ', csv_file)
+        csv_file_main = os.path.join(directory, subjectNames[0] + '_proprioception' + str(counter) + '.csv')
+        csv_file_baseAngle = os.path.join(directory, subjectNames[0] + '_baseAngles_proprioception'+ str(counter) + '.csv')
+    print('        Main data will be saved to: ', csv_file_main)
     print("        NOTE TO USER: Make sure the proprioception testing device is in the correct spot (aligned with the treadmil)")
-
 
     ################# Proprioception Test ###################
     FPA_store = []
@@ -74,8 +75,8 @@ try:
     err_prop = []
     err_prop_in = []
     err_prop_out = []
-    deg_test = [-5, 10]
-    # deg_test = [-5, 10, -10, -15, 5, 15, 15, -15, 10, -5, 5, -10, 10, -5, 15, -15, 5, -10] #angles to test for FPA proprioception [-15, -10, -5, 5, 10, 15]
+    # deg_test = [-5, 10] #for debugging
+    deg_test = [-5, 10, -10, -15, 5, 15, 15, -15, 10, -5, 5, -10, 10, -5, 15, -15, 5, -10] #angles to test for FPA proprioception [-15, -10, -5, 5, 10, 15]
     for deg_i in range(len(deg_test)):
 
         ################# Manually moving the participant's foot to the desired angle #################
@@ -99,7 +100,7 @@ try:
         RHEE_manual = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
         RANK_manual = client.GetMarkerGlobalTranslation(subjectName, 'RANK')[0]
 
-        # print(str(deg_0))
+        # print(str(deg_0)) #for debugging
         # #Heading vector to look at FPA
         # headingVec = (deg_0[0] - RHEE_manual[0], deg_0[1] - RHEE_manual[1])
 
@@ -112,7 +113,7 @@ try:
             # Calculate FPA
             footVec_manual = (RTOE_manual[0] - RHEE_manual[0], RTOE_manual[1] - RHEE_manual[1])
             FPA_manual = -math.degrees(math.atan(footVec_manual[1] / footVec_manual[0])) 
-            # print("The manual angle is: " + str(FPA_manual))
+            # print("The manual angle is: " + str(FPA_manual)) #for debugging
 
         ################# Allowing the participant to move foot to the desired angle #################
              
@@ -145,21 +146,18 @@ try:
         
         print("                The error for this trial was: " + str(err_prop[deg_i]))
         FPA_store.append((time.time_ns(), deg_test[deg_i], err_prop[deg_i], RHEE_manual[0], RHEE_manual[1], RHEE_prop[0], RHEE_prop[1], RTOE_manual[0], RTOE_manual[1], RTOE_prop[0], RTOE_prop[1])) 
-        #TODO: save the angle marker coordinate data so we have that for reference, and the coordinates for the Heel and Toe markers
-        base_angle_store.append((deg_15_in[0], deg_15_in[1], deg_10_in[0], deg_10_in[1], deg_5_in[0], deg_5_in[1], deg_0[0], deg_0[1], deg_5_out[0], deg_5_out[1], deg_10_out[0], deg_10_out[1], deg_15_out[0], deg_15_out[1]))        
+        base_angle_store.append((time.time_ns(), deg_test[deg_i], deg_15_in[0], deg_15_in[1], deg_10_in[0], deg_10_in[1], deg_5_in[0], deg_5_in[1], deg_0[0], deg_0[1], deg_5_out[0], deg_5_out[1], deg_10_out[0], deg_10_out[1], deg_15_out[0], deg_15_out[1]))        
 
     # save calculated FPA
-    df = pd.DataFrame(FPA_store, columns = ['time (ns)', 'deg test', 'absolute error (deg)', 'RHEE manual x-', 'RHEE manual y-', 'RHEE proprio x-', 'RHEE proprio y-', 'RTOE manual x-', 'RTOE manual y-', 'RTOE proprio x-', 'RTOE proprio y-'])
-    df_base = pd.DataFrame(base_angle_store, columns = ['deg_15_in_x', 'deg_15_in_y', 'deg_10_in_x', 'deg_10_in_y', 'deg_5_in_x', 'deg_5_in_y', 'deg_0_x', 'deg_0_y', 'deg_5_out_x', 'deg_5_out_y', 'deg_10_out_x', 'deg_10_out_y', 'deg_15_out_x', 'deg_15_out_y'])
-    with pd.ExcelWriter(csv_file) as writer:
-        df.to_excel(writer, sheet_name='Proprioception Test')
-        df_base.to_excel(writer, sheet_name='Base Angles')
-    # df.to_csv(csv_file)
+    df_main = pd.DataFrame(FPA_store, columns = ['time (ns)', 'deg test', 'absolute error (deg)', 'RHEE manual x-', 'RHEE manual y-', 'RHEE proprio x-', 'RHEE proprio y-', 'RTOE manual x-', 'RTOE manual y-', 'RTOE proprio x-', 'RTOE proprio y-'])
+    df_base = pd.DataFrame(base_angle_store, columns = ['time (ns)', 'deg test', 'deg_15_in_x', 'deg_15_in_y', 'deg_10_in_x', 'deg_10_in_y', 'deg_5_in_x', 'deg_5_in_y', 'deg_0_x', 'deg_0_y', 'deg_5_out_x', 'deg_5_out_y', 'deg_10_out_x', 'deg_10_out_y', 'deg_15_out_x', 'deg_15_out_y'])
+    df_main.to_csv(csv_file_main)
+    df_base.to_csv(csv_file_baseAngle)
     # print avg error
     print("**---------------------------------------------------------------------------------------------------**")
-    print("        Average error: " + str(np.nanmean(err_prop)) + "+/-" + str(np.nanstd(err_prop_in)))
-    print("        Average toe-in error: " + str(np.nanmean(err_prop_in)) + "+/-" + str(np.nanstd(err_prop_in)))
-    print("        Average toe-out error: " + str(np.nanmean(err_prop_out)) + "+/-" + str(np.nanstd(err_prop_out)))
+    print("        Average error: " + str(np.nanmean(err_prop)) + "  +/-  " + str(np.nanstd(err_prop_in)))
+    print("        Average toe-in error: " + str(np.nanmean(err_prop_in)) + "  +/-  " + str(np.nanstd(err_prop_in)))
+    print("        Average toe-out error: " + str(np.nanmean(err_prop_out)) + "  +/-  " + str(np.nanstd(err_prop_out)))
     print("**---------------------------------------------------------------------------------------------------**")
         
 except ViconDataStream.DataStreamException as e:
