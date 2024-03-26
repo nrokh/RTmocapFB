@@ -173,7 +173,7 @@ try:
     df_GE.to_csv(csv_file_GE)
 
     # print avg of baseline FPA
-    print("Retention FPA: " + str(np.nanmean(baselineFPA)))
+    print("Retention FPA: " + str(np.nanmean(baselineFPA)) + "(" + str(np.nanstd(baselineFPA)) + ")")
         
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
