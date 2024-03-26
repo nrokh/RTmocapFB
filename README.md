@@ -11,10 +11,11 @@ To do:
 * modify the matlab GUI with better buttons
 * check that files are saving correctly
 * add info to the empatica info sheet
-* add stdev to final error (retention)
+
 
 
 Completed:
+* add stdev to final error (retention)
 * proprio code: add coordinates for reference angles for proprio, fix marker labeling, add pseudorandom presentation, add ankle marker
 * add retention trial
 * add timeout for toe-in trial (5 min)
