@@ -135,6 +135,14 @@ try:
     occl_flag_foot = 0 
     occl_flag_hip = 0
 
+    # variables for the catch trials
+    #TODO: find lit to justify doing a catch trial for 20 steps in the middle of each trial
+    step_count = 0 
+    cadance = 80 # steps per minute
+    trial_time = 5 #  minutes
+    catch_steps = 20 #number of steps for the catch trial
+    catch_flag = 0
+
     ############## SCALED FEEDBACK SETUP ###############
     band = 3 #degrees to either side
 
@@ -156,7 +164,7 @@ try:
     local_max_detected = False
 
     start_time = time.time()
-    while time.time() - start_time < 300:  # Run for 5 minutes (300 seconds)
+    while time.time() - start_time < trial_time*60: 
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
         marker_names = client.GetMarkerNames(subjectName)
@@ -217,11 +225,18 @@ try:
             meanFPAstep_store.append((time.time_ns(), meanFPAstep)) 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time_ns(), 2.0))
+            step_count += 1
 
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
-            if feedbackType == 1.0: #trinary mode
+            if step_count > (cadance*trial_time/2) and step_count < ((cadance*trial_time/2)+catch_steps):  #TODO: check if this works
+                print("Catch trial")
+                catch_flag = 1
+            else:
+                catch_flag = 0
+
+            if feedbackType == 1.0 and catch_flag == 0: #trinary mode
                 if meanFPAstep < targetFPA - band: # too far in
                     duration = 330
                     duration_packed = struct.pack('<H', int(duration))
@@ -234,7 +249,7 @@ try:
                     asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
                     gaitEvent_store.append((time.time_ns(), 1.0, 'left', duration_packed))
 
-            elif feedbackType == 2.0: # scaled feedback mode
+            elif feedbackType == 2.0 and catch_flag == 0: # scaled feedback mode
                 if meanFPAstep < targetFPA - band:
                     duration = (targetFPA - meanFPAstep)*50 - 50
                     if duration > 600:
@@ -287,18 +302,12 @@ except KeyboardInterrupt: # CTRL-C to exit
     csv_file_dfdv = generate_csv_filename(directory, subjectNames, 'DIFFDV')
     dfdv.to_csv(csv_file_dfdv)
     
-    # Plot the FPA
-    plt.plot(df_FPA.iloc[:,1])
-    plt.xlabel('Frame')
+    # Plot the FPA #TODO: check if this works
+    plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
+    plt.xlabel('Time [ns]')
     plt.ylabel('FPA [deg]')
-
-    # Plot meanFPAstep_store as circles TODO: fix this vis
-    '''
-    meanFPAstep_time = [t for t, _ in meanFPAstep_store]
-    meanFPAstep_value = [v for _, v in meanFPAstep_store]
-    plt.scatter(meanFPAstep_time, meanFPAstep_value, color='red', marker='o')
-    '''
-
+    plt.scatter(df_mFPA.iloc[:,0], df_mFPA.iloc[:,1], color='red', marker='o')
+    plt.title('FPA')
     plt.show()
     
     GaitGuide.disconnect()
