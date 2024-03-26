@@ -129,6 +129,7 @@ try:
     gaitEvent_store = []
     FPAstep_store = []
     meanFPAstep_store = []  
+    fbEvent_store = []
 
     # create flag to check for systemic occlusions
     occl_flag_foot = 0 
@@ -154,7 +155,8 @@ try:
 
     local_max_detected = False
 
-    while True: # wait for keyboard interrupt
+    start_time = time.time()
+    while time.time() - start_time < 300:  # Run for 5 minutes (300 seconds)
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
 
@@ -219,11 +221,13 @@ try:
                     duration = 330
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
+                    gaitEvent_store.append((time.time_ns(), 1.0, 'right', duration_packed))
 
                 elif meanFPAstep > targetFPA + band: # too far out
                     duration = 330
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
+                    gaitEvent_store.append((time.time_ns(), 1.0, 'left', duration_packed))
 
             elif feedbackType == 2.0: # scaled feedback mode
                 if meanFPAstep < targetFPA - band:
@@ -232,6 +236,7 @@ try:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
+                    gaitEvent_store.append((time.time_ns(), 2.0, 'right', duration_packed))
 
                 elif meanFPAstep > targetFPA + band:
                     duration = (meanFPAstep - targetFPA)*50 - 50
@@ -239,12 +244,11 @@ try:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
-
+                    gaitEvent_store.append((time.time_ns(), 2.0, 'left', duration_packed))
 
 
         # save FPA value to the list
         FPA_store.append((time.time_ns(), FPA))
-
 
 
 except KeyboardInterrupt: # CTRL-C to exit
@@ -261,6 +265,11 @@ except KeyboardInterrupt: # CTRL-C to exit
     # save gait events
     df_GE = pd.DataFrame(gaitEvent_store)
     csv_file_GE = generate_csv_filename(directory, subjectNames, 'gaitEvents')
+    df_GE.to_csv(csv_file_GE)
+
+    # save feedback event
+    df_FB = pd.DataFrame(fbEvent_store)
+    csv_file_GE = generate_csv_filename(directory, subjectNames, 'feedbackEvents')
     df_GE.to_csv(csv_file_GE)
 
     # save DIFF
