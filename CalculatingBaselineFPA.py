@@ -97,8 +97,14 @@ try:
     while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
         subjectName = subjectNames[0]  # select the main subject
         client.GetFrame()  # get the frame
+        marker_names = client.GetMarkerNames(subjectName)
 
         ################# CALCULATE FPA ####################
+        
+        #check if all the main markers are streaming properly 
+        if 'RTOE' not in marker_names or 'RHEE' not in marker_names or 'RPSI' not in marker_names:
+            print("Missing markers or marker name, please check the VICON software")
+            sys.exit()
 
         RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
         RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
