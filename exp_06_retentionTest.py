@@ -99,6 +99,7 @@ try:
         client.GetFrame()  # get the frame
 
         marker_names = client.GetMarkerNames(subjectName)
+        marker_names = [x[0] for x in marker_names]
 
         ################# CALCULATE FPA ####################
         
