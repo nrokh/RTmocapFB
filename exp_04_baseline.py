@@ -87,17 +87,24 @@ try:
     occl_flag_foot = 0 
     occl_flag_hip = 0
 
+    # trial length based on step count
+    step_count = 0 
+    cadance = 80 # steps per minute
+    trial_time = 3 #  minutes
+
     ################# STEP DETECTION ###################
     print("Press space when ready to measure baseline FPA: ")
     keyboard.wait('space')  
     
     local_max_detected = False
 
-    start_time = time.time()
-    while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
+    # start_time = time.time()
+    # while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
+    while step_count < trial_time*cadance: 
         subjectName = subjectNames[0]  # select the main subject
         client.GetFrame()  # get the frame
         marker_names = client.GetMarkerNames(subjectName)
+        marker_names = [x[0] for x in marker_names]
 
         ################# CALCULATE FPA ####################
         
@@ -160,6 +167,7 @@ try:
 
             local_max_detected = False
 
+        step_count += 2
         # save FPA value to the list
         FPA_store.append((time.time_ns(), FPA))
 
@@ -186,13 +194,12 @@ except ViconDataStream.DataStreamException as e:
 except KeyboardInterrupt:
     print( 'Keyboard interrupt detected, trial ended early and data was not saved' )
 
-# TODO: plot the FPA for sanity check
-'''
-plt.plot(FPA_store)
-plt.xlabel('Frame')
+plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
+plt.xlabel('Time [ns]')
 plt.ylabel('FPA [deg]')
+plt.scatter(df_mFPA.iloc[:,0], df_mFPA.iloc[:,1], color='red', marker='o')
+plt.title('FPA')
 plt.show()
-'''
 
 
 

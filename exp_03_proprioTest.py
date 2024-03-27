@@ -85,6 +85,7 @@ try:
     
         client.GetFrame()  # get the frame
         marker_names = client.GetMarkerNames(subjectName)
+        marker_names = [x[0] for x in marker_names]
 
         if 'RTOE' not in marker_names or 'RHEE' not in marker_names or 'RANK' not in marker_names:
             print("Missing markers or marker name, please check the VICON software")

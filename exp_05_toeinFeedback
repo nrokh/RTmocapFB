@@ -163,11 +163,12 @@ try:
 
     local_max_detected = False
 
-    start_time = time.time()
-    while time.time() - start_time < trial_time*60: 
+    # start_time = time.time()
+    while step_count < trial_time*cadance: 
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
         marker_names = client.GetMarkerNames(subjectName)
+        marker_names = [x[0] for x in marker_names]
 
         ################# CALCULATE FPA ####################
         
@@ -225,12 +226,12 @@ try:
             meanFPAstep_store.append((time.time_ns(), meanFPAstep)) 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time_ns(), 2.0))
-            step_count += 1
-
+            step_count += 2
+            # print(step_count)
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
-            if step_count > (cadance*trial_time/2) and step_count < ((cadance*trial_time/2)+catch_steps):  #TODO: check if this works
+            if step_count >= (cadance*trial_time/2) and step_count <= ((cadance*trial_time/2)+catch_steps): 
                 print("Catch trial")
                 catch_flag = 1
             else:
@@ -271,8 +272,9 @@ try:
         FPA_store.append((time.time_ns(), FPA))
 
 
-except KeyboardInterrupt: # CTRL-C to exit
-    # save calculated FPA
+    GaitGuide.disconnect()
+
+# save calculated FPA
     df_FPA = pd.DataFrame(FPA_store)
     csv_file_FPA = generate_csv_filename(directory, subjectNames, 'FPA')
     df_FPA.to_csv(csv_file_FPA)
@@ -302,16 +304,18 @@ except KeyboardInterrupt: # CTRL-C to exit
     csv_file_dfdv = generate_csv_filename(directory, subjectNames, 'DIFFDV')
     dfdv.to_csv(csv_file_dfdv)
     
-    # Plot the FPA #TODO: check if this works
+    # Plot the FPA 
     plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
     plt.xlabel('Time [ns]')
     plt.ylabel('FPA [deg]')
     plt.scatter(df_mFPA.iloc[:,0], df_mFPA.iloc[:,1], color='red', marker='o')
     plt.title('FPA')
     plt.show()
-    
+
+except KeyboardInterrupt: # CTRL-C to exit    
     GaitGuide.disconnect()
     print('GaitGuide Disconnected [', GaitGuide.address, ']')
+    print('Data not saved!')
 
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
