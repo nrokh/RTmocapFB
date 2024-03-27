@@ -1,17 +1,17 @@
 # Real-time Motion Capture Feedback
 To do:
-* add catch trials at set number of steps 
 * set subject numbering, file structure, saving protocol
 * find adjustable chair
-* cut new base for proprioception trial
-* update experimental plan
 * modify the matlab GUI with better buttons
-* check that files are saving correctly
 * add info to the empatica info sheet
 
 
 
 Completed:
+* check that files are saving correctly
+* cut new base for proprioception trial
+* update experimental plan
+* add catch trials at set number of steps 
 * create matlab script to compare p-p acc across days
 * remove plotting from vb test matlab script
 * split matlab scripts into recording acc/testing sensitivity
