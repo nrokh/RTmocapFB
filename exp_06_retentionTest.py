@@ -89,7 +89,7 @@ try:
 
     # trial length based on step count
     step_count = 0 
-    cadance = 80 # steps per minute
+    cadence = 80 # steps per minute
     trial_time = 5 #  minutes
 
     ################# STEP DETECTION ###################
@@ -100,7 +100,7 @@ try:
 
     # start_time = time.time()
     # while time.time() - start_time < 300:  # Run for 5 minutes (300 seconds)
-    while step_count < trial_time*cadance: 
+    while step_count < trial_time*cadence: 
         subjectName = subjectNames[0]  # select the main subject
         client.GetFrame()  # get the frame
 
