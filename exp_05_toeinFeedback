@@ -138,7 +138,7 @@ try:
     # variables for the catch trials
     #TODO: find lit to justify doing a catch trial for 20 steps in the middle of each trial
     step_count = 0 
-    cadance = 80 # steps per minute
+    cadence = 80 # steps per minute
     trial_time = 5 #  minutes
     catch_steps = 20 #number of steps for the catch trial
     catch_flag = 0
@@ -164,7 +164,7 @@ try:
     local_max_detected = False
 
     # start_time = time.time()
-    while step_count < trial_time*cadance: 
+    while step_count < trial_time*cadence: 
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
         marker_names = client.GetMarkerNames(subjectName)
@@ -231,7 +231,7 @@ try:
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
-            if step_count >= (cadance*trial_time/2) and step_count <= ((cadance*trial_time/2)+catch_steps): 
+            if step_count >= (cadence*trial_time/2) and step_count <= ((cadence*trial_time/2)+catch_steps): 
                 print("Catch trial")
                 catch_flag = 1
             else:
