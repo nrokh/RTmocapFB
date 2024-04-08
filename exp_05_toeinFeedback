@@ -135,6 +135,14 @@ try:
     occl_flag_foot = 0 
     occl_flag_hip = 0
 
+    # variables for the catch trials
+    #TODO: find lit to justify doing a catch trial for 20 steps in the middle of each trial
+    step_count = 0 
+    cadence = 80 # steps per minute
+    trial_time = 5 #  minutes
+    catch_steps = 20 #number of steps for the catch trial
+    catch_flag = 0
+
     ############## SCALED FEEDBACK SETUP ###############
     band = 3 #degrees to either side
 
@@ -155,13 +163,19 @@ try:
 
     local_max_detected = False
 
-    start_time = time.time()
-    while time.time() - start_time < 300:  # Run for 5 minutes (300 seconds)
+    # start_time = time.time()
+    while step_count < trial_time*cadence: 
         subjectName = subjectNames[0] # select the main subject
         client.GetFrame() # get the frame
-
+        marker_names = client.GetMarkerNames(subjectName)
+        marker_names = [x[0] for x in marker_names]
 
         ################# CALCULATE FPA ####################
+        
+        #check if all the main markers are streaming properly 
+        if 'RTOE' not in marker_names or 'RHEE' not in marker_names or 'RPSI' not in marker_names:
+            print("Missing markers or marker name, please check the VICON software")
+            sys.exit()
 
         RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
         RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
@@ -212,11 +226,18 @@ try:
             meanFPAstep_store.append((time.time_ns(), meanFPAstep)) 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time_ns(), 2.0))
-
+            step_count += 2
+            # print(step_count)
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
-            if feedbackType == 1.0: #trinary mode
+            if step_count >= (cadence*trial_time/2) and step_count <= ((cadence*trial_time/2)+catch_steps): 
+                print("Catch trial")
+                catch_flag = 1
+            else:
+                catch_flag = 0
+
+            if feedbackType == 1.0 and catch_flag == 0: #trinary mode
                 if meanFPAstep < targetFPA - band: # too far in
                     duration = 330
                     duration_packed = struct.pack('<H', int(duration))
@@ -229,9 +250,9 @@ try:
                     asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
                     gaitEvent_store.append((time.time_ns(), 1.0, 'left', duration_packed))
 
-            elif feedbackType == 2.0: # scaled feedback mode
+            elif feedbackType == 2.0 and catch_flag == 0: # scaled feedback mode
                 if meanFPAstep < targetFPA - band:
-                    duration = (targetFPA - meanFPAstep)*50 - 100
+                    duration = (targetFPA - meanFPAstep)*50 - 50
                     if duration > 600:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
@@ -239,7 +260,7 @@ try:
                     gaitEvent_store.append((time.time_ns(), 2.0, 'right', duration_packed))
 
                 elif meanFPAstep > targetFPA + band:
-                    duration = (meanFPAstep - targetFPA)*50 - 100
+                    duration = (meanFPAstep - targetFPA)*50 - 50
                     if duration > 600:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
@@ -251,8 +272,9 @@ try:
         FPA_store.append((time.time_ns(), FPA))
 
 
-except KeyboardInterrupt: # CTRL-C to exit
-    # save calculated FPA
+    GaitGuide.disconnect()
+
+# save calculated FPA
     df_FPA = pd.DataFrame(FPA_store)
     csv_file_FPA = generate_csv_filename(directory, subjectNames, 'FPA')
     df_FPA.to_csv(csv_file_FPA)
@@ -282,22 +304,18 @@ except KeyboardInterrupt: # CTRL-C to exit
     csv_file_dfdv = generate_csv_filename(directory, subjectNames, 'DIFFDV')
     dfdv.to_csv(csv_file_dfdv)
     
-    # Plot the FPA
-    plt.plot(df_FPA.iloc[:,1])
-    plt.xlabel('Frame')
+    # Plot the FPA 
+    plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
+    plt.xlabel('Time [ns]')
     plt.ylabel('FPA [deg]')
-
-    # Plot meanFPAstep_store as circles TODO: fix this vis
-    '''
-    meanFPAstep_time = [t for t, _ in meanFPAstep_store]
-    meanFPAstep_value = [v for _, v in meanFPAstep_store]
-    plt.scatter(meanFPAstep_time, meanFPAstep_value, color='red', marker='o')
-    '''
-
+    plt.scatter(df_mFPA.iloc[:,0], df_mFPA.iloc[:,1], color='red', marker='o')
+    plt.title('FPA')
     plt.show()
-    
+
+except KeyboardInterrupt: # CTRL-C to exit    
     GaitGuide.disconnect()
     print('GaitGuide Disconnected [', GaitGuide.address, ']')
+    print('Data not saved!')
 
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
