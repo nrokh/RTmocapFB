@@ -87,18 +87,31 @@ try:
     occl_flag_foot = 0 
     occl_flag_hip = 0
 
+    # trial length based on step count
+    step_count = 0 
+    cadence = 80 # steps per minute
+    trial_time = 3 #  minutes
+
     ################# STEP DETECTION ###################
-    print("Press space when ready to start the retention trial: ")
+    print("Press space when ready to measure baseline FPA: ")
     keyboard.wait('space')  
     
     local_max_detected = False
 
-    start_time = time.time()
-    while time.time() - start_time < 300:  # Run for 5 minutes (300 seconds)
+    # start_time = time.time()
+    # while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
+    while step_count < trial_time*cadence: 
         subjectName = subjectNames[0]  # select the main subject
         client.GetFrame()  # get the frame
+        marker_names = client.GetMarkerNames(subjectName)
+        marker_names = [x[0] for x in marker_names]
 
         ################# CALCULATE FPA ####################
+        
+        #check if all the main markers are streaming properly 
+        if 'RTOE' not in marker_names or 'RHEE' not in marker_names or 'RPSI' not in marker_names:
+            print("Missing markers or marker name, please check the VICON software")
+            sys.exit()
 
         RTOE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RTOE')[0]
         RHEE_translation = client.GetMarkerGlobalTranslation(subjectName, 'RHEE')[0]
@@ -154,39 +167,39 @@ try:
 
             local_max_detected = False
 
+        step_count += 2
         # save FPA value to the list
         FPA_store.append((time.time_ns(), FPA))
 
     # save calculated FPA
     df_FPA = pd.DataFrame(FPA_store)
-    csv_file_FPA = generate_csv_filename(directory, subjectNames, 'retentionFPA')
+    csv_file_FPA = generate_csv_filename(directory, subjectNames, 'baselineFPA')
     df_FPA.to_csv(csv_file_FPA)
 
     # save the mean FPA for each step w/ timestamps
     df_mFPA = pd.DataFrame(meanFPAstep_store)
-    csv_file_mFPA = generate_csv_filename(directory, subjectNames, 'retentionmeanFPA')
+    csv_file_mFPA = generate_csv_filename(directory, subjectNames, 'baselinemeanFPA')
     df_mFPA.to_csv(csv_file_mFPA)
 
     # save gait events
     df_GE = pd.DataFrame(gaitEvent_store)
-    csv_file_GE = generate_csv_filename(directory, subjectNames, 'retentiongaitEvents')
+    csv_file_GE = generate_csv_filename(directory, subjectNames, 'baselinegaitEvents')
     df_GE.to_csv(csv_file_GE)
 
     # print avg of baseline FPA
-    print("Retention FPA: " + str(np.nanmean(baselineFPA)) + "(" + str(np.nanstd(baselineFPA)) + ")")
+    print("Baseline FPA: " + str(np.nanmean(baselineFPA)))
         
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
 except KeyboardInterrupt:
     print( 'Keyboard interrupt detected, trial ended early and data was not saved' )
 
-# TODO: plot the FPA for sanity check
-'''
-plt.plot(FPA_store)
-plt.xlabel('Frame')
+plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
+plt.xlabel('Time [ns]')
 plt.ylabel('FPA [deg]')
+plt.scatter(df_mFPA.iloc[:,0], df_mFPA.iloc[:,1], color='red', marker='o')
+plt.title('FPA')
 plt.show()
-'''
 
 
 

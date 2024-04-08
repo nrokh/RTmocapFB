@@ -84,9 +84,15 @@ try:
         keyboard.wait('space')  
     
         client.GetFrame()  # get the frame
-        names = client.GetMarkerNames(subjectName)
-        # Baseline markers - note: if there is a marker issue, then delete the segment in VICON and label the markers in the properties section, not in the subjects tab
+        marker_names = client.GetMarkerNames(subjectName)
+        marker_names = [x[0] for x in marker_names]
 
+        if 'RTOE' not in marker_names or 'RHEE' not in marker_names or 'RANK' not in marker_names:
+            print("Missing markers or marker name, please check the VICON software")
+            #note: if there is a marker issue, then delete the segment in VICON and label the markers in the properties section, not in the subjects tab
+            sys.exit()
+        
+        # Base angles
         deg_15_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_15_in')[0]
         deg_10_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_10_in')[0]
         deg_5_in = client.GetMarkerGlobalTranslation(subjectName, 'deg_5_in')[0]
