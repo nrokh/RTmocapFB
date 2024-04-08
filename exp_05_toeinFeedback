@@ -52,7 +52,7 @@ def generate_csv_filename(directory, subject_name, parameter):
 
     while os.path.exists(csv_file):
         counter += 1
-        csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + str(counter) + '.csv')
+        csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + '_' + str(counter) + '.csv')
     print('      Data will be saved to file: ', csv_file)
     return csv_file
     
@@ -136,11 +136,11 @@ try:
     occl_flag_hip = 0
 
     # variables for the catch trials
-    #TODO: find lit to justify doing a catch trial for 20 steps in the middle of each trial
+    #TODO: find lit to justify doing a catch trial for 40 steps in the middle of each trial
     step_count = 0 
     cadence = 80 # steps per minute
     trial_time = 5 #  minutes
-    catch_steps = 20 #number of steps for the catch trial
+    catch_steps = 40 #number of steps for the catch trial
     catch_flag = 0
 
     ############## SCALED FEEDBACK SETUP ###############
