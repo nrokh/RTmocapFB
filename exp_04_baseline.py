@@ -98,9 +98,10 @@ try:
     
     local_max_detected = False
 
-    # start_time = time.time()
-    # while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
-    while step_count < trial_time*cadence: 
+    start_time = time.time() #TODO: figure out why the step count is not working
+    while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
+    # while step_count < trial_time*cadence: 
+        # print(step_count)
         subjectName = subjectNames[0]  # select the main subject
         client.GetFrame()  # get the frame
         marker_names = client.GetMarkerNames(subjectName)
@@ -167,7 +168,7 @@ try:
 
             local_max_detected = False
 
-        step_count += 2
+            step_count += 2
         # save FPA value to the list
         FPA_store.append((time.time_ns(), FPA))
 

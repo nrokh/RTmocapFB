@@ -168,7 +168,7 @@ try:
 
             local_max_detected = False
 
-        step_count += 2
+            step_count += 2
         # save FPA value to the list
         FPA_store.append((time.time_ns(), FPA))
 
