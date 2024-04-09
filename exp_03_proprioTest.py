@@ -144,10 +144,11 @@ try:
             # print("The current angle is: " + str(FPA_prop))
 
         if deg_test[deg_i] > 0:
-            err_prop.append(FPA_prop - FPA_manual)
+            err_prop.append(abs(FPA_prop - FPA_manual))
             err_prop_out.append(err_prop[deg_i])
         elif deg_test[deg_i] < 0:
-            err_prop.append(-1*(FPA_prop - FPA_manual)) #flipping this so all positive errors mean over-correction in both directions 
+            # err_prop.append(-1*(FPA_prop - FPA_manual)) #flipping this so all positive errors mean over-correction in both directions 
+            err_prop.append(abs(FPA_prop - FPA_manual)) 
             err_prop_in.append(err_prop[deg_i])
         
         print("                The error for this trial was: " + str(err_prop[deg_i]))
