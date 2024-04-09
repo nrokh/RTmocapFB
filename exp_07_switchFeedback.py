@@ -155,15 +155,15 @@ try:
 
     for switch in range(2):
         step_count = 0
-        
+                
         print('Press space when ready to start switch trial ' + str(switch+1) + ': ')
         keyboard.wait('space')  
 
         local_max_detected = False
-        if switch == 1 & feedbackType == 1.0:
+        if float(switch) == 1.0 and feedbackType == 1.0:
             print("Switching to scaled feedback mode...")
             feedbackType = 2.0
-        elif switch == 1 & feedbackType == 2.0:
+        elif float(switch) == 1.0 and feedbackType == 2.0:
             print("Switching to trinary feedback mode...")
             feedbackType = 1.0
 
