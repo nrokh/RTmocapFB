@@ -1,13 +1,20 @@
 # Real-time Motion Capture Feedback
 To do:
+* GG battery life testing
+* GG battery status implementation
+* finalize recruitment emails and poster
+
+Changes after pilot testing:
+* catch trials at 40 steps (20 on right side)
+* add open-ended survey prompt to LimeSurvey for switch responses
+* one minute minimum for testing switch condition but let them try it for as long as desired
+* (maybe) make vibrotactile duration test harder
+
+Completed:
 * set subject numbering, file structure, saving protocol
 * find adjustable chair
 * modify the matlab GUI with better buttons
 * add info to the empatica info sheet
-
-
-
-Completed:
 * check that files are saving correctly
 * cut new base for proprioception trial
 * update experimental plan
