@@ -1,5 +1,58 @@
 import pandas as pd 
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import tkinter as tk
+from tkinter import filedialog
 
-# load subject data for subjects in range(3)
+
+# 1. LOAD FPA DATA
+# a. Get the desired directory to save the data
+root = tk.Tk()
+root.withdraw() # we don't want a full GUI, so keep the root window from appearing
+directory = filedialog.askdirectory()
+
+# b. load subject data for subjects in range(3)
+for subject in range(1,3):
+    baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baselinemeanFPA.csv'))
+    baselineFPA = pd.read_csv(baseline_csv_file)
+
+    # apparently dynamic variable naming is bad practice 
+    toein1_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA1.csv'))
+    toein1FPA = pd.read_csv(toein1_csv_file)
+
+    toein2_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA2.csv'))
+    toein2FPA = pd.read_csv(toein2_csv_file)
+
+    toein3_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA3.csv'))
+    toein3FPA = pd.read_csv(toein3_csv_file)
+
+    toein4_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA4.csv'))
+    toein4FPA = pd.read_csv(toein4_csv_file)
+
+    ret_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_retentionmeanFPA.csv'))
+    retFPA = pd.read_csv(ret_csv_file)
+
+    fullFPA = pd.concat([baselineFPA, toein1FPA, toein3FPA, toein4FPA, retFPA])
+
+    # c. extract baseline FPA
+    bFPA_deg = np.mean(baselineFPA.iloc[:,2])
+    print('Baseline FPA was: ' + str(bFPA_deg))
+
+    # TODO: add vertical lines for catch trials and training blocks
+    # TODO: add mean(SD) FPA for each catch trial and walking block
+
+
+    # d. generate plot of all FPA across time
+    x = np.linspace(0, len(fullFPA), len(fullFPA))
+    plt.plot(x, fullFPA.iloc[:,2], '--o')
+    plt.vlines(x = len(baselineFPA)+1, ymin = -15.0, ymax = 15.0, colors = 'k') # feedback start time
+    plt.vlines(x = len(fullFPA) - len(retFPA)+1, ymin = -15.0, ymax = 15.0, colors = 'k') # retention start time
+    plt.hlines(y = bFPA_deg-10, xmin = len(baselineFPA)+1, xmax = len(fullFPA), colors = 'r', linestyles = '--')
+    plt.ylim([-15,15])
+    plt.xlabel('Step number')
+    plt.ylabel('FPA (deg)')
+    plt.title('Walking trials FPA: S0' + str(subject))
+    plt.show()
+    
+            
