@@ -64,6 +64,8 @@ for subject in range(2,3):
     plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA) + len(toein4FPA)/2 + 40, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 end time   
 
         # TODO: add mean(SD) FPA for each catch trial and walking block 
+        # TODO: use an index for the catch trials to make .iloc easier
+    plt.annotate('%.2f (%.2f)o)'%(np.mean(toein1FPA.iloc[:,2]), np.std(toein1FPA.iloc[:,2])), xy = (200, 10)) # toein 1 mean FPA
 
 
     # horizontal line for target FPA:
