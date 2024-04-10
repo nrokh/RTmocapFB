@@ -13,7 +13,7 @@ import os
 # avro_file_path = "C:/Data/Avros/1-1-100_1707311064.avro"
 # output_dir = "C:/Data/Output/"
 
-avro_file_path = "C:/Users/vsun/Documents/Research/GaitGuide_N_Collab/Empatica_Data/Avro_files/pilot_tests/day_1/0-3YK3K152DD/raw_data/v61-1-0_1712482075.avro"
+avro_file_path = "C:/Users/vsun/Documents/Research/GaitGuide_N_Collab/Empatica_Data/Avro_files/pilot_tests/day_1/0-3YK3K152DD/raw_data/v6/1-1-0_1712487492.avro"
 output_dir = "C:/Users/vsun/Documents/Research/GaitGuide_N_Collab/Empatica_Data/Avro_files/pilot_tests/day_1/0-3YK3K152DD/raw_data_csv/"
 
 
@@ -57,7 +57,7 @@ with open(os.path.join(output_dir, 'gyroscope.csv'), 'w', newline='') as f:
     writer.writerow(["unix_timestamp", "x", "y", "z"])
     writer.writerows([[ts, x, y, z] for ts, x, y, z in zip(timestamp, x_dps, y_dps, z_dps)])
 
-    # Eda
+    # Eda - electrodermal activity
 eda = data["rawData"]["eda"]
 timestamp = [round(eda["timestampStart"] + i * (1e6 / eda["samplingFrequency"]))
     for i in range(len(eda["values"]))]
@@ -82,7 +82,7 @@ with open(os.path.join(output_dir, 'tags.csv'), 'w', newline='') as f:
     writer.writerow(["tags_timestamp"])
     writer.writerows([[tag] for tag in tags["tagsTimeMicros"]])
 
-# BVP
+# BVP - blood volume pulse
 bvp = data["rawData"]["bvp"]
 timestamp = [round(bvp["timestampStart"] + i * (1e6 / bvp["samplingFrequency"]))
     for i in range(len(bvp["values"]))]
