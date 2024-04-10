@@ -5,7 +5,7 @@ To do:
 * finalize recruitment emails and poster
 
 Changes after pilot testing:
-* catch trials at 40 steps (20 on right side)
+* catch trials at 40 steps (20 on right side) (maybe centered at halfway point)
 * add open-ended survey prompt to LimeSurvey for switch responses
 * one minute minimum for testing switch condition but let them try it for as long as desired
 * (maybe) make vibrotactile duration test harder
