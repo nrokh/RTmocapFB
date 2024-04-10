@@ -13,7 +13,7 @@ root.withdraw() # we don't want a full GUI, so keep the root window from appeari
 directory = filedialog.askdirectory()
 
 # b. load subject data for subjects in range(3)
-for subject in range(2,3):
+for subject in range(2,4):
     baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baselinemeanFPA.csv'))
     baselineFPA = pd.read_csv(baseline_csv_file)
 
@@ -44,24 +44,24 @@ for subject in range(2,3):
     plt.plot(x, fullFPA.iloc[:,2], '--o')
 
     # vertical lines for retraining periods: 
-    plt.vlines(x = len(baselineFPA)+1, ymin = -15.0, ymax = 15.0, colors = 'k') # toein 1 start time
-    plt.vlines(x = len(baselineFPA)+len(toein1FPA)+1, ymin = -15.0, ymax = 15.0, colors = 'k') # toein 2 start time
-    plt.vlines(x = len(baselineFPA)+len(toein1FPA)+len(toein2FPA)+1, ymin = -15.0, ymax = 15.0, colors = 'k') # toein 3 start time
-    plt.vlines(x = len(baselineFPA)+len(toein1FPA)+len(toein2FPA)+len(toein3FPA)+1, ymin = -15.0, ymax = 15.0, colors = 'k') # toein 4 start time
-    plt.vlines(x = len(fullFPA) - len(retFPA)+1, ymin = -15.0, ymax = 15.0, colors = 'k') # retention start time
+    plt.vlines(x = len(baselineFPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 1 start time
+    plt.vlines(x = len(baselineFPA)+len(toein1FPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 2 start time
+    plt.vlines(x = len(baselineFPA)+len(toein1FPA)+len(toein2FPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 3 start time
+    plt.vlines(x = len(baselineFPA)+len(toein1FPA)+len(toein2FPA)+len(toein3FPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 4 start time
+    plt.vlines(x = len(fullFPA) - len(retFPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # retention start time
 
     # vertical lines for catch trials:
-    plt.vlines(x = len(baselineFPA) + len(toein1FPA)/2, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 1 start time
-    plt.vlines(x = len(baselineFPA) + len(toein1FPA)/2 + 40, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 1 end time
+    plt.vlines(x = len(baselineFPA) + len(toein1FPA)/2, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 1 start time
+    plt.vlines(x = len(baselineFPA) + len(toein1FPA)/2 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 1 end time
 
-    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA)/2, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 2 start time
-    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA)/2 + 40, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 2 end time
+    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA)/2, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 2 start time
+    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA)/2 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 2 end time
 
-    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA)/2, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 3 start time
-    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA)/2 + 40, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 3 end time
+    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA)/2, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 3 start time
+    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA)/2 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 3 end time
 
-    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA) + len(toein4FPA)/2, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 start time
-    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA) + len(toein4FPA)/2 + 40, ymin = -15.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 end time   
+    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA) + len(toein4FPA)/2, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 start time
+    plt.vlines(x = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA) + len(toein4FPA)/2 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 end time   
 
         # TODO: add mean(SD) FPA for each catch trial and walking block 
         # TODO: use an index for the catch trials to make .iloc easier
@@ -71,7 +71,7 @@ for subject in range(2,3):
     # horizontal line for target FPA:
     plt.hlines(y = bFPA_deg-10, xmin = len(baselineFPA)+1, xmax = len(fullFPA), colors = 'r', linestyles = '--')
 
-    plt.ylim([-15,15]) #TODO: set this to be consistent across all subs based on all-sub max and min FPAs (approx.)
+    plt.ylim([-25,15]) #TODO: set this to be consistent across all subs based on all-sub max and min FPAs (approx.)
     plt.xlabel('Step number')
     plt.ylabel('FPA (deg)')
     plt.title('Walking trials FPA: S0' + str(subject))
