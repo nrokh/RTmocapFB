@@ -9,6 +9,8 @@ Changes after pilot testing:
 * add open-ended survey prompt to LimeSurvey for switch responses
 * one minute minimum for testing switch condition but let them try it for as long as desired
 * (maybe) make vibrotactile duration test harder
+* revise survey Qs based on feedback for what wasn't clear
+*  ask KJK if we want to include smokers in study
 
 Completed:
 * set subject numbering, file structure, saving protocol
