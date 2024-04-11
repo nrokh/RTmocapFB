@@ -47,8 +47,8 @@ async def write_characteristic(client, characteristic, value):
 
 def generate_csv_filename(directory, subject_name, parameter):
     
-    csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + '.csv')
-    counter = 0
+    csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + '_1.csv')
+    counter = 1
 
     while os.path.exists(csv_file):
         counter += 1
