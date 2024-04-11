@@ -9,6 +9,7 @@ import os
 # import keyboard
 import tkinter as tk
 from tkinter import filedialog
+import pandas as pd
 
 def get_processed_biomarkers(input_directory, output_directory, subject_name, day):
     csv_data_path = os.path.join(input_directory, day, subject_name, 'digital_biomarkers','aggregated_per_minute')
@@ -33,10 +34,22 @@ def get_processed_biomarkers(input_directory, output_directory, subject_name, da
                 file_missing_data = [data[i][4] for i in range(1, len(data))]
 
                 file_order.append(file)
+                data_name = file_order[i].split('_')[1].split('.')[0]
                 timestamp_ms.append(file_timestamp)
                 timestamp_iso.append(file_timestamp_iso)
                 data_bm.append(file_data) #add label for each appended data
                 missing_data.append(file_missing_data)
+
+    # check if the timestamp_ms are the same
+    if len(set([tuple(i) for i in timestamp_ms])) == 1:
+        print('Timestamps are the same')
+    else:
+        print('ERROR: Timestamps are not the same... saving to four separate files')
+        for i in range(len(file_order)):
+            data_name = file_order[i].split('_')[1].split('.')[0]
+            df = pd.DataFrame(list(zip(timestamp_ms[i], timestamp_iso[i], data_bm[i], missing_data[i])), columns =['timestamp_ms', 'timestamp_iso', data_name, 'missing_data'])
+            df.to_csv(os.path.join(biomarker_filepath, file_order[i]), index=False)
+        return
 
 
     return biomarker_filepath
