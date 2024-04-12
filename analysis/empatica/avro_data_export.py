@@ -134,17 +134,15 @@ for subject_name in os.listdir(output_directory):
 
     # find sections of step data where the subject takes 300-500 steps in a five minute window
     # save the time stamps and the step counts for these sections in a running list (so the start time stamp and the end time stamp and then the total number of steps for the 5 minute window)
+    regular_step_sections = []
     for i in range(len(trunc_bm_data)-4):
-        testing = trunc_bm_data['step-counts']
-        # print(testing)
-        # print(testing.values[5])
-        # print('\n')
-        # print(trunc_bm_data['step-counts'][4])
         if int(trunc_bm_data['step-counts'].values[i]) > 0:
             step_sum = int(trunc_bm_data['step-counts'].values[i]+trunc_bm_data['step-counts'].values[i+1]+trunc_bm_data['step-counts'].values[i+2]+trunc_bm_data['step-counts'].values[i+3]+trunc_bm_data['step-counts'].values[i+4])
-            if step_sum > 300 and step_sum < 500: 
-                i = i+4
             print(step_sum)
+            if step_sum > 300 and step_sum < 500: 
+                regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[i], trunc_bm_data['timestamp_iso'].values[i+4], step_sum])
+                i = i+4
+            
 
 
 # print('----------------------------------------')
