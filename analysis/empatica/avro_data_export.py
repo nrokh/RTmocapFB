@@ -27,7 +27,7 @@ def combine_processed_biomarkers(input_directory, output_directory, subject_name
     data_name = []
 
     for file in os.listdir(csv_data_path):
-        if '_sleep-detection' in file or '_eda' in file or '_prv' in file or '_step-counts' in file or '_pulse-rate' in file:
+        if '_sleep-detection' in file or '_eda' in file or '_prv' in file or '_step-counts' in file or '_pulse-rate' in file: #add the biomarkers of interest here
             # read the first colm from each of the files and make sure they are exactly the same
             with open(os.path.join(csv_data_path, file), 'r') as f:
                 reader = csv.reader(f)
@@ -64,6 +64,22 @@ def combine_processed_biomarkers(input_directory, output_directory, subject_name
             else:
                 df.to_csv(os.path.join(biomarker_filepath, file_order[i]), index=False)
         return
+    return df
+
+def parse_subject_data(combined_bm_data, startday, starttime, endday, endtime):
+    for i in range(len(combined_bm_data)):
+        if combined_bm_data['timestamp_iso'][i] == startday + 'T' + starttime + 'Z':
+            start_index = i
+        elif combined_bm_data['timestamp_iso'][i] == endday + 'T' + endtime + 'Z':
+            end_index = i
+        
+    if start_index == None or end_index == None:
+        print('ERROR: Start or End index not found')
+        return
+    
+    trunc_data = combined_bm_data[start_index:end_index]
+    return trunc_data
+            
 
 ####################################### MAIN ########################################
 ## Define the location of the Avro file and output folder.
@@ -82,7 +98,15 @@ for day in ['day_1', 'day_2']:
     check_this = os.listdir(os.path.join(input_directory, day))
     for subject_name in os.listdir(os.path.join(input_directory, day)):
         
-        combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
+        combined_bm_data = combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
+        startday = input('\n what day did ' + subject_name + ' start the experiment? (YYYY-MM-DD):    ')
+        starttime = input('what time did ' + subject_name + ' start the experiment? (HH:MM 24h format):    ')
+        endday = input('what day did ' + subject_name + ' end the experiment? (YYYY-MM-DD):    ')
+        endtime = input('what time did ' + subject_name + ' end the experiment? (HH:MM 24h format):    \n')
+
+        trunc_bm_data = parse_subject_data(combined_bm_data, startday, starttime, endday, endtime)   
+
+
         
         print('Finished processing subject: ', subject_name, ' for day: ', day)
         print('----------------------------------------')
@@ -90,4 +114,6 @@ for day in ['day_1', 'day_2']:
 print('----------------------------------------')
 print('Finished processing all subjects for both days')
 
-## Plot the combined biomarker data
+#TODO: deal with the raw data files, combine them and save them in the same output directory, use the tags to help with processing the data
+
+## 
