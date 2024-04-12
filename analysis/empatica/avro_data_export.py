@@ -64,55 +64,91 @@ def combine_processed_biomarkers(input_directory, output_directory, subject_name
             else:
                 df.to_csv(os.path.join(biomarker_filepath, file_order[i]), index=False)
         return
-    return df
+    # return df
 
 def parse_subject_data(combined_bm_data, startday, starttime, endday, endtime):
+
+    # shave off excess data 
+    start_index = 0
+    end_index = 0
     for i in range(len(combined_bm_data)):
-        if combined_bm_data['timestamp_iso'][i] == startday + 'T' + starttime + 'Z':
+        # print(combined_bm_data['timestamp_iso'][i])
+        # print(startday + 'T' + starttime + ':00Z')
+
+        if combined_bm_data['timestamp_iso'][i] == startday + 'T' + starttime + ':00Z':
             start_index = i
-        elif combined_bm_data['timestamp_iso'][i] == endday + 'T' + endtime + 'Z':
+        elif combined_bm_data['timestamp_iso'][i] == endday + 'T' + endtime + ':00Z':
             end_index = i
         
-    if start_index == None or end_index == None:
+    if start_index == 0 or end_index == 0:
         print('ERROR: Start or End index not found')
         return
     
     trunc_data = combined_bm_data[start_index:end_index]
-    return trunc_data
+
+    # remove data missing because of device missing data (when the missing_data column has a nan value)
+    trunc_data_correct_wear = trunc_data[trunc_data['missing_data'].isna() == True]
+    return trunc_data_correct_wear
             
 
 ####################################### MAIN ########################################
-## Define the location of the Avro file and output folder.
-in_root = tk.Tk()
-in_root.withdraw() 
-print('Select the input directory....')
-input_directory = filedialog.askdirectory()
+# ## Retrieve and combine biomarker data for each day - comment out if you already made the combined files and are doing other processing
+# in_root = tk.Tk()
+# in_root.withdraw() 
+# print('Select the input directory....')
+# input_directory = filedialog.askdirectory()
 
+# out_root = tk.Tk()
+# out_root.withdraw() 
+# print('Select the output directory....')
+# output_directory = filedialog.askdirectory()
+
+# for day in ['day_1', 'day_2']:
+#     check_this = os.listdir(os.path.join(input_directory, day))
+#     for subject_name in os.listdir(os.path.join(input_directory, day)):
+        
+#         combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
+        
+                
+#         print('Finished processing combined file for subject: ', subject_name, ' for day: ', day)
+#         print('----------------------------------------')
+
+## Truncate the combined biomarker data for each subject
+# comment out the directory retrieval code below if you are running the combined files code from above
 out_root = tk.Tk()
 out_root.withdraw() 
 print('Select the output directory....')
 output_directory = filedialog.askdirectory()
 
-## Retrieve and combine biomarker data for each day
-for day in ['day_1', 'day_2']:
-    check_this = os.listdir(os.path.join(input_directory, day))
-    for subject_name in os.listdir(os.path.join(input_directory, day)):
-        
-        combined_bm_data = combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
-        startday = input('\n what day did ' + subject_name + ' start the experiment? (YYYY-MM-DD):    ')
-        starttime = input('what time did ' + subject_name + ' start the experiment? (HH:MM 24h format):    ')
-        endday = input('what day did ' + subject_name + ' end the experiment? (YYYY-MM-DD):    ')
-        endtime = input('what time did ' + subject_name + ' end the experiment? (HH:MM 24h format):    \n')
+for subject_name in os.listdir(output_directory):
+    startday = input('\nwhat day did ' + subject_name + ' start the experiment? (YYYY-MM-DD):    ')
+    starttime = input('what time did ' + subject_name + ' start the experiment? (HH:MM 24h format):    ')
+    endday = input('what day did ' + subject_name + ' end the experiment? (YYYY-MM-DD):    ')
+    endtime = input('what time did ' + subject_name + ' end the experiment? (HH:MM 24h format):    ')
 
-        trunc_bm_data = parse_subject_data(combined_bm_data, startday, starttime, endday, endtime)   
+    #open the combined file for the subject and load it into a pandas dataframe called combined_bm_data
+    combined_bm_data = pd.read_csv(os.path.join(output_directory, subject_name, 'processed_biomarkers', 'biomarkers_combined.csv'))
+
+    trunc_bm_data = parse_subject_data(combined_bm_data, startday, starttime, endday, endtime)   
+    print('\nFinished truncated file for subject: ', subject_name)
+
+    # find sections of step data where the subject takes 300-500 steps in a five minute window
+    # save the time stamps and the step counts for these sections in a running list (so the start time stamp and the end time stamp and then the total number of steps for the 5 minute window)
+    for i in range(len(trunc_bm_data)-4):
+        testing = trunc_bm_data['step-counts']
+        # print(testing)
+        # print(testing.values[5])
+        # print('\n')
+        # print(trunc_bm_data['step-counts'][4])
+        if int(trunc_bm_data['step-counts'].values[i]) > 0:
+            step_sum = int(trunc_bm_data['step-counts'].values[i]+trunc_bm_data['step-counts'].values[i+1]+trunc_bm_data['step-counts'].values[i+2]+trunc_bm_data['step-counts'].values[i+3]+trunc_bm_data['step-counts'].values[i+4])
+            if step_sum > 300 and step_sum < 500: 
+                i = i+4
+            print(step_sum)
 
 
-        
-        print('Finished processing subject: ', subject_name, ' for day: ', day)
-        print('----------------------------------------')
-
-print('----------------------------------------')
-print('Finished processing all subjects for both days')
+# print('----------------------------------------')
+# print('Finished processing all subjects for both days')
 
 #TODO: deal with the raw data files, combine them and save them in the same output directory, use the tags to help with processing the data
 
