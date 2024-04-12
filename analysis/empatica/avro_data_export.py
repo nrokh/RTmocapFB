@@ -11,6 +11,9 @@ import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
 
+
+####################################### FUNCTIONS ########################################
+
 def combine_processed_biomarkers(input_directory, output_directory, subject_name, day):
     csv_data_path = os.path.join(input_directory, day, subject_name, 'digital_biomarkers','aggregated_per_minute')
     # moved files that have "_sleep-detection", "_eda", "_prv", "_step-counts" to the output directory + a new folder "processed_biomarkers"... create this folder if it doesnt exist
@@ -62,14 +65,7 @@ def combine_processed_biomarkers(input_directory, output_directory, subject_name
                 df.to_csv(os.path.join(biomarker_filepath, file_order[i]), index=False)
         return
 
-
-    
-    
-# ## Copy subject name from Avro files
-# # subject_name = '0-3YK3K152DD'
-# # subject_name = '1-3YK3K152DD'
-# # subject_name = '2-3YK3K152XT'
-
+####################################### MAIN ########################################
 ## Define the location of the Avro file and output folder.
 in_root = tk.Tk()
 in_root.withdraw() 
@@ -81,21 +77,17 @@ out_root.withdraw()
 print('Select the output directory....')
 output_directory = filedialog.askdirectory()
 
-## Get data for each day
+## Retrieve and combine biomarker data for each day
 for day in ['day_1', 'day_2']:
     check_this = os.listdir(os.path.join(input_directory, day))
     for subject_name in os.listdir(os.path.join(input_directory, day)):
         
         combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
         
-        print('----------------------------------------')
         print('Finished processing subject: ', subject_name, ' for day: ', day)
         print('----------------------------------------')
-        
 
+print('----------------------------------------')
+print('Finished processing all subjects for both days')
 
-
-
-# # copy the file to the biomarker_filepath
-            # os.rename(os.path.join(csv_data_path, file), os.path.join(biomarker_filepath, file))
-            # print('Moved file: ', file, ' to ', biomarker_filepath)
+## Plot the combined biomarker data
