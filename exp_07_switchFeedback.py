@@ -135,7 +135,6 @@ try:
     occl_flag_hip = 0
 
     # variables for the walking trials
-    # step_count = 0 
     cadence = 80 # steps per minute
     trial_time = 1 #  minutes
 
@@ -154,8 +153,6 @@ try:
     print("Target toe-in angle is: ", targetFPA)
 
     for switch in range(2):
-        # step_count = 0
-                
         print('Press space when ready to start switch trial ' + str(switch+1) + ': ')
         keyboard.wait('space')  
 
@@ -167,8 +164,7 @@ try:
             print("Switching to trinary feedback mode...")
             feedbackType = 1.0
 
-        # while step_count < trial_time*cadence: 
-        while True: #TODO: check that this works Apr 11th 2024
+        while True:
             subjectName = subjectNames[0] # select the main subject
             client.GetFrame() # get the frame
             marker_names = client.GetMarkerNames(subjectName)
@@ -230,8 +226,6 @@ try:
                 meanFPAstep_store.append((time.time_ns(), meanFPAstep)) 
                 print("mean FPA for step = " + str(meanFPAstep))
                 gaitEvent_store.append((time.time_ns(), 2.0))
-                # step_count += 2
-                # print(step_count)
                 local_max_detected = False
 
                 ################# CUE GAITGUIDE ###############
