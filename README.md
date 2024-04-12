@@ -3,15 +3,18 @@ To do:
 * GG battery life testing
 * GG battery status implementation
 * finalize recruitment emails and poster
+* get survey questions approved by kjk
+* order the new Vicon cameras
+* get a laptop/ ipad to use for participant surveys
 
 Changes after pilot testing:
-* change BORG to after every toe-in 
 * catch trials at 40 steps (20 on right side) (maybe centered at halfway point)
 * add open-ended survey prompt to LimeSurvey for switch responses
 * one minute minimum for testing switch condition but let them try it for as long as desired
 * (maybe) make vibrotactile duration test harder
 * revise survey Qs based on feedback for what wasn't clear
 *  ask KJK if we want to include smokers in study
+* switch to different/ main Empatica study portal 
 
 Completed:
 * set subject numbering, file structure, saving protocol
@@ -46,3 +49,4 @@ Completed:
 * get metronome app
 * Quantify delay/estimate how long it takes to detect a step and send a command
 * Run pilot trial start to finish
+* add switch feedback trial & code 
