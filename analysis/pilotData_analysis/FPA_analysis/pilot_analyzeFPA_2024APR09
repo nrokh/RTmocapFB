@@ -13,7 +13,7 @@ root.withdraw() # we don't want a full GUI, so keep the root window from appeari
 directory = filedialog.askdirectory()
 
 # b. load subject data
-for subject in range(2,4):
+for subject in range(2,5):
     baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baselinemeanFPA.csv'))
     baselineFPA = pd.read_csv(baseline_csv_file)
 
