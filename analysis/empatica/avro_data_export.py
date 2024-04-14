@@ -164,9 +164,8 @@ for subject_name in os.listdir(output_directory):
     endday = input('what day did ' + subject_name + ' end the experiment? (YYYY-MM-DD):    ')
     endtime = input('what time did ' + subject_name + ' end the experiment? (HH:MM 24h format):    ')
 
-    #open the combined file for the subject and load it into a pandas dataframe called combined_bm_data
+    # open the combined file for the subject and load it into a pandas dataframe, then trucate the data for plotting
     combined_bm_data = pd.read_csv(os.path.join(output_directory, subject_name, 'processed_biomarkers', 'biomarkers_combined.csv'))
-
     trunc_bm_data = parse_subject_data(combined_bm_data, startday, starttime, endday, endtime)   
     print('Finished truncated file for subject: ', subject_name)
 
@@ -176,12 +175,15 @@ for subject_name in os.listdir(output_directory):
 
     # look at sleep detection data and find how long the participant slept for
     sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt = sleep_detection(trunc_bm_data)    
-    print('Finished sleep detection for subject: ', subject_name)
+    print('Finished sleep detection for subject: ', subject_name, '... hours asleep: ', sleep_hours, 'hrs & quality: ', sleep_qual)
+
+    # segment the data from the walking trials when they are in the lab (baseline, 4 training sessions, retention)
+
+    # plot the pulse rate and eda for each of the 6 walking trials and the average of ten 5-min walking trials with an envelope of 1 standard deviation
+    
     
 
 # print('----------------------------------------')
 # print('Finished processing all subjects for both days')
 
 #TODO: deal with the raw data files, combine them and save them in the same output directory, use the tags to help with processing the data
-
-## 
