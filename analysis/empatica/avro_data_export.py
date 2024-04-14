@@ -92,7 +92,6 @@ def parse_subject_data(combined_bm_data, startday, starttime, endday, endtime):
             
 def step_segmentation(trunc_bm_data):
     regular_step_sections = []
-    bm_data_5min = []
     step_segment_count = 0
     frame_count = 0
     while frame_count < int(len(trunc_bm_data)-4):
@@ -131,55 +130,55 @@ def sleep_detection(trunc_bm_data):
 
 ####################################### MAIN ########################################
 # ## Retrieve and combine biomarker data for each day - comment out if you already made the combined files and are doing other processing
-# in_root = tk.Tk()
-# in_root.withdraw() 
-# print('Select the input directory....')
-# input_directory = filedialog.askdirectory()
+in_root = tk.Tk()
+in_root.withdraw() 
+print('Select the input directory....')
+input_directory = filedialog.askdirectory()
 
-# out_root = tk.Tk()
-# out_root.withdraw() 
-# print('Select the output directory....')
-# output_directory = filedialog.askdirectory()
-
-# for day in ['day_1', 'day_2']:
-#     check_this = os.listdir(os.path.join(input_directory, day))
-#     for subject_name in os.listdir(os.path.join(input_directory, day)):
-        
-#         combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
-        
-                
-#         print('Finished processing combined file for subject: ', subject_name, ' for day: ', day)
-#         print('----------------------------------------')
-
-## Truncate the combined biomarker data for each subject
-# comment out the directory retrieval code below if you are running the combined files code from above
 out_root = tk.Tk()
 out_root.withdraw() 
 print('Select the output directory....')
 output_directory = filedialog.askdirectory()
 
-for subject_name in os.listdir(output_directory):
-    startday = input('\nwhat day did ' + subject_name + ' start the experiment? (YYYY-MM-DD):    ')
-    starttime = input('what time did ' + subject_name + ' start the experiment? (HH:MM 24h format):    ')
-    endday = input('what day did ' + subject_name + ' end the experiment? (YYYY-MM-DD):    ')
-    endtime = input('what time did ' + subject_name + ' end the experiment? (HH:MM 24h format):    ')
+for day in ['day_1', 'day_2']:
+    check_this = os.listdir(os.path.join(input_directory, day))
+    for subject_name in os.listdir(os.path.join(input_directory, day)):
+        
+        combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
+        
+                
+        print('Finished processing combined file for subject: ', subject_name, ' for day: ', day)
+        print('----------------------------------------')
 
-    # open the combined file for the subject and load it into a pandas dataframe, then trucate the data for plotting
-    combined_bm_data = pd.read_csv(os.path.join(output_directory, subject_name, 'processed_biomarkers', 'biomarkers_combined.csv'))
-    trunc_bm_data = parse_subject_data(combined_bm_data, startday, starttime, endday, endtime)   
-    print('Finished truncated file for subject: ', subject_name)
+## Truncate the combined biomarker data for each subject
+# comment out the directory retrieval code below if you are running the combined files code from above
+# out_root = tk.Tk()
+# out_root.withdraw() 
+# print('Select the output directory....')
+# output_directory = filedialog.askdirectory()
 
-    # find sections of step data where the subject takes 350-450 steps in a five minute window, average the biomarker data
-    all_step_segs, step_seg_count = step_segmentation(trunc_bm_data)
-    print('Finished step segmentation for subject: ', subject_name)
+# for subject_name in os.listdir(output_directory):
+#     startday = input('\nwhat day did ' + subject_name + ' start the experiment? (YYYY-MM-DD):    ')
+#     starttime = input('what time did ' + subject_name + ' start the experiment? (HH:MM 24h format):    ')
+#     endday = input('what day did ' + subject_name + ' end the experiment? (YYYY-MM-DD):    ')
+#     endtime = input('what time did ' + subject_name + ' end the experiment? (HH:MM 24h format):    ')
 
-    # look at sleep detection data and find how long the participant slept for
-    sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt = sleep_detection(trunc_bm_data)    
-    print('Finished sleep detection for subject: ', subject_name, '... hours asleep: ', sleep_hours, 'hrs & quality: ', sleep_qual)
+#     # open the combined file for the subject and load it into a pandas dataframe, then trucate the data for plotting
+#     combined_bm_data = pd.read_csv(os.path.join(output_directory, subject_name, 'processed_biomarkers', 'biomarkers_combined.csv'))
+#     trunc_bm_data = parse_subject_data(combined_bm_data, startday, starttime, endday, endtime)   
+#     print('Finished truncated file for subject: ', subject_name)
 
-    # segment the data from the walking trials when they are in the lab (baseline, 4 training sessions, retention)
+#     # find sections of step data where the subject takes 350-450 steps in a five minute window, average the biomarker data
+#     all_step_segs, step_seg_count = step_segmentation(trunc_bm_data)
+#     print('Finished step segmentation for subject: ', subject_name)
 
-    # plot the pulse rate and eda for each of the 6 walking trials and the average of ten 5-min walking trials with an envelope of 1 standard deviation
+#     # look at sleep detection data and find how long the participant slept for
+#     sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt = sleep_detection(trunc_bm_data)    
+#     print('Finished sleep detection for subject: ', subject_name, '... hours asleep: ', sleep_hours, 'hrs & quality: ', sleep_qual)
+
+#     # segment the data from the walking trials when they are in the lab (baseline, 4 training sessions, retention)
+
+#     # plot the pulse rate and eda for each of the 6 walking trials and the average of ten 5-min walking trials with an envelope of 1 standard deviation
     
     
 
