@@ -90,6 +90,44 @@ def parse_subject_data(combined_bm_data, startday, starttime, endday, endtime):
     trunc_data_correct_wear = trunc_data[trunc_data['missing_data'].isna() == True]
     return trunc_data_correct_wear
             
+def step_segmentation(trunc_bm_data):
+    regular_step_sections = []
+    bm_data_5min = []
+    step_segment_count = 0
+    frame_count = 0
+    while frame_count < int(len(trunc_bm_data)-4):
+        if int(trunc_bm_data['step-counts'].values[frame_count]) > 0:
+            step_sum = int(trunc_bm_data['step-counts'].values[frame_count]+trunc_bm_data['step-counts'].values[frame_count+1]+trunc_bm_data['step-counts'].values[frame_count+2]+trunc_bm_data['step-counts'].values[frame_count+3]+trunc_bm_data['step-counts'].values[frame_count+4])
+            if step_sum > 350 and step_sum < 450: 
+                regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], trunc_bm_data['timestamp_iso'].values[frame_count+4], step_sum])
+                frame_count += 4
+                step_segment_count += 1
+        frame_count += 1
+
+
+    return regular_step_sections, step_segment_count
+
+def sleep_detection(trunc_bm_data):
+    sleep_cycle = []
+    sleep_minutes = 0 
+    sleep_count = 0 #101
+    sleep_wake = 0 #102
+    sleep_intrpt = 0 #300
+
+    for frame_count in range(len(trunc_bm_data)):
+        if trunc_bm_data['sleep-detection'].values[frame_count] > 100:
+            sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
+            sleep_minutes += 1
+            if trunc_bm_data['sleep-detection'].values[frame_count] == 101:
+                sleep_count += 1
+            elif trunc_bm_data['sleep-detection'].values[frame_count] == 102:
+                sleep_wake += 1
+            elif trunc_bm_data['sleep-detection'].values[frame_count] == 300:
+                sleep_intrpt += 1
+    
+    sleep_qual = sleep_count/sleep_minutes
+    sleep_hours = sleep_minutes/60
+    return sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt
 
 ####################################### MAIN ########################################
 # ## Retrieve and combine biomarker data for each day - comment out if you already made the combined files and are doing other processing
@@ -130,21 +168,15 @@ for subject_name in os.listdir(output_directory):
     combined_bm_data = pd.read_csv(os.path.join(output_directory, subject_name, 'processed_biomarkers', 'biomarkers_combined.csv'))
 
     trunc_bm_data = parse_subject_data(combined_bm_data, startday, starttime, endday, endtime)   
-    print('\nFinished truncated file for subject: ', subject_name)
+    print('Finished truncated file for subject: ', subject_name)
 
-    # find sections of step data where the subject takes 300-500 steps in a five minute window
-    # save the time stamps and the step counts for these sections in a running list (so the start time stamp and the end time stamp and then the total number of steps for the 5 minute window)
-    regular_step_sections = []
-    step_segment_count = 0
-    i = 0
-    while i < int(len(trunc_bm_data)-4):
-        if int(trunc_bm_data['step-counts'].values[i]) > 0:
-            step_sum = int(trunc_bm_data['step-counts'].values[i]+trunc_bm_data['step-counts'].values[i+1]+trunc_bm_data['step-counts'].values[i+2]+trunc_bm_data['step-counts'].values[i+3]+trunc_bm_data['step-counts'].values[i+4])
-            if step_sum > 300 and step_sum < 500: 
-                regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[i], trunc_bm_data['timestamp_iso'].values[i+4], step_sum])
-                i += 4
-                step_segment_count += 1
-        i += 1
+    # find sections of step data where the subject takes 350-450 steps in a five minute window, average the biomarker data
+    all_step_segs, step_seg_count = step_segmentation(trunc_bm_data)
+    print('Finished step segmentation for subject: ', subject_name)
+
+    # look at sleep detection data and find how long the participant slept for
+    sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt = sleep_detection(trunc_bm_data)    
+    print('Finished sleep detection for subject: ', subject_name)
     
 
 # print('----------------------------------------')
