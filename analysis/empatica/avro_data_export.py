@@ -112,9 +112,17 @@ def sleep_detection(trunc_bm_data):
     sleep_count = 0 #101
     sleep_wake = 0 #102
     sleep_intrpt = 0 #300
+    sleep_start_flag = 0 
+    sleep_end_flag = 0
 
     for frame_count in range(len(trunc_bm_data)):
-        if trunc_bm_data['sleep-detection'].values[frame_count] > 100:
+        
+        if trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 0 and sleep_end_flag == 0: #start of sleep
+            sleep_start_flag = 1
+        elif trunc_bm_data['sleep-detection'].values[frame_count] == 0 and sleep_start_flag == 1 and sleep_end_flag == 0: #did they wake up fully during the night?
+            sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
+            sleep_minutes += 1
+        elif trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 1 and sleep_end_flag == 0:
             sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
             sleep_minutes += 1
             if trunc_bm_data['sleep-detection'].values[frame_count] == 101:
