@@ -37,7 +37,7 @@ for subject in range(2,5):
 
     # c. extract baseline FPA
     bFPA_deg = np.mean(baselineFPA.iloc[:,2])
-    print('Baseline FPA was: ' + str(bFPA_deg))
+    print('Baseline FPA was: ' + str(bFPA_deg) + '(' + str(np.std(baselineFPA.iloc[:,2])) + ')')
 
     # d. generate plot of all FPA across time
     x = np.linspace(0, len(fullFPA), len(fullFPA))
@@ -69,16 +69,27 @@ for subject in range(2,5):
     plt.vlines(x = catch4, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 start time
     plt.vlines(x = catch4 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 end time 
 
-     # TODO: add mean(SD) FPA for each catch trial and walking block 
-    plt.annotate('T1: %.2f (%.2f)'%(np.mean(toein1FPA.iloc[:,2]), np.std(toein1FPA.iloc[:,2])), xy = (len(baselineFPA), 10)) # toein 1 mean FPA
-    plt.annotate('C1: %.2f (%.2f)'%(np.mean(fullFPA.iloc[int(catch1):int(catch1+40),2]), np.std(fullFPA.iloc[int(catch1):int(catch1+40),2])), xy = (200, 10)) # catch 1 mean FPA
-    plt.annotate('T2: %.2f (%.2f)'%(np.mean(toein2FPA.iloc[:,2]), np.std(toein2FPA.iloc[:,2])), xy = (catch2-40, 10)) # toein 2 mean FPA
-    plt.annotate('C2: %.2f (%.2f)'%(np.mean(fullFPA.iloc[int(catch2):int(catch2+40),2]), np.std(fullFPA.iloc[int(catch2):int(catch2+40),2])), xy = (450, 10)) # catch 2 mean FPA
-    plt.annotate('T3: %.2f (%.2f)'%(np.mean(toein3FPA.iloc[:,2]), np.std(toein3FPA.iloc[:,2])), xy = (catch3-40, 10)) # toein 3 mean FPA
-    plt.annotate('C3: %.2f (%.2f)'%(np.mean(fullFPA.iloc[int(catch3):int(catch3+40),2]), np.std(fullFPA.iloc[int(catch3):int(catch3+40),2])), xy = (650, 10)) # catch 3 mean FPA
-    plt.annotate('T4: %.2f (%.2f)'%(np.mean(toein4FPA.iloc[:,2]), np.std(toein4FPA.iloc[:,2])), xy = (catch4-40, 10)) # toein 4 mean FPA
-    plt.annotate('C4: %.2f (%.2f)'%(np.mean(fullFPA.iloc[int(catch4):int(catch4+40),2]), np.std(fullFPA.iloc[int(catch4):int(catch4+40),2])), xy = (850, 10)) # catch 4 mean FPA   
-    plt.annotate('R: %.2f (%.2f)'%(np.mean(retFPA.iloc[:,2]), np.std(retFPA.iloc[:,2])), xy = (len(fullFPA)-100, 10)) # toein 4 mean FPA
+
+    # plt.annotate('T1: %.2f (%.2f)'%(np.mean(toein1FPA.iloc[:,2]), np.std(toein1FPA.iloc[:,2])), xy = (len(baselineFPA), 10)) # toein 1 mean FPA
+    # plt.annotate('C1: %.2f (%.2f)'%(np.mean(fullFPA.iloc[int(catch1):int(catch1+40),2]), np.std(fullFPA.iloc[int(catch1):int(catch1+40),2])), xy = (200, 10)) # catch 1 mean FPA
+    # plt.annotate('T2: %.2f (%.2f)'%(np.mean(toein2FPA.iloc[:,2]), np.std(toein2FPA.iloc[:,2])), xy = (catch2-40, 10)) # toein 2 mean FPA
+    # plt.annotate('C2: %.2f (%.2f)'%(np.mean(fullFPA.iloc[int(catch2):int(catch2+40),2]), np.std(fullFPA.iloc[int(catch2):int(catch2+40),2])), xy = (450, 10)) # catch 2 mean FPA
+    # plt.annotate('T3: %.2f (%.2f)'%(np.mean(toein3FPA.iloc[:,2]), np.std(toein3FPA.iloc[:,2])), xy = (catch3-40, 10)) # toein 3 mean FPA
+    # plt.annotate('C3: %.2f (%.2f)'%(np.mean(fullFPA.iloc[int(catch3):int(catch3+40),2]), np.std(fullFPA.iloc[int(catch3):int(catch3+40),2])), xy = (650, 10)) # catch 3 mean FPA
+    # plt.annotate('T4: %.2f (%.2f)'%(np.mean(toein4FPA.iloc[:,2]), np.std(toein4FPA.iloc[:,2])), xy = (catch4-40, 10)) # toein 4 mean FPA
+    # plt.annotate('C4: %.2f (%.2f)'%(np.mean(fullFPA.iloc[int(catch4):int(catch4+40),2]), np.std(fullFPA.iloc[int(catch4):int(catch4+40),2])), xy = (850, 10)) # catch 4 mean FPA   
+    # plt.annotate('R: %.2f (%.2f)'%(np.mean(retFPA.iloc[:,2]), np.std(retFPA.iloc[:,2])), xy = (len(fullFPA)-100, 10)) # toein 4 mean FPA
+
+    print('TI1: ' + str(np.mean(toein1FPA.iloc[:,2])) + '(' + str(np.std(toein1FPA.iloc[:,2])) + ')')
+    print('C1: ' + str(np.mean(fullFPA.iloc[int(catch1):int(catch1+40),2])) + '(' + str(np.std(fullFPA.iloc[int(catch1):int(catch1+40),2])) + ')')
+    print('TI2: ' + str(np.mean(toein2FPA.iloc[:,2])) + '(' + str(np.std(toein2FPA.iloc[:,2])) + ')')
+    print('C2: ' + str(np.mean(fullFPA.iloc[int(catch2):int(catch2+40),2])) + '(' + str(np.std(fullFPA.iloc[int(catch2):int(catch2+40),2])) + ')')
+    print('TI3: ' + str(np.mean(toein3FPA.iloc[:,2])) + '(' + str(np.std(toein3FPA.iloc[:,2])) + ')')
+    print('C3: ' + str(np.mean(fullFPA.iloc[int(catch3):int(catch3+40),2])) + '(' + str(np.std(fullFPA.iloc[int(catch3):int(catch3+40),2])) + ')')
+    print('TI4: ' + str(np.mean(toein4FPA.iloc[:,2])) + '(' + str(np.std(toein4FPA.iloc[:,2])) + ')')
+    print('C4: ' + str(np.mean(fullFPA.iloc[int(catch4):int(catch4+40),2])) + '(' + str(np.std(fullFPA.iloc[int(catch4):int(catch4+40),2])) + ')')
+    print('Re: ' + str(np.mean(retFPA.iloc[:,2])) + '(' + str(np.std(retFPA.iloc[:,2])) + ')')
+
 
     # horizontal line for target FPA:
     plt.hlines(y = bFPA_deg-10, xmin = len(baselineFPA)+1, xmax = len(fullFPA), colors = 'r', linestyles = '--')
