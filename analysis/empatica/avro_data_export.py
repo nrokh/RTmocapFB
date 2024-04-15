@@ -109,32 +109,65 @@ def step_segmentation(trunc_bm_data):
 def sleep_detection(trunc_bm_data):
     sleep_cycle = []
     sleep_minutes = 0 
+    sleep_full_wake = 0 #0
     sleep_count = 0 #101
     sleep_wake = 0 #102
     sleep_intrpt = 0 #300
-    sleep_start_flag = 0 
-    sleep_end_flag = 0
+
+    sleep_start_flag = 0
+    sleep_block_count = 0
 
     for frame_count in range(len(trunc_bm_data)):
-        
-        if trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 0 and sleep_end_flag == 0: #start of sleep
-            sleep_start_flag = 1
-        elif trunc_bm_data['sleep-detection'].values[frame_count] == 0 and sleep_start_flag == 1 and sleep_end_flag == 0: #did they wake up fully during the night?
-            sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
-            sleep_minutes += 1
-        elif trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 1 and sleep_end_flag == 0:
-            sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
-            sleep_minutes += 1
-            if trunc_bm_data['sleep-detection'].values[frame_count] == 101:
-                sleep_count += 1
-            elif trunc_bm_data['sleep-detection'].values[frame_count] == 102:
-                sleep_wake += 1
-            elif trunc_bm_data['sleep-detection'].values[frame_count] == 300:
-                sleep_intrpt += 1
+        frame_hour = trunc_bm_data['timestamp_iso'].values[frame_count].split('T')[1].split(':')[0]
+        if int(frame_hour) > 18 or int(frame_hour) < 11: #check that the time is between 6pm and 11am and not a midday nap
+            #NOTE: we are defining a sleep block as 1 hr or more of sleep
+            if trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 0 and sleep_block_count == 0:
+                potential_sleep_start = frame_count
+                sleep_block_count += 1
+            elif trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 0 and sleep_block_count < 60 and sleep_block_count > 0:
+                sleep_block_count += 1
+            elif trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 0 and sleep_block_count == 60:
+                sleep_start_flag = 1
+                start_frame = potential_sleep_start
+            elif trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 1:
+                end_frame = frame_count
+            else:
+                sleep_block_count = 0
+                potential_sleep_start = 0
+    
+    # print('start time: ', trunc_bm_data['timestamp_iso'].values[start_frame], ' end time: ', trunc_bm_data['timestamp_iso'].values[end_frame])
+    # print('start frame: ', start_frame, ' end frame: ', end_frame)
+
+    for sframe_count in range(start_frame,end_frame):
+        sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[sframe_count],trunc_bm_data['sleep-detection'].values[sframe_count]])
+        sleep_minutes += 1
+        if trunc_bm_data['sleep-detection'].values[sframe_count] == 101: #sleep
+            sleep_count += 1 
+        elif trunc_bm_data['sleep-detection'].values[sframe_count] == 102: #awake, but for short period
+            sleep_wake += 1
+        elif trunc_bm_data['sleep-detection'].values[sframe_count] == 300: #awake, but for long period
+            sleep_intrpt += 1
+        elif trunc_bm_data['sleep-detection'].values[sframe_count] == 0: #fully awake during the night
+            sleep_full_wake += 1
+
+    #     if trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 0 and sleep_end_flag == 0: #start of sleep
+    #         sleep_start_flag = 1
+    #     elif trunc_bm_data['sleep-detection'].values[frame_count] == 0 and sleep_start_flag == 1 and sleep_end_flag == 0: #did they wake up fully during the night?
+    #         sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
+    #         sleep_minutes += 1
+    #     elif trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 1 and sleep_end_flag == 0:
+    #         sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
+    #         sleep_minutes += 1
+    #         if trunc_bm_data['sleep-detection'].values[frame_count] == 101:
+    #             sleep_count += 1
+    #         elif trunc_bm_data['sleep-detection'].values[frame_count] == 102:
+    #             sleep_wake += 1
+    #         elif trunc_bm_data['sleep-detection'].values[frame_count] == 300:
+    #             sleep_intrpt += 1
     
     sleep_qual = sleep_count/sleep_minutes
     sleep_hours = sleep_minutes/60
-    return sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt
+    return sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake
 
 ####################################### MAIN ########################################
 # ## Retrieve and combine biomarker data for each day - comment out if you already made the combined files and are doing other processing
@@ -181,7 +214,7 @@ for subject_name in os.listdir(output_directory):
     print('Finished step segmentation for subject: ', subject_name)
 
     # look at sleep detection data and find how long the participant slept for
-    sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt = sleep_detection(trunc_bm_data)    
+    sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake = sleep_detection(trunc_bm_data)    
     print('Finished sleep detection for subject: ', subject_name, '... hours asleep: ', sleep_hours, 'hrs & quality: ', sleep_qual)
 
     # segment the data from the walking trials when they are in the lab (baseline, 4 training sessions, retention)
