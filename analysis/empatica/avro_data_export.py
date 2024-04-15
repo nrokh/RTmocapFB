@@ -102,8 +102,6 @@ def step_segmentation(trunc_bm_data):
                 frame_count += 4
                 step_segment_count += 1
         frame_count += 1
-
-
     return regular_step_sections, step_segment_count
 
 def sleep_detection(trunc_bm_data):
@@ -134,9 +132,6 @@ def sleep_detection(trunc_bm_data):
             else:
                 sleep_block_count = 0
                 potential_sleep_start = 0
-    
-    # print('start time: ', trunc_bm_data['timestamp_iso'].values[start_frame], ' end time: ', trunc_bm_data['timestamp_iso'].values[end_frame])
-    # print('start frame: ', start_frame, ' end frame: ', end_frame)
 
     for sframe_count in range(start_frame,end_frame):
         sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[sframe_count],trunc_bm_data['sleep-detection'].values[sframe_count]])
@@ -150,21 +145,6 @@ def sleep_detection(trunc_bm_data):
         elif trunc_bm_data['sleep-detection'].values[sframe_count] == 0: #fully awake during the night
             sleep_full_wake += 1
 
-    #     if trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 0 and sleep_end_flag == 0: #start of sleep
-    #         sleep_start_flag = 1
-    #     elif trunc_bm_data['sleep-detection'].values[frame_count] == 0 and sleep_start_flag == 1 and sleep_end_flag == 0: #did they wake up fully during the night?
-    #         sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
-    #         sleep_minutes += 1
-    #     elif trunc_bm_data['sleep-detection'].values[frame_count] > 100 and sleep_start_flag == 1 and sleep_end_flag == 0:
-    #         sleep_cycle.append([trunc_bm_data['timestamp_iso'].values[frame_count],trunc_bm_data['sleep-detection'].values[frame_count]])
-    #         sleep_minutes += 1
-    #         if trunc_bm_data['sleep-detection'].values[frame_count] == 101:
-    #             sleep_count += 1
-    #         elif trunc_bm_data['sleep-detection'].values[frame_count] == 102:
-    #             sleep_wake += 1
-    #         elif trunc_bm_data['sleep-detection'].values[frame_count] == 300:
-    #             sleep_intrpt += 1
-    
     sleep_qual = sleep_count/sleep_minutes
     sleep_hours = sleep_minutes/60
     return sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake
@@ -215,11 +195,13 @@ for subject_name in os.listdir(output_directory):
 
     # look at sleep detection data and find how long the participant slept for
     sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake = sleep_detection(trunc_bm_data)    
-    print('Finished sleep detection for subject: ', subject_name, '... hours asleep: ', sleep_hours, 'hrs & quality: ', sleep_qual)
+    print('Finished sleep detection for subject: ', subject_name, ' ... hours asleep: ', sleep_hours, 'hrs & quality: ', sleep_qual)
 
     # segment the data from the walking trials when they are in the lab (baseline, 4 training sessions, retention)
+    # TODO: change this to the tagged data right now I am just using the times from the protocol sheet
+     
 
-    # plot the pulse rate and eda for each of the 6 walking trials and the average of ten 5-min walking trials with an envelope of 1 standard deviation
+    # plot the pulse rate and eda for each of the 10 walking trials and the average of ten 5-min walking trials with an envelope of 1 standard deviation
     
     
 
