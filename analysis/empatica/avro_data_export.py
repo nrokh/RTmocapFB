@@ -222,6 +222,10 @@ for subject_name in os.listdir(output_directory):
             starttime = empatica_data['Time Out?'][i]
             endday = empatica_data['Checked In?'][i]
             endtime = empatica_data['Time In?'][i]
+            if len(starttime) == 4:
+                starttime = '0' + starttime
+            if len(endtime) == 4:
+                endtime = '0' + endtime
             break
 
     # open the combined file for the subject and load it into a pandas dataframe, then trucate the data for plotting
