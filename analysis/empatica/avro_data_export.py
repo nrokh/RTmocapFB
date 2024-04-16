@@ -3,7 +3,7 @@ from avro.io import DatumReader
 import json
 import csv
 import os
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 # import pandas as pd
 # import numpy as np
 # import keyboard
@@ -98,11 +98,45 @@ def step_segmentation(trunc_bm_data):
         if int(trunc_bm_data['step-counts'].values[frame_count]) > 0:
             step_sum = int(trunc_bm_data['step-counts'].values[frame_count]+trunc_bm_data['step-counts'].values[frame_count+1]+trunc_bm_data['step-counts'].values[frame_count+2]+trunc_bm_data['step-counts'].values[frame_count+3]+trunc_bm_data['step-counts'].values[frame_count+4])
             if step_sum > 350 and step_sum < 450: 
-                regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], trunc_bm_data['timestamp_iso'].values[frame_count+4], step_sum])
+                regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, step_sum])
                 frame_count += 4
                 step_segment_count += 1
         frame_count += 1
+
+    if step_segment_count == 0:
+        print('No step segments found')
+        return
+        
     return regular_step_sections, step_segment_count
+
+def plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name):
+
+cm = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']
+cm_n = 0
+
+fig = plt.gcf()
+(ax1, ax2) = fig.subplots(2)
+#make full screen 
+fig.set_size_inches(18.5, 10.5)
+fig.subplots_adjust(top=1, bottom=0.05, left=0.05, right=0.95, hspace=0.5, wspace=0.5)
+plt.subplots_adjust(hspace=0.2, wspace=0.2)
+ax2.set_xlabel('Time')
+ax1.set_ylabel('Pulse Rate')
+ax2.set_ylabel('EDA')
+
+
+for seg in all_step_segs:
+    ax1.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]], color = cm[cm_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
+    ax2.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['eda'].values[seg[1]:seg[3]], color = cm[cm_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
+    cm_n += 1
+
+ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
+ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
+plt.show()
+#save the plot and data to a file
+plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.svg'), format='svg', dpi=1200) 
+
+
 
 def sleep_detection(trunc_bm_data):
     sleep_cycle = []
@@ -193,15 +227,23 @@ for subject_name in os.listdir(output_directory):
     all_step_segs, step_seg_count = step_segmentation(trunc_bm_data)
     print('Finished step segmentation for subject: ', subject_name)
 
+    # plot the pulse rate and eda for each of the ten 5-min walking trials
+    plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name)
+    print('done plotting pulse and eda for subject: ', subject_name)
+
+
+    # plot on a seperate plot the average with an envelope of 1 standard deviation
+
     # look at sleep detection data and find how long the participant slept for
     sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake = sleep_detection(trunc_bm_data)    
     print('Finished sleep detection for subject: ', subject_name, ' ... hours asleep: ', sleep_hours, 'hrs & quality: ', sleep_qual)
+
 
     # segment the data from the walking trials when they are in the lab (baseline, 4 training sessions, retention)
     # TODO: change this to the tagged data right now I am just using the times from the protocol sheet
      
 
-    # plot the pulse rate and eda for each of the 10 walking trials and the average of ten 5-min walking trials with an envelope of 1 standard deviation
+    
     
     
 
