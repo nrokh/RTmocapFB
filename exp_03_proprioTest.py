@@ -54,6 +54,15 @@ try:
     print('        Subject name: ', subjectNames[0])
     subjectName = subjectNames[0]  # select the main subject
 
+    # Check on markers
+    client.GetFrame()  # get the frame
+    marker_names = client.GetMarkerNames(subjectName)
+    marker_names = [x[0] for x in marker_names]
+    if 'RTOE' not in marker_names or 'RHEE' not in marker_names or 'RANK' not in marker_names:
+        print("Missing markers or marker name, please check the VICON software")
+        #note: if there is a marker issue, then delete the segment in VICON and label the markers in the properties section, not in the subjects tab
+        sys.exit()
+
     # Get the desired directory to save the data
     root = tk.Tk()
     root.withdraw() # we don't want a full GUI, so keep the root window from appearing
@@ -64,10 +73,10 @@ try:
     # Check if the file already exists
     while os.path.exists(csv_file_main):
         counter += 1
-        csv_file_main = os.path.join(directory, subjectNames[0] + '_proprioception' + str(counter) + '.csv')
-        csv_file_baseAngle = os.path.join(directory, subjectNames[0] + '_baseAngles_proprioception'+ str(counter) + '.csv')
+        csv_file_main = os.path.join(directory, subjectNames[0] + '_proprioception_' + str(counter) + '.csv')
+        csv_file_baseAngle = os.path.join(directory, subjectNames[0] + '_baseAngles_proprioception_'+ str(counter) + '.csv')
     print('        Main data will be saved to: ', csv_file_main)
-    print("        NOTE TO USER: Make sure the proprioception testing device is in the correct spot (aligned with the treadmil)")
+    print("        NOTE TO USER: Make sure the proprioception testing device is in the correct spot (aligned with the treadmill)")
 
     ################# Proprioception Test ###################
     FPA_store = []
@@ -89,7 +98,6 @@ try:
 
         if 'RTOE' not in marker_names or 'RHEE' not in marker_names or 'RANK' not in marker_names:
             print("Missing markers or marker name, please check the VICON software")
-            #note: if there is a marker issue, then delete the segment in VICON and label the markers in the properties section, not in the subjects tab
             sys.exit()
         
         # Base angles
@@ -160,6 +168,7 @@ try:
     df_base = pd.DataFrame(base_angle_store, columns = ['time (ns)', 'deg test', 'deg_15_in_x', 'deg_15_in_y', 'deg_10_in_x', 'deg_10_in_y', 'deg_5_in_x', 'deg_5_in_y', 'deg_0_x', 'deg_0_y', 'deg_5_out_x', 'deg_5_out_y', 'deg_10_out_x', 'deg_10_out_y', 'deg_15_out_x', 'deg_15_out_y'])
     df_main.to_csv(csv_file_main)
     df_base.to_csv(csv_file_baseAngle)
+    
     # print avg error
     print("**---------------------------------------------------------------------------------------------------**")
     print("        Average error: " + str(np.nanmean(err_prop)) + "  +/-  " + str(np.nanstd(err_prop_in)))

@@ -146,8 +146,11 @@ try:
     ############## SCALED FEEDBACK SETUP ###############
     band = 3 #degrees to either side
 
-    feedbackType = float(input("Select feedback type: (1) = trinary; (2) = scaled: "))
-    if feedbackType == 1.0:
+    feedbackType = float(input("Select feedback type: (0) = no feedback; (1) = trinary; (2) = scaled: "))
+    
+    if feedbackType == 0.0:
+        print("Starting no feedback mode...")
+    elif feedbackType == 1.0:
         print("Starting trinary feedback mode...")
     elif feedbackType == 2.0:
         print("Starting scaled feedback mode...")
@@ -237,7 +240,10 @@ try:
             else:
                 catch_flag = 0
 
-            if feedbackType == 1.0 and catch_flag == 0: #trinary mode
+            if feedbackType == 0.0 and catch_flag == 0: #no feedback mode
+                gaitEvent_store.append((time.time_ns(), 0.0, 'none', 0)) #for consistancy in logging the data
+
+            elif feedbackType == 1.0 and catch_flag == 0: #trinary mode
                 if meanFPAstep < targetFPA - band: # too far in
                     duration = 330
                     duration_packed = struct.pack('<H', int(duration))
@@ -266,7 +272,6 @@ try:
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
                     gaitEvent_store.append((time.time_ns(), 2.0, 'left', duration_packed))
-
 
         # save FPA value to the list
         FPA_store.append((time.time_ns(), FPA))

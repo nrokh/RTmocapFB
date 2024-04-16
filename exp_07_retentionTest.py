@@ -24,12 +24,12 @@ client = ViconDataStream.Client()
 
 def generate_csv_filename(directory, subject_name, parameter):
             
-    csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + '.csv')
+    csv_file = os.path.join(directory, subject_name[0] + '_retention_' + parameter + '.csv')
     counter = 0
 
     while os.path.exists(csv_file):
         counter += 1
-        csv_file = os.path.join(directory, subject_name[0] + '_' + parameter + str(counter) + '.csv')
+        csv_file = os.path.join(directory, subject_name[0] + '_retention_' + parameter + str(counter) + '.csv')
     print('      Data will be saved to file: ', csv_file)
     return csv_file
 
@@ -174,18 +174,25 @@ try:
 
     # save calculated FPA
     df_FPA = pd.DataFrame(FPA_store)
-    csv_file_FPA = generate_csv_filename(directory, subjectNames, 'retentionFPA')
+    csv_file_FPA = generate_csv_filename(directory, subjectNames, 'FPA')
     df_FPA.to_csv(csv_file_FPA)
 
     # save the mean FPA for each step w/ timestamps
     df_mFPA = pd.DataFrame(meanFPAstep_store)
-    csv_file_mFPA = generate_csv_filename(directory, subjectNames, 'retentionmeanFPA')
+    csv_file_mFPA = generate_csv_filename(directory, subjectNames, 'meanFPA')
     df_mFPA.to_csv(csv_file_mFPA)
 
     # save gait events
     df_GE = pd.DataFrame(gaitEvent_store)
-    csv_file_GE = generate_csv_filename(directory, subjectNames, 'retentiongaitEvents')
+    csv_file_GE = generate_csv_filename(directory, subjectNames, 'gaitEvents')
     df_GE.to_csv(csv_file_GE)
+
+    plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
+    plt.xlabel('Time [ns]')
+    plt.ylabel('FPA [deg]')
+    plt.scatter(df_mFPA.iloc[:,0], df_mFPA.iloc[:,1], color='red', marker='o')
+    plt.title('FPA')
+    plt.show()
 
     # print avg of baseline FPA
     print("Retention FPA: " + str(np.nanmean(baselineFPA)) + "(" + str(np.nanstd(baselineFPA)) + ")")
@@ -193,14 +200,32 @@ try:
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
 except KeyboardInterrupt:
-    print( 'Keyboard interrupt detected, trial ended early and data was not saved' )
+    print( 'Keyboard interrupt detected, trial ended early...' )
 
-plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
-plt.xlabel('Time [ns]')
-plt.ylabel('FPA [deg]')
-plt.scatter(df_mFPA.iloc[:,0], df_mFPA.iloc[:,1], color='red', marker='o')
-plt.title('FPA')
-plt.show()
+    # save calculated FPA
+    df_FPA = pd.DataFrame(FPA_store)
+    csv_file_FPA = generate_csv_filename(directory, subjectNames, 'FPA_Interrupted')
+    df_FPA.to_csv(csv_file_FPA)
+
+    # save the mean FPA for each step w/ timestamps
+    df_mFPA = pd.DataFrame(meanFPAstep_store)
+    csv_file_mFPA = generate_csv_filename(directory, subjectNames, 'meanFPA_Interrupted')
+    df_mFPA.to_csv(csv_file_mFPA)
+
+    # save gait events
+    df_GE = pd.DataFrame(gaitEvent_store)
+    csv_file_GE = generate_csv_filename(directory, subjectNames, 'gaitEvents_Interrupted')
+    df_GE.to_csv(csv_file_GE)
+
+    plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
+    plt.xlabel('Time [ns]')
+    plt.ylabel('FPA [deg]')
+    plt.scatter(df_mFPA.iloc[:,0], df_mFPA.iloc[:,1], color='red', marker='o')
+    plt.title('FPA')
+    plt.show()
+    
+    print('Data saved!')
+
 
 
 
