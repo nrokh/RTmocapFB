@@ -237,9 +237,9 @@ for subject_name in os.listdir(output_directory):
     all_step_segs, step_seg_count = step_segmentation(trunc_bm_data)
     print('Finished step segmentation for subject: ', subject_name)
 
-    # plot the pulse rate and eda for each of the ten 5-min walking trials
-    plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name)
-    print('done plotting pulse and eda for subject: ', subject_name)
+    # # plot the pulse rate and eda for each of the ten 5-min walking trials
+    # plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name)
+    # print('done plotting pulse and eda for subject: ', subject_name)
 
 
     # plot on a seperate plot the average with an envelope of 1 standard deviation
