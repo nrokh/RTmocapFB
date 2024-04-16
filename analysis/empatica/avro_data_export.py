@@ -111,32 +111,30 @@ def step_segmentation(trunc_bm_data):
 
 def plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name):
 
-cm = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']
-cm_n = 0
+    cm = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']
+    cm_n = 0
 
-fig = plt.gcf()
-(ax1, ax2) = fig.subplots(2)
-#make full screen 
-fig.set_size_inches(18.5, 10.5)
-fig.subplots_adjust(top=1, bottom=0.05, left=0.05, right=0.95, hspace=0.5, wspace=0.5)
-plt.subplots_adjust(hspace=0.2, wspace=0.2)
-ax2.set_xlabel('Time')
-ax1.set_ylabel('Pulse Rate')
-ax2.set_ylabel('EDA')
-
-
-for seg in all_step_segs:
-    ax1.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]], color = cm[cm_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
-    ax2.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['eda'].values[seg[1]:seg[3]], color = cm[cm_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
-    cm_n += 1
-
-ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
-ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
-plt.show()
-#save the plot and data to a file
-plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.svg'), format='svg', dpi=1200) 
+    fig = plt.gcf()
+    (ax1, ax2) = fig.subplots(2)
+    #make full screen 
+    fig.set_size_inches(18.5, 10.5)
+    fig.subplots_adjust(top=1, bottom=0.05, left=0.05, right=0.95, hspace=0.5, wspace=0.5)
+    plt.subplots_adjust(hspace=0.2, wspace=0.2)
+    ax2.set_xlabel('Time')
+    ax1.set_ylabel('Pulse Rate')
+    ax2.set_ylabel('EDA')
 
 
+    for seg in all_step_segs:
+        ax1.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]], color = cm[cm_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
+        ax2.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['eda'].values[seg[1]:seg[3]], color = cm[cm_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
+        cm_n += 1
+
+    ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
+    plt.show()
+    #save the plot and data to a file
+    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.svg'), format='svg', dpi=1200) 
 
 def sleep_detection(trunc_bm_data):
     sleep_cycle = []
@@ -184,7 +182,8 @@ def sleep_detection(trunc_bm_data):
     return sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake
 
 ####################################### MAIN ########################################
-# ## Retrieve and combine biomarker data for each day - comment out if you already made the combined files and are doing other processing
+# ####### Retrieve and combine biomarker data for each day #######
+# # comment out if you already made the combined files and are doing other processing 
 # in_root = tk.Tk()
 # in_root.withdraw() 
 # print('Select the input directory....')
@@ -205,7 +204,7 @@ def sleep_detection(trunc_bm_data):
 #         print('Finished processing combined file for subject: ', subject_name, ' for day: ', day)
 #         print('----------------------------------------')
 
-## Truncate the combined biomarker data for each subject
+####### Truncate the combined biomarker data for each subject #######
 # comment out the directory retrieval code below if you are running the combined files code from above
 out_root = tk.Tk()
 out_root.withdraw() 
@@ -213,10 +212,17 @@ print('Select the output directory....')
 output_directory = filedialog.askdirectory()
 
 for subject_name in os.listdir(output_directory):
-    startday = input('\nwhat day did ' + subject_name + ' start the experiment? (YYYY-MM-DD):    ')
-    starttime = input('what time did ' + subject_name + ' start the experiment? (HH:MM 24h format):    ')
-    endday = input('what day did ' + subject_name + ' end the experiment? (YYYY-MM-DD):    ')
-    endtime = input('what time did ' + subject_name + ' end the experiment? (HH:MM 24h format):    ')
+    subject_number = subject_name.split('-')[0]
+    empatica_data = pd.read_csv('C:\\Users\\vsun\\Documents\\Code\\RTmocapFB\\analysis\\empatica\\emaptica_watch_phone_tracksheet.csv')
+
+
+    for i in range(len(empatica_data)):
+        if str(empatica_data['Subject (Empatica 1-1-#)'][i]) == subject_number:
+            startday = empatica_data['Checked out?'][i]
+            starttime = empatica_data['Time Out?'][i]
+            endday = empatica_data['Checked In?'][i]
+            endtime = empatica_data['Time In?'][i]
+            break
 
     # open the combined file for the subject and load it into a pandas dataframe, then trucate the data for plotting
     combined_bm_data = pd.read_csv(os.path.join(output_directory, subject_name, 'processed_biomarkers', 'biomarkers_combined.csv'))
