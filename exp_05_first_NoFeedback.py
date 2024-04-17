@@ -90,7 +90,7 @@ try:
     # trial length based on step count
     step_count = 0 
     cadence = 80 # steps per minute
-    trial_time = 5 #  minutes
+    trial_time = 2 #  minutes
 
     ################# STEP DETECTION ###################
     print("Press space when ready to start the no feedback toe-in trial: ")
