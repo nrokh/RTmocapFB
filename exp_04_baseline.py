@@ -99,7 +99,7 @@ try:
     local_max_detected = False
 
     start_time = time.time() #TODO: figure out why the step count is not working
-    while time.time() - start_time < 180:  # Run for 3 minutes (180 seconds)
+    while time.time() - start_time < trial_time*60:  # Run for 3 minutes (180 seconds)
     # while step_count < trial_time*cadence: 
         # print(step_count)
         subjectName = subjectNames[0]  # select the main subject
