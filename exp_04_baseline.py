@@ -99,7 +99,7 @@ try:
     local_max_detected = False
 
     start_time = time.time() #TODO: figure out why the step count is not working
-    while time.time() - start_time < trial_time*60:  # Run for 3 minutes (180 seconds)
+    while time.time() - start_time < trial_time*60:  # Run for 2 minutes
     # while step_count < trial_time*cadence: 
         # print(step_count)
         subjectName = subjectNames[0]  # select the main subject
@@ -189,6 +189,7 @@ try:
 
     # print avg of baseline FPA
     print("Baseline FPA: " + str(np.nanmean(baselineFPA)))
+    print("Participant will walk at " + str(np.nanmean(baselineFPA) - 10.0) + " degrees for the experiment")
     
     plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
     plt.xlabel('Time [ns]')

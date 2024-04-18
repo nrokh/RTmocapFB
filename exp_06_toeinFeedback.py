@@ -234,9 +234,13 @@ try:
             local_max_detected = False
 
             ################# CUE GAITGUIDE ###############
+    
             if step_count >= (cadence*trial_time/2) and step_count <= ((cadence*trial_time/2)+catch_steps): 
-                print("Catch trial")
-                catch_flag = 1
+                if feedbackType == 1.0 or feedbackType == 2.0:
+                    print("Catch trial")
+                    catch_flag = 1
+                else:
+                    catch_flag = 0
             else:
                 catch_flag = 0
 
