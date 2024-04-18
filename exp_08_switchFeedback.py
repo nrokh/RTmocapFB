@@ -149,7 +149,7 @@ try:
 
     ################# ENTER BASELINE FPA ###############
     baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
-    targetFPA = baselineFPA - 10.0
+    targetFPA = baselineFPA - 5.0
     print("Target toe-in angle is: ", targetFPA)
 
     for switch in range(2):
@@ -263,8 +263,12 @@ try:
             # save FPA value to the list
             FPA_store.append((time.time_ns(), FPA))
             if keyboard.is_pressed('s'):
-                print('Stopping trial, time to switch feedback types...')
-                break
+                if switch == 0:
+                    print('Stopping trial, time to switch feedback types...')
+                    break
+                elif switch == 1:
+                    print('Completed switch trials...')
+                    break
 
     GaitGuide.disconnect()
 
