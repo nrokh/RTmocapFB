@@ -1,5 +1,8 @@
-Subject (Vicon),Subject (Empatica 1-1-#),Watch,Phone,Checked out?,Time Out?,Checked In?,Time In?,Baseline Start?,Toe in 1 Start?,Toe in 1 Start?,Toe in 1 Start?,Toe in 1 Start?,Retention Start? 
-S01,0,3YK3K152DD,-,2024-04-07,10:00,2024-04-08,17:30,,,,,,
-S02,1,3YK3K152DD,Blue,2024-04-08,15:00,2024-04-09,16:00,,,,,,
-S03,2,3YK3K152XT,-,2024-04-09,10:00,2024-04-10,12:00,,,,,,
-S04,3,3YK3K152DD,Blue,2024-04-11,9:00,2024-04-12,15:00,,,,,,
+Subject (Vicon),Subject (Empatica 1-1-#),Watch,Phone,Checked out?,Time Out?,Checked In?,Time In?,Baseline Start?,Toe-in 1 Start?,Toe-in 2 Start?,Toe-in 3 Start?,Toe-in 4 Start?,Retention Start? ,Switch?
+S01,0,3YK3K152DD,-,4/7/2024,10:00,4/8/2024,17:30,14:06,,14:34,14:42,14:49,14:57,
+S02,1,3YK3K152DD,Blue,4/8/2024,15:00,4/9/2024,16:00,13:50,13:56,14:04,14:11,14:18,14:26,
+S03,2,3YK3K152XT,-,4/9/2024,10:00,4/10/2024,12:00,10:23,10:29,10:36,10:43,10:50,10:57,11:03
+S04,3,3YK3K152DD,Blue,4/11/2024,9:00,4/12/2024,15:00,10:40,13:46,13:53,14:01,14:09,14:17,14:26
+S05,4,3YK3K152DD,Black,4/16/2024,13:10,4/17/2024,15:00,13:21,13:37,13:45,13:53,14:07,14:15,14:22
+S06,5,3YK3K152XT,Blue,4/17/2024,16:00,4/18/2024,,,,,,,,
+S07,6,3YK3K152DD,Black,4/18/2024,13:00,4/19/2024,,,,,,,,
