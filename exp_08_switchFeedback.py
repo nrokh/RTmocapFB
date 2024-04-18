@@ -149,7 +149,7 @@ try:
 
     ################# ENTER BASELINE FPA ###############
     baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
-    targetFPA = baselineFPA - 5.0
+    targetFPA = baselineFPA - 10.0
     print("Target toe-in angle is: ", targetFPA)
 
     for switch in range(2):
