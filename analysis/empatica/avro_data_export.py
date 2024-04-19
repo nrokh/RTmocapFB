@@ -96,8 +96,14 @@ def step_segmentation(trunc_bm_data):
     frame_count = 0
     while frame_count < int(len(trunc_bm_data)-4):
         if int(trunc_bm_data['step-counts'].values[frame_count]) > 0:
-            step_sum = int(trunc_bm_data['step-counts'].values[frame_count]+trunc_bm_data['step-counts'].values[frame_count+1]+trunc_bm_data['step-counts'].values[frame_count+2]+trunc_bm_data['step-counts'].values[frame_count+3]+trunc_bm_data['step-counts'].values[frame_count+4])
-            if step_sum > 350 and step_sum < 450: 
+            step_group = [trunc_bm_data['step-counts'].values[frame_count], trunc_bm_data['step-counts'].values[frame_count+1], trunc_bm_data['step-counts'].values[frame_count+2], trunc_bm_data['step-counts'].values[frame_count+3], trunc_bm_data['step-counts'].values[frame_count+4]]
+            hr_group = [trunc_bm_data['pulse-rate'].values[frame_count], trunc_bm_data['pulse-rate'].values[frame_count+1], trunc_bm_data['pulse-rate'].values[frame_count+2], trunc_bm_data['pulse-rate'].values[frame_count+3], trunc_bm_data['pulse-rate'].values[frame_count+4]]
+            eda_group = [trunc_bm_data['eda'].values[frame_count], trunc_bm_data['eda'].values[frame_count+1], trunc_bm_data['eda'].values[frame_count+2], trunc_bm_data['eda'].values[frame_count+3], trunc_bm_data['eda'].values[frame_count+4]]
+            step_sum = int(sum(step_group))
+            range_step = int(max(step_group) - min(step_group))
+            range_hr = int(max(hr_group) - min(hr_group))
+            range_eda = max(eda_group) - min(eda_group)    
+            if step_sum > 350 and step_sum < 450 and range_step < 20 and range_hr < 60 and range_eda < 0.5: #TODO: validate using this criteria to find the 5-min walking trials
                 regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, step_sum])
                 frame_count += 4
                 step_segment_count += 1
@@ -111,25 +117,24 @@ def step_segmentation(trunc_bm_data):
 
 def plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name):
 
-    cm = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000']
-    cm_n = 0
-
+    copts = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#0571B0', '#e6beff', '#9a6324', '#800000', '#888888', '#808000', '#ffd8b1', '#404040','#000075']
+    lopts = ['-','--','-.',':','-','--','-.',':','-','--','-.',':','-','--','-.',':','-','--','-.',':']
+    opts_n = 0
     fig = plt.gcf()
     (ax1, ax2) = fig.subplots(2)
     #make full screen 
     fig.set_size_inches(18.5, 10.5)
     fig.subplots_adjust(top=1, bottom=0.05, left=0.05, right=0.95, hspace=0.5, wspace=0.5)
-    plt.subplots_adjust(hspace=0.2, wspace=0.2)
+    plt.subplots_adjust(hspace=0.35, wspace=0.2)
     ax2.set_xlabel('Time')
     ax1.set_ylabel('Pulse Rate')
     ax2.set_ylabel('EDA')
-
-
     for seg in all_step_segs:
-        ax1.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]], color = cm[cm_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
-        ax2.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['eda'].values[seg[1]:seg[3]], color = cm[cm_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
-        cm_n += 1
-
+        if opts_n < len(copts):
+            ax1.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]+1] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]+1], color = copts[opts_n], linestyle = lopts[opts_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
+            ax2.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]+1] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['eda'].values[seg[1]:seg[3]+1], color = copts[opts_n], linestyle = lopts[opts_n])
+            opts_n += 1
+            
     ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
     plt.show()
@@ -181,9 +186,9 @@ def sleep_detection(trunc_bm_data):
     sleep_hours = sleep_minutes/60
     return sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake
 
-####################################### MAIN ########################################
-# ####### Retrieve and combine biomarker data for each day #######
-# # comment out if you already made the combined files and are doing other processing 
+###################################### MAIN ########################################
+####### Retrieve and combine biomarker data for each day #######
+# comment out if you already made the combined files and are doing other processing 
 # in_root = tk.Tk()
 # in_root.withdraw() 
 # print('Select the input directory....')
@@ -238,8 +243,8 @@ for subject_name in os.listdir(output_directory):
     print('Finished step segmentation for subject: ', subject_name)
 
     # # plot the pulse rate and eda for each of the ten 5-min walking trials
-    # plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name)
-    # print('done plotting pulse and eda for subject: ', subject_name)
+    plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name)
+    print('done plotting pulse and eda for subject: ', subject_name)
 
 
     # plot on a seperate plot the average with an envelope of 1 standard deviation
