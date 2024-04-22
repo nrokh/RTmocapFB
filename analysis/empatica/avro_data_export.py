@@ -4,12 +4,12 @@ import json
 import csv
 import os
 import matplotlib.pyplot as plt
-# import pandas as pd
-# import numpy as np
+import numpy as np
 # import keyboard
 import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
+import random
 
 
 ####################################### FUNCTIONS ########################################
@@ -92,6 +92,7 @@ def parse_subject_data(combined_bm_data, startday, starttime, endday, endtime):
             
 def step_segmentation(trunc_bm_data):
     regular_step_sections = []
+    random_segs = []
     step_segment_count = 0
     frame_count = 0
     while frame_count < int(len(trunc_bm_data)-4):
@@ -102,9 +103,10 @@ def step_segmentation(trunc_bm_data):
             step_sum = int(sum(step_group))
             range_step = int(max(step_group) - min(step_group))
             range_hr = int(max(hr_group) - min(hr_group))
-            range_eda = max(eda_group) - min(eda_group)    
-            if step_sum > 350 and step_sum < 450 and range_step < 20 and range_hr < 60 and range_eda < 0.5: #TODO: validate using this criteria to find the 5-min walking trials
-                regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, step_sum])
+            range_eda = max(eda_group) - min(eda_group)   
+
+            if step_sum > 300 and step_sum < 500 and range_step < 100 and range_hr < 60 and max(hr_group) < 150 and range_eda < 0.2 and max(eda_group) < 1.0: #TODO: validate using this criteria to find the 5-min walking trials
+                regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, step_sum, np.mean(eda_group), np.mean(hr_group)])
                 frame_count += 4
                 step_segment_count += 1
         frame_count += 1
@@ -112,13 +114,30 @@ def step_segmentation(trunc_bm_data):
     if step_segment_count == 0:
         print('No step segments found')
         return
+    
+    eda_mean = np.mean([segs[5] for segs in regular_step_sections])
+    eda_std = np.std([segs[5] for segs in regular_step_sections]) 
+    for segs in regular_step_sections:
+        if segs[5] > eda_mean + 3*eda_std or segs[5] < eda_mean - 3*eda_std:
+            regular_step_sections.remove(segs)
+            step_segment_count -= 1
+
+    #pick 5 random segments to plot
+    if step_segment_count > 5:
+        random_segs = random.sample(regular_step_sections, 5)
+    else:
+        random_segs = regular_step_sections
+        print('Less than 5 segments found, plotting all segments...')
         
-    return regular_step_sections, step_segment_count
+    return regular_step_sections, random_segs, step_segment_count
 
-def plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name):
+def plot_pulse_eda(trunc_bm_data, sample_step_segs, output_directory, subject_name):
 
-    copts = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#0571B0', '#e6beff', '#9a6324', '#800000', '#888888', '#808000', '#ffd8b1', '#404040','#000075']
-    lopts = ['-','--','-.',':','-','--','-.',':','-','--','-.',':','-','--','-.',':','-','--','-.',':']
+    # copts = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#0571B0', '#e6beff', '#9a6324', '#800000', '#888888', '#808000', '#ffd8b1', '#404040','#000075']
+    # lopts = ['-','--','-.',':','-','--','-.',':','-','--','-.',':','-','--','-.',':','-','--','-.',':']
+    # copts = ['#B8336A', '#2DC2BD', '#7D8CC4', '#004E64', '#52AA8A']
+    copts = ['#46B1C9', '#034732', '#DD6031', '#E4CA04', '#820263']
+    lopts = ['-', '--','-.',':',(5, (10, 3))]
     opts_n = 0
     fig = plt.gcf()
     (ax1, ax2) = fig.subplots(2)
@@ -129,17 +148,22 @@ def plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name)
     ax2.set_xlabel('Time')
     ax1.set_ylabel('Pulse Rate')
     ax2.set_ylabel('EDA')
-    for seg in all_step_segs:
-        if opts_n < len(copts):
-            ax1.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]+1] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]+1], color = copts[opts_n], linestyle = lopts[opts_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]])
-            ax2.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]+1] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['eda'].values[seg[1]:seg[3]+1], color = copts[opts_n], linestyle = lopts[opts_n])
-            opts_n += 1
+    #set the scale for the y-axis
+    ax1.set_ylim([0, 180])
+    ax2.set_ylim([0, 1])
+    for seg in sample_step_segs:
+        # if opts_n < len(copts):
+        ax1.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]+1] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]+1], color = copts[opts_n], linestyle = lopts[opts_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]].split('T')[0] + ' @ ' + trunc_bm_data['timestamp_iso'].values[seg[1]].split('T')[1].split('Z')[0])
+        ax2.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]+1] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['eda'].values[seg[1]:seg[3]+1], color = copts[opts_n], linestyle = lopts[opts_n])
+        opts_n += 1
             
     ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
-    plt.show()
+    
     #save the plot and data to a file
-    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.svg'), format='svg', dpi=1200) 
+    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.pdf'), format='pdf', bbox_inches='tight') 
+    print("debugging")
+    plt.show(blocking=False)
 
 def sleep_detection(trunc_bm_data):
     sleep_cycle = []
@@ -199,13 +223,22 @@ def sleep_detection(trunc_bm_data):
 # print('Select the output directory....')
 # output_directory = filedialog.askdirectory()
 
-# for day in ['day_1', 'day_2']:
-#     check_this = os.listdir(os.path.join(input_directory, day))
-#     for subject_name in os.listdir(os.path.join(input_directory, day)):
-        
+# #ask if you want to process data for all subjects or just one
+# all_subjects = input('Do you want to process data for all subjects? (y/n): ')
+# if all_subjects == 'y':
+#     for day in ['day_1', 'day_2']:
+#         check_this = os.listdir(os.path.join(input_directory, day))
+#         for subject_name in os.listdir(os.path.join(input_directory, day)):
+            
+#             combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
+            
+                    
+#             print('Finished processing combined file for subject: ', subject_name, ' for day: ', day)
+#             print('----------------------------------------')
+# else:
+#     subject_name = input('Enter the subject you want to process: ')
+#     for day in ['day_1', 'day_2']:
 #         combine_processed_biomarkers(input_directory, output_directory, subject_name, day)
-        
-                
 #         print('Finished processing combined file for subject: ', subject_name, ' for day: ', day)
 #         print('----------------------------------------')
 
@@ -216,7 +249,13 @@ out_root.withdraw()
 print('Select the output directory....')
 output_directory = filedialog.askdirectory()
 
-for subject_name in os.listdir(output_directory):
+all_subjects_flag = input('Do you want to process data for all subjects? (y/n): ')
+if all_subjects_flag == 'y':
+    subject_process_list = os.listdir(output_directory)
+else:
+    subject_process_list = [input('Enter the subject you want to process: ')]
+
+for subject_name in subject_process_list:
     subject_number = subject_name.split('-')[0]
     empatica_data = pd.read_csv('C:\\Users\\vsun\\Documents\\Code\\RTmocapFB\\analysis\\empatica\\emaptica_watch_phone_tracksheet.csv')
 
@@ -239,11 +278,11 @@ for subject_name in os.listdir(output_directory):
     print('Finished truncated file for subject: ', subject_name)
 
     # find sections of step data where the subject takes 350-450 steps in a five minute window, average the biomarker data
-    all_step_segs, step_seg_count = step_segmentation(trunc_bm_data)
+    all_step_segs, sample_segs, step_seg_count = step_segmentation(trunc_bm_data)
     print('Finished step segmentation for subject: ', subject_name)
 
     # # plot the pulse rate and eda for each of the ten 5-min walking trials
-    plot_pulse_eda(trunc_bm_data, all_step_segs, output_directory, subject_name)
+    plot_pulse_eda(trunc_bm_data, sample_segs, output_directory, subject_name)
     print('done plotting pulse and eda for subject: ', subject_name)
 
 
