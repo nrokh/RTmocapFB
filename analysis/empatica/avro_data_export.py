@@ -14,6 +14,11 @@ import random
 
 ####################################### FUNCTIONS ########################################
 
+def fix_time(time):
+    if len(time) == 4:
+        time = '0' + time
+    return time
+
 def combine_processed_biomarkers(input_directory, output_directory, subject_name, day):
     csv_data_path = os.path.join(input_directory, day, subject_name, 'digital_biomarkers','aggregated_per_minute')
     # moved files that have "_sleep-detection", "_eda", "_prv", "_step-counts" to the output directory + a new folder "processed_biomarkers"... create this folder if it doesnt exist
@@ -131,11 +136,45 @@ def step_segmentation(trunc_bm_data):
         
     return regular_step_sections, random_segs, step_segment_count
 
+def lab_step_segmentation(trunc_bm_data, subject_empatica_data):
+    lab_step_sections = []
+    frame_count = 0
+    test_day = subject_empatica_data[6]
+    baseline = test_day + 'T' + fix_time(subject_empatica_data.iloc[8]) + ':00Z'
+    toein_1 = test_day + 'T' + fix_time(subject_empatica_data.iloc[9]) + ':00Z'
+    toein_2 = test_day + 'T' + fix_time(subject_empatica_data.iloc[10]) + ':00Z'
+    toein_3 = test_day + 'T' + fix_time(subject_empatica_data.iloc[11]) + ':00Z'
+    toein_4 = test_day + 'T' + fix_time(subject_empatica_data.iloc[12]) + ':00Z'
+    retention = test_day + 'T' + fix_time(subject_empatica_data.iloc[13]) + ':00Z'
+    while frame_count < int(len(trunc_bm_data)-4):
+        if trunc_bm_data['timestamp_iso'].values[frame_count] == baseline:
+            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'baseline'])
+            frame_count += 4
+        elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_1:
+            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
+            frame_count += 4
+        elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_2:
+            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
+            frame_count += 4
+        elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_3:
+            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
+            frame_count += 4
+        elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_4:
+            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
+            frame_count += 4
+        elif trunc_bm_data['timestamp_iso'].values[frame_count] == retention:
+            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'retention'])
+            frame_count += 4
+        else:
+            frame_count += 1
+
+    if len(lab_step_sections) == 0:
+        print('WARNING - No lab step sections found, data is not segmented correctly')
+
+    return lab_step_sections
+
 def plot_pulse_eda(trunc_bm_data, sample_step_segs, output_directory, subject_name):
 
-    # copts = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#0571B0', '#e6beff', '#9a6324', '#800000', '#888888', '#808000', '#ffd8b1', '#404040','#000075']
-    # lopts = ['-','--','-.',':','-','--','-.',':','-','--','-.',':','-','--','-.',':','-','--','-.',':']
-    # copts = ['#B8336A', '#2DC2BD', '#7D8CC4', '#004E64', '#52AA8A']
     copts = ['#46B1C9', '#034732', '#DD6031', '#E4CA04', '#820263']
     lopts = ['-', '--','-.',':',(5, (10, 3))]
     opts_n = 0
@@ -148,9 +187,9 @@ def plot_pulse_eda(trunc_bm_data, sample_step_segs, output_directory, subject_na
     ax2.set_xlabel('Time')
     ax1.set_ylabel('Pulse Rate')
     ax2.set_ylabel('EDA')
-    #set the scale for the y-axis
-    ax1.set_ylim([0, 180])
+    ax1.set_ylim([0, 150])
     ax2.set_ylim([0, 1])
+
     for seg in sample_step_segs:
         # if opts_n < len(copts):
         ax1.plot(((trunc_bm_data['timestamp_ms'].values[seg[1]:seg[3]+1] - trunc_bm_data['timestamp_ms'].values[seg[1]])*1e-3)/60, trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]+1], color = copts[opts_n], linestyle = lopts[opts_n], label = trunc_bm_data['timestamp_iso'].values[seg[1]].split('T')[0] + ' @ ' + trunc_bm_data['timestamp_iso'].values[seg[1]].split('T')[1].split('Z')[0])
@@ -164,6 +203,23 @@ def plot_pulse_eda(trunc_bm_data, sample_step_segs, output_directory, subject_na
     plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.pdf'), format='pdf', bbox_inches='tight') 
     print("debugging")
     plt.show(blocking=False)
+
+def plot_boxplot(trunc_bm_data, sample_step_segs, lab_step_segs, output_directory, subject_name):
+    box_plot_data = [] #pulse rate, eda, lab or not
+    for seg in sample_step_segs:
+        box_plot_data.append([trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]+1], trunc_bm_data['eda'].values[seg[1]:seg[3]+1], 'outside_lab'])   
+    for seg in lab_step_segs:
+        box_plot_data.append([trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]+1], trunc_bm_data['eda'].values[seg[1]:seg[3]+1], seg[4]])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.set_xticklabels(['Outside Lab', 'Toe-in'])
+    ax.set_ylabel('Pulse Rate & EDA')
+    ax.set_xlabel('Walking Trials') 
+    
+    ax.boxplot([box_plot_data[i][0] for i in range(len(box_plot_data))], positions = [i for i in range(len(box_plot_data))])
+    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_boxplot.pdf'), format='pdf', bbox_inches='tight')
+
 
 def sleep_detection(trunc_bm_data):
     sleep_cycle = []
@@ -259,17 +315,13 @@ for subject_name in subject_process_list:
     subject_number = subject_name.split('-')[0]
     empatica_data = pd.read_csv('C:\\Users\\vsun\\Documents\\Code\\RTmocapFB\\analysis\\empatica\\emaptica_watch_phone_tracksheet.csv')
 
-
     for i in range(len(empatica_data)):
         if str(empatica_data['Subject (Empatica 1-1-#)'][i]) == subject_number:
+            subject_empatica_data = empatica_data.iloc[i]
             startday = empatica_data['Checked out?'][i]
-            starttime = empatica_data['Time Out?'][i]
+            starttime = fix_time(empatica_data['Time Out?'][i])
             endday = empatica_data['Checked In?'][i]
-            endtime = empatica_data['Time In?'][i]
-            if len(starttime) == 4:
-                starttime = '0' + starttime
-            if len(endtime) == 4:
-                endtime = '0' + endtime
+            endtime = fix_time(empatica_data['Time In?'][i])
             break
 
     # open the combined file for the subject and load it into a pandas dataframe, then trucate the data for plotting
@@ -281,12 +333,15 @@ for subject_name in subject_process_list:
     all_step_segs, sample_segs, step_seg_count = step_segmentation(trunc_bm_data)
     print('Finished step segmentation for subject: ', subject_name)
 
+    #get the step data for the lab walking trials
+    lab_step_segs = lab_step_segmentation(trunc_bm_data, subject_empatica_data)
+
     # # plot the pulse rate and eda for each of the ten 5-min walking trials
     plot_pulse_eda(trunc_bm_data, sample_segs, output_directory, subject_name)
     print('done plotting pulse and eda for subject: ', subject_name)
 
-
-    # plot on a seperate plot the average with an envelope of 1 standard deviation
+    # plot box plots for the walking trials outside of the lab, the walking trials in the lab, and the retention trial 
+    # plot_boxplot(trunc_bm_data, sample_segs, output_directory, subject_name)
 
     # look at sleep detection data and find how long the participant slept for
     sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake = sleep_detection(trunc_bm_data)    
