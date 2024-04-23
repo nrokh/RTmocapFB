@@ -15,6 +15,8 @@ import random
 ####################################### FUNCTIONS ########################################
 
 def fix_time(time):
+    hour_chng = int(time.split(':')[0])-2 #convert to UTC time from CET
+    time = str(hour_chng) + ':' + time.split(':')[1]
     if len(time) == 4:
         time = '0' + time
     return time
@@ -73,13 +75,9 @@ def combine_processed_biomarkers(input_directory, output_directory, subject_name
 
 def parse_subject_data(combined_bm_data, startday, starttime, endday, endtime):
 
-    # shave off excess data 
     start_index = 0
     end_index = 0
     for i in range(len(combined_bm_data)):
-        # print(combined_bm_data['timestamp_iso'][i])
-        # print(startday + 'T' + starttime + ':00Z')
-
         if combined_bm_data['timestamp_iso'][i] == startday + 'T' + starttime + ':00Z':
             start_index = i
         elif combined_bm_data['timestamp_iso'][i] == endday + 'T' + endtime + ':00Z':
@@ -91,7 +89,7 @@ def parse_subject_data(combined_bm_data, startday, starttime, endday, endtime):
     
     trunc_data = combined_bm_data[start_index:end_index]
 
-    # remove data missing because of device missing data (when the missing_data column has a nan value)
+    # remove missing data (when the missing_data column has a nan value)
     trunc_data_correct_wear = trunc_data[trunc_data['missing_data'].isna() == True]
     return trunc_data_correct_wear
             
@@ -220,7 +218,6 @@ def plot_boxplot(trunc_bm_data, sample_step_segs, lab_step_segs, output_director
     ax.boxplot([box_plot_data[i][0] for i in range(len(box_plot_data))], positions = [i for i in range(len(box_plot_data))])
     plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_boxplot.pdf'), format='pdf', bbox_inches='tight')
 
-
 def sleep_detection(trunc_bm_data):
     sleep_cycle = []
     sleep_minutes = 0 
@@ -268,7 +265,7 @@ def sleep_detection(trunc_bm_data):
 
 ###################################### MAIN ########################################
 ####### Retrieve and combine biomarker data for each day #######
-# comment out if you already made the combined files and are doing other processing 
+# # comment out if you already made the combined files and are doing other processing 
 # in_root = tk.Tk()
 # in_root.withdraw() 
 # print('Select the input directory....')
@@ -318,10 +315,10 @@ for subject_name in subject_process_list:
     for i in range(len(empatica_data)):
         if str(empatica_data['Subject (Empatica 1-1-#)'][i]) == subject_number:
             subject_empatica_data = empatica_data.iloc[i]
-            startday = empatica_data['Checked out?'][i]
-            starttime = fix_time(empatica_data['Time Out?'][i])
-            endday = empatica_data['Checked In?'][i]
-            endtime = fix_time(empatica_data['Time In?'][i])
+            startday = empatica_data['Day 1'][i]
+            starttime = fix_time(empatica_data['Time Start'][i])
+            endday = empatica_data['Day 2'][i]
+            endtime = fix_time(empatica_data['Time End'][i])
             break
 
     # open the combined file for the subject and load it into a pandas dataframe, then trucate the data for plotting
