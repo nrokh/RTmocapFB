@@ -16,11 +16,11 @@ subs_tot = 7
 store_inRangePercent = np.zeros((subs_tot, 5)) #toein1-4, ret
 store_meanFPASD = np.zeros((subs_tot, 5, 2)) #toein1-4, ret
 
-vis = 0
+vis = 1
 
 
 # b. load subject data
-for subject in range(2,subs_tot+1):
+for subject in range(3,4):#,subs_tot+1):
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
 
 
@@ -67,8 +67,8 @@ for subject in range(2,subs_tot+1):
 
     if vis:
         # d. generate plot of all FPA across time
-        x = np.linspace(0, len(fullFPA), len(fullFPA))
-        plt.plot(x, fullFPA.iloc[:,2], '--o')
+        #x = np.linspace(0, len(fullFPA), len(fullFPA))
+        #plt.plot(x, fullFPA.iloc[:,2], '--o')
 
         # vertical lines for retraining periods: 
         plt.vlines(x = len(baselineFPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 1 start time
@@ -96,7 +96,7 @@ for subject in range(2,subs_tot+1):
         plt.xlabel('Step number')
         plt.ylabel('FPA (deg)')
         plt.title('Walking trials FPA: S0' + str(subject))
-        plt.show()
+        #plt.show()
 
         # new fig: plot running mean
         x = np.linspace(0, len(fullFPA), len(fullFPA))
@@ -105,6 +105,10 @@ for subject in range(2,subs_tot+1):
         kernel = np.ones(window_size)/window_size
         runnavg = np.convolve(fullFPA.iloc[:,2], kernel, mode = 'same')
         plt.plot(x, runnavg, '-')
+
+        plt.rc("svg", fonttype="none")
+        plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_runningMeanS03.svg')
+
         plt.show()
     
             
@@ -158,7 +162,7 @@ plt.plot(store_inRangePercent[6], '-o', label = 'NF', color = '#805E73')
 
 plt.legend()
 plt.rc("svg", fonttype="none")
-plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_inRange.svg')
+#plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_inRange.svg')
 plt.show()
 
 
