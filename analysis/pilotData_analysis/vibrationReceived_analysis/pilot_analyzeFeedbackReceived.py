@@ -10,13 +10,14 @@ import seaborn as sns
 def computeVibration(FPA, targetFPA, band):
     if FPA < targetFPA - band:
         duration = (targetFPA - FPA)*50 - 90
+        duration = -duration
         if duration > 600:
-            duration = 600
+            duration = -600
 
     elif FPA > targetFPA + band:
                     duration = (FPA - targetFPA)*50 - 90
                     if duration > 600:
-                        duration = 600
+                        duration = -600
     else:
         duration = 0
     return duration
@@ -27,7 +28,7 @@ root = tk.Tk()
 root.withdraw() # we don't want a full GUI, so keep the root window from appearing
 directory = filedialog.askdirectory()
 
-# 2. load a scaled subject's data (ix = 2)
+# 2. load a scaled subject's data (ix = 2 or 3)
 subject = 3
 
 baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baselinemeanFPA.csv'))
@@ -79,10 +80,50 @@ sum_NZ = sum(1 for i in store_duration if i > 0)
 print('Of ' + str(sum_NZ) + ' steps that triggered feedback, ' + str(sum_low) + ' were below 330ms')
 
 # 6. show distribution of durations 
-sns.set_theme()
-sns.displot(store_duration, binwidth=10)
-plt.xlim(30,600)
-plt.ylim([0,50])
-plt.title('Mean duration: ' + str(np.median(sum_NZ)) + 'ms')
-plt.show()
+# sns.set_theme()
+# sns.displot(store_duration, binwidth=10)
+# plt.xlim(30,600)
+# plt.ylim([0,50])
+# plt.title('Mean duration: ' + str(np.mean(sum_NZ)) + 'ms')
+# plt.show()
 
+# 7. create double hist plot
+x = np.squeeze(store_duration)
+y_pd = pd.concat([toein1FPA, toein2FPA, toein3FPA, toein4FPA])
+y = np.squeeze(y_pd.iloc[:,2])
+
+
+
+# Create a figure with three axes
+fig, axes = plt.subplots(2, 2, figsize=(12, 12), gridspec_kw={'width_ratios': [1, 1]})
+
+# Access the Axes objects from the axes array
+ax1 = axes[0, 0]  # Top left subplot
+ax2 = axes[0, 1]  # Top right subplot
+ax3 = axes[1, 0]  # Bottom left subplot
+
+# Scatter plot in the middle
+scatter = sns.scatterplot(x=x, y=y, ax=ax2)
+ax2.set_xlabel('duration')
+ax2.set_ylabel('FPA')
+
+# Histogram for varX
+hist_ax1 = sns.histplot(x, ax=ax1, kde=False)
+ax1.set_xlabel('duration')
+ax1.set_title('Distribution of duration')
+ax1.set_ylim(ymin=0, ymax=50)
+
+# Histogram for varY
+hist_ax3 = sns.histplot(y, ax=ax3, kde=False)
+ax3.set_xlabel('FPA')
+ax3.set_title('Distribution of FPA')
+
+# Adjust spacing between subplots
+fig.subplots_adjust(wspace=0.3, hspace=0.3)
+
+# save and Show the plot
+
+plt.rc("svg", fonttype="none")
+plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_distFPAdur.svg')
+
+plt.show()
