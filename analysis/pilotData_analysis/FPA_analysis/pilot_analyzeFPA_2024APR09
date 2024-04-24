@@ -13,7 +13,7 @@ root.withdraw() # we don't want a full GUI, so keep the root window from appeari
 directory = filedialog.askdirectory()
 
 # b. load subject data
-for subject in range(2,8):
+for subject in range(2,3):#8):
     baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baselinemeanFPA.csv'))
     baselineFPA = pd.read_csv(baseline_csv_file)
 
@@ -99,5 +99,19 @@ for subject in range(2,8):
     plt.ylabel('FPA (deg)')
     plt.title('Walking trials FPA: S0' + str(subject))
     plt.show()
+
+    # new fig: plot running mean
+    x = np.linspace(0, len(fullFPA), len(fullFPA))
+    plt.plot(x, fullFPA.iloc[:,2], 'o')
+
+    window_size = 20
+    kernel = np.ones(window_size)/window_size
+    runnavg = np.convolve(fullFPA.iloc[:,2], kernel, mode = 'same')
+    plt.plot(x, runnavg, '-')
+    plt.show()
     
             
+    # save metrics to subject folder to analyze in aggregate:
+
+    # a. get % of steps in-range
+    # b. get mean(SD) FPA per block
