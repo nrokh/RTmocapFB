@@ -137,37 +137,40 @@ def step_segmentation(trunc_bm_data):
 def lab_step_segmentation(trunc_bm_data, subject_empatica_data):
     lab_step_sections = []
     frame_count = 0
-    test_day = subject_empatica_data[6]
-    baseline = test_day + 'T' + fix_time(subject_empatica_data.iloc[8]) + ':00Z'
-    toein_1 = test_day + 'T' + fix_time(subject_empatica_data.iloc[9]) + ':00Z'
-    toein_2 = test_day + 'T' + fix_time(subject_empatica_data.iloc[10]) + ':00Z'
-    toein_3 = test_day + 'T' + fix_time(subject_empatica_data.iloc[11]) + ':00Z'
-    toein_4 = test_day + 'T' + fix_time(subject_empatica_data.iloc[12]) + ':00Z'
-    retention = test_day + 'T' + fix_time(subject_empatica_data.iloc[13]) + ':00Z'
-    while frame_count < int(len(trunc_bm_data)-4):
-        if trunc_bm_data['timestamp_iso'].values[frame_count] == baseline:
-            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'baseline'])
-            frame_count += 4
-        elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_1:
-            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
-            frame_count += 4
-        elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_2:
-            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
-            frame_count += 4
-        elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_3:
-            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
-            frame_count += 4
-        elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_4:
-            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
-            frame_count += 4
-        elif trunc_bm_data['timestamp_iso'].values[frame_count] == retention:
-            lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'retention'])
-            frame_count += 4
-        else:
-            frame_count += 1
+    if subject_empatica_data.iloc[16] == 'N':
+        print('No lab data for this subject')
+    else:
+        test_day = subject_empatica_data.iloc[6]
+        baseline = test_day + 'T' + fix_time(subject_empatica_data.iloc[8]) + ':00Z'
+        toein_1 = test_day + 'T' + fix_time(subject_empatica_data.iloc[9]) + ':00Z'
+        toein_2 = test_day + 'T' + fix_time(subject_empatica_data.iloc[10]) + ':00Z'
+        toein_3 = test_day + 'T' + fix_time(subject_empatica_data.iloc[11]) + ':00Z'
+        toein_4 = test_day + 'T' + fix_time(subject_empatica_data.iloc[12]) + ':00Z'
+        retention = test_day + 'T' + fix_time(subject_empatica_data.iloc[13]) + ':00Z'
+        while frame_count < int(len(trunc_bm_data)-4):
+            if trunc_bm_data['timestamp_iso'].values[frame_count] == baseline:
+                lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'baseline'])
+                frame_count += 4
+            elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_1:
+                lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
+                frame_count += 4
+            elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_2:
+                lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
+                frame_count += 4
+            elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_3:
+                lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
+                frame_count += 4
+            elif trunc_bm_data['timestamp_iso'].values[frame_count] == toein_4:
+                lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'toein'])
+                frame_count += 4
+            elif trunc_bm_data['timestamp_iso'].values[frame_count] == retention:
+                lab_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, 'retention'])
+                frame_count += 4
+            else:
+                frame_count += 1
 
-    if len(lab_step_sections) == 0:
-        print('WARNING - No lab step sections found, data is not segmented correctly')
+        if len(lab_step_sections) == 0:
+            print('WARNING - No lab step sections found, data is not segmented correctly')
 
     return lab_step_sections
 
@@ -198,9 +201,8 @@ def plot_pulse_eda(trunc_bm_data, sample_step_segs, output_directory, subject_na
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
     
     #save the plot and data to a file
-    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.pdf'), format='pdf', bbox_inches='tight') 
-    print("debugging")
-    plt.show(blocking=False)
+    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.pdf'), format='pdf', bbox_inches='tight')
+    plt.show()
 
 def plot_boxplot(trunc_bm_data, sample_step_segs, lab_step_segs, output_directory, subject_name):
     box_plot_data = [] #pulse rate, eda, lab or not
@@ -219,6 +221,7 @@ def plot_boxplot(trunc_bm_data, sample_step_segs, lab_step_segs, output_director
     plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_boxplot.pdf'), format='pdf', bbox_inches='tight')
 
 def sleep_detection(trunc_bm_data):
+    # based on https://www.tandfonline.com/doi/full/10.1080/07420528.2020.1835942
     sleep_cycle = []
     sleep_minutes = 0 
     sleep_full_wake = 0 #0
@@ -252,7 +255,7 @@ def sleep_detection(trunc_bm_data):
         sleep_minutes += 1
         if trunc_bm_data['sleep-detection'].values[sframe_count] == 101: #sleep
             sleep_count += 1 
-        elif trunc_bm_data['sleep-detection'].values[sframe_count] == 102: #awake, but for short period
+        elif trunc_bm_data['sleep-detection'].values[sframe_count] == 102: #wake, but still asleep
             sleep_wake += 1
         elif trunc_bm_data['sleep-detection'].values[sframe_count] == 300: #awake, but for long period
             sleep_intrpt += 1
@@ -330,19 +333,20 @@ for subject_name in subject_process_list:
     all_step_segs, sample_segs, step_seg_count = step_segmentation(trunc_bm_data)
     print('Finished step segmentation for subject: ', subject_name)
 
+    # plot the pulse rate and eda for each of the ten 5-min walking trials
+    plot_pulse_eda(trunc_bm_data, sample_segs, output_directory, subject_name)
+    print('Finished plotting pulse and eda for subject (outside the lab): ', subject_name)
+
     #get the step data for the lab walking trials
     lab_step_segs = lab_step_segmentation(trunc_bm_data, subject_empatica_data)
-
-    # # plot the pulse rate and eda for each of the ten 5-min walking trials
-    plot_pulse_eda(trunc_bm_data, sample_segs, output_directory, subject_name)
-    print('done plotting pulse and eda for subject: ', subject_name)
+    print('Finished lab step segmentation for subject: ', subject_name)
 
     # plot box plots for the walking trials outside of the lab, the walking trials in the lab, and the retention trial 
     # plot_boxplot(trunc_bm_data, sample_segs, output_directory, subject_name)
 
     # look at sleep detection data and find how long the participant slept for
     sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake = sleep_detection(trunc_bm_data)    
-    print('Finished sleep detection for subject: ', subject_name, ' ... hours asleep: ', sleep_hours, 'hrs & quality: ', sleep_qual)
+    print('Finished sleep detection for subject: ', subject_name, ' ... hours asleep: ', round(sleep_hours,2), 'hrs & quality: ', round(sleep_qual,2))
 
 
     # segment the data from the walking trials when they are in the lab (baseline, 4 training sessions, retention)
