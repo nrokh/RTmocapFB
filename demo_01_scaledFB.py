@@ -112,33 +112,35 @@ for i in range(len(meanFPAstep)):
             duration_packed = struct.pack('<H', int(duration))
             asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
 
-            time.sleep(0.8) #todo: check time
+            time.sleep(22) #todo: check time
 
         elif meanFPAstep[i][2] > targetFPA - band:
             duration = 330
             duration_packed = struct.pack('<H', int(duration))
             asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
 
-            time.sleep(0.8) #todo: check time
+            time.sleep(2) #todo: check time
     
     elif feedbackType == 2.0: #scaled mode
         if meanFPAstep[i][2] < targetFPA - band: # too far in
-            duration = (targetFPA - meanFPAstep)*108 - 156
+            duration = abs((targetFPA - meanFPAstep[i][2])*50-50)#108 - 156)
+            print(duration)
             if duration > 600:
                 duration = 600
             duration_packed = struct.pack('<H', int(duration))
             asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
 
-            time.sleep(0.8) #todo: check time
+            time.sleep(2) #todo: check time
 
         elif meanFPAstep[i][2] > targetFPA - band:
-            duration = (targetFPA - meanFPAstep)*108 - 156
+            duration = abs((targetFPA - meanFPAstep[i][2])*50-50)#108 - 156)
+            print(duration)
             if duration > 600:
                 duration = 600
             duration_packed = struct.pack('<H', int(duration))
             asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
 
-            time.sleep(0.8) #todo: check time
+            time.sleep(2) #todo: check time
                     
 
 

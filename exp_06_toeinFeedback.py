@@ -279,7 +279,7 @@ try:
 
             elif feedbackType == 2.0 and catch_flag == 0: # scaled feedback mode
                 if meanFPAstep < targetFPA - band:
-                    duration = (targetFPA - meanFPAstep)*108 - 156
+                    duration = abs((targetFPA - meanFPAstep)*108 - 156)
                     if duration > 600:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
@@ -287,7 +287,7 @@ try:
                     gaitEvent_store.append((time.time_ns(), 2.0, 'right', duration_packed))
 
                 elif meanFPAstep > targetFPA + band:
-                    duration = (meanFPAstep - targetFPA)*108 - 156
+                    duration = abs((meanFPAstep - targetFPA)*108 - 156)
                     if duration > 600:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
