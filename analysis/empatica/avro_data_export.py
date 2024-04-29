@@ -418,12 +418,9 @@ for subject_name in subject_process_list:
     print('Finished sleep detection for subject: ', subject_name, ' ... hours asleep: ', round(sleep_hours,2), 'hrs & quality: ', round(sleep_qual,2), '\n')
      
 
-    
-    
-    
-
 # print('----------------------------------------')
 # print('Finished processing all subjects for both days')
 
 #TODO: deal with the raw data files, combine them and save them in the same output directory, use the tags to help with processing the data
+#TODO: plot the raw eda and HR for the whole walking components and concatenate them into one plot with the out of lab walking segments: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8175837/
 #TODO: calculate HRV
