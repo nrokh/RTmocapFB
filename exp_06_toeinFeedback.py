@@ -252,7 +252,7 @@ try:
 
             ################# CUE GAITGUIDE ###############
     
-            if step_count >= (cadence*trial_time/2) and step_count <= ((cadence*trial_time/2)+catch_steps): 
+            if step_count >= ((cadence*trial_time/2)-(catch_steps/2)) and step_count <= ((cadence*trial_time/2)+(catch_steps/2)): 
                 if feedbackType == 1.0 or feedbackType == 2.0:
                     print("Catch trial")
                     catch_flag = 1
