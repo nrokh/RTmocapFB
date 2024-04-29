@@ -13,6 +13,7 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 
+
 ############# GAIT GUIDE SETUP #####################
 
 # gaitguide BLE settings:
@@ -76,6 +77,11 @@ print(f'Battery Level = [{batteryLevel_int}%]')
 print('Setting GaitGuide amplitude to max...')
 asyncio.run(set_amp(GaitGuide, Ampl, 127))
 
+# Get pre-recorded FPA file:
+meanFPAstep = np.genfromtxt('demo/s_pilot_meanFPA.csv', delimiter=',')
+meanFPAstep = meanFPAstep[:][2:26]
+# TODO: crop array to video
+
 ############## SCALED FEEDBACK SETUP ###############
 band = 2 #degrees to either side
 
@@ -95,4 +101,45 @@ print("Target toe-in angle is: ", targetFPA)
 
 ################# STEP DETECTION ###################
 print("Press space when ready to start step detection: ")
-keyboard.wait('space')        
+keyboard.wait('space')
+
+# cue
+for i in range(len(meanFPAstep)):
+    print(meanFPAstep[i][2])
+    if feedbackType == 1.0: #trinary mode
+        if meanFPAstep[i][2] < targetFPA - band: # too far in
+            duration = 330
+            duration_packed = struct.pack('<H', int(duration))
+            asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
+
+            time.sleep(0.8) #todo: check time
+
+        elif meanFPAstep[i][2] > targetFPA - band:
+            duration = 330
+            duration_packed = struct.pack('<H', int(duration))
+            asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
+
+            time.sleep(0.8) #todo: check time
+    
+    elif feedbackType == 2.0: #scaled mode
+        if meanFPAstep[i][2] < targetFPA - band: # too far in
+            duration = (targetFPA - meanFPAstep)*108 - 156
+            if duration > 600:
+                duration = 600
+            duration_packed = struct.pack('<H', int(duration))
+            asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
+
+            time.sleep(0.8) #todo: check time
+
+        elif meanFPAstep[i][2] > targetFPA - band:
+            duration = (targetFPA - meanFPAstep)*108 - 156
+            if duration > 600:
+                duration = 600
+            duration_packed = struct.pack('<H', int(duration))
+            asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
+
+            time.sleep(0.8) #todo: check time
+                    
+
+
+
