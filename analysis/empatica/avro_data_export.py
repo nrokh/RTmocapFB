@@ -93,44 +93,47 @@ def parse_subject_data(combined_bm_data, startday, starttime, endday, endtime):
     trunc_data_correct_wear = trunc_data[trunc_data['missing_data'].isna() == True]
     return trunc_data_correct_wear
             
-def step_segmentation(trunc_bm_data):
+def step_segmentation(trunc_bm_data, start_lab_index):
     regular_step_sections = []
     random_segs = []
     step_segment_count = 0
     frame_count = 0
-    while frame_count < int(len(trunc_bm_data)-4):
-        if int(trunc_bm_data['step-counts'].values[frame_count]) > 0:
-            step_group = [trunc_bm_data['step-counts'].values[frame_count], trunc_bm_data['step-counts'].values[frame_count+1], trunc_bm_data['step-counts'].values[frame_count+2], trunc_bm_data['step-counts'].values[frame_count+3], trunc_bm_data['step-counts'].values[frame_count+4]]
-            hr_group = [trunc_bm_data['pulse-rate'].values[frame_count], trunc_bm_data['pulse-rate'].values[frame_count+1], trunc_bm_data['pulse-rate'].values[frame_count+2], trunc_bm_data['pulse-rate'].values[frame_count+3], trunc_bm_data['pulse-rate'].values[frame_count+4]]
-            eda_group = [trunc_bm_data['eda'].values[frame_count], trunc_bm_data['eda'].values[frame_count+1], trunc_bm_data['eda'].values[frame_count+2], trunc_bm_data['eda'].values[frame_count+3], trunc_bm_data['eda'].values[frame_count+4]]
-            step_sum = int(sum(step_group))
-            range_step = int(max(step_group) - min(step_group))
-            range_hr = int(max(hr_group) - min(hr_group))
-            range_eda = max(eda_group) - min(eda_group)   
+    if subject_empatica_data.iloc[15] == 'N':
+        print('No outside of lab data for this subject')
+    else:
+        while frame_count < int(start_lab_index-4):
+            if int(trunc_bm_data['step-counts'].values[frame_count]) > 0:
+                step_group = [trunc_bm_data['step-counts'].values[frame_count], trunc_bm_data['step-counts'].values[frame_count+1], trunc_bm_data['step-counts'].values[frame_count+2], trunc_bm_data['step-counts'].values[frame_count+3], trunc_bm_data['step-counts'].values[frame_count+4]]
+                hr_group = [trunc_bm_data['pulse-rate'].values[frame_count], trunc_bm_data['pulse-rate'].values[frame_count+1], trunc_bm_data['pulse-rate'].values[frame_count+2], trunc_bm_data['pulse-rate'].values[frame_count+3], trunc_bm_data['pulse-rate'].values[frame_count+4]]
+                eda_group = [trunc_bm_data['eda'].values[frame_count], trunc_bm_data['eda'].values[frame_count+1], trunc_bm_data['eda'].values[frame_count+2], trunc_bm_data['eda'].values[frame_count+3], trunc_bm_data['eda'].values[frame_count+4]]
+                step_sum = int(sum(step_group))
+                range_step = int(max(step_group) - min(step_group))
+                range_hr = int(max(hr_group) - min(hr_group))
+                range_eda = max(eda_group) - min(eda_group)   
 
-            if step_sum > 300 and step_sum < 500 and range_step < 100 and range_hr < 60 and max(hr_group) < 150 and range_eda < 0.2 and max(eda_group) < 1.0: #TODO: validate using this criteria to find the 5-min walking trials
-                regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, step_sum, np.mean(eda_group), np.mean(hr_group)])
-                frame_count += 4
-                step_segment_count += 1
-        frame_count += 1
+                if step_sum > 300 and step_sum < 500 and range_step < 100 and range_hr < 60 and max(hr_group) < 150 and range_eda < 0.2 and max(eda_group) < 1.0: #TODO: validate using this criteria to find the 5-min walking trials
+                    regular_step_sections.append([trunc_bm_data['timestamp_iso'].values[frame_count], frame_count, trunc_bm_data['timestamp_iso'].values[frame_count+4], frame_count+4, step_sum, np.mean(eda_group), np.mean(hr_group)])
+                    frame_count += 4
+                    step_segment_count += 1
+            frame_count += 1
+    
+        eda_mean = np.mean([segs[5] for segs in regular_step_sections])
+        eda_std = np.std([segs[5] for segs in regular_step_sections]) 
+        for segs in regular_step_sections:
+            if segs[5] > eda_mean + 3*eda_std or segs[5] < eda_mean - 3*eda_std:
+                regular_step_sections.remove(segs)
+                step_segment_count -= 1
+
+        #pick 5 random segments to plot
+        if step_segment_count > 5:
+            random_segs = random.sample(regular_step_sections, 5)
+        else:
+            random_segs = regular_step_sections
+            print('Less than 5 segments found, plotting all segments...')
 
     if step_segment_count == 0:
         print('No step segments found')
         return
-    
-    eda_mean = np.mean([segs[5] for segs in regular_step_sections])
-    eda_std = np.std([segs[5] for segs in regular_step_sections]) 
-    for segs in regular_step_sections:
-        if segs[5] > eda_mean + 3*eda_std or segs[5] < eda_mean - 3*eda_std:
-            regular_step_sections.remove(segs)
-            step_segment_count -= 1
-
-    #pick 5 random segments to plot
-    if step_segment_count > 5:
-        random_segs = random.sample(regular_step_sections, 5)
-    else:
-        random_segs = regular_step_sections
-        print('Less than 5 segments found, plotting all segments...')
         
     return regular_step_sections, random_segs, step_segment_count
 
@@ -174,7 +177,7 @@ def lab_step_segmentation(trunc_bm_data, subject_empatica_data):
 
     return lab_step_sections
 
-def plot_pulse_eda(trunc_bm_data, sample_step_segs, output_directory, subject_name):
+def plot_pulse_eda_outside_lab(trunc_bm_data, sample_step_segs, output_directory, subject_name):
 
     copts = ['#46B1C9', '#034732', '#DD6031', '#E4CA04', '#820263']
     lopts = ['-', '--','-.',':',(5, (10, 3))]
@@ -183,11 +186,11 @@ def plot_pulse_eda(trunc_bm_data, sample_step_segs, output_directory, subject_na
     (ax1, ax2) = fig.subplots(2)
     #make full screen 
     fig.set_size_inches(18.5, 10.5)
-    fig.subplots_adjust(top=1, bottom=0.05, left=0.05, right=0.95, hspace=0.5, wspace=0.5)
-    plt.subplots_adjust(hspace=0.35, wspace=0.2)
-    ax2.set_xlabel('Time')
-    ax1.set_ylabel('Pulse Rate')
-    ax2.set_ylabel('EDA')
+    fig.subplots_adjust(top=.9, bottom=0.05, left=0.05, right=0.95, hspace=0.5, wspace=0.5)
+    plt.subplots_adjust(hspace=0.25, wspace=0.2)
+    ax2.set_xlabel('Time (s)')
+    ax1.set_ylabel('Pulse Rate (BPM)')
+    ax2.set_ylabel('EDA (uS)')
     ax1.set_ylim([0, 150])
     ax2.set_ylim([0, 1])
 
@@ -199,26 +202,90 @@ def plot_pulse_eda(trunc_bm_data, sample_step_segs, output_directory, subject_na
             
     ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
     ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=6)
-    
+    fig.suptitle(subject_name)
+
     #save the plot and data to a file
-    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.pdf'), format='pdf', bbox_inches='tight')
+    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_outside_lab.pdf'), format='pdf', bbox_inches='tight')
     plt.show()
 
-def plot_boxplot(trunc_bm_data, sample_step_segs, lab_step_segs, output_directory, subject_name):
-    box_plot_data = [] #pulse rate, eda, lab or not
-    for seg in sample_step_segs:
-        box_plot_data.append([trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]+1], trunc_bm_data['eda'].values[seg[1]:seg[3]+1], 'outside_lab'])   
-    for seg in lab_step_segs:
-        box_plot_data.append([trunc_bm_data['pulse-rate'].values[seg[1]:seg[3]+1], trunc_bm_data['eda'].values[seg[1]:seg[3]+1], seg[4]])
+def plot_biomarkers(trunc_bm_data, sample_step_segs, lab_step_segs, output_directory, subject_name):
+    # box_plot_data = [] 
+    out_lab = []
+    baseline = []
+    toein1 = [] 
+    toein2 = []
+    toein3 = []
+    toein4 = []
+    retention = []
+    toein_count = 1
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.set_xticklabels(['Outside Lab', 'Toe-in'])
-    ax.set_ylabel('Pulse Rate & EDA')
-    ax.set_xlabel('Walking Trials') 
+    for seg in sample_step_segs:
+        out_lab.append(trunc_bm_data[['pulse-rate', 'eda']].iloc[seg[1]:seg[3]+1])
+    out_lab = pd.concat(out_lab, axis=0)
+
+    for seg in lab_step_segs:
+        if seg[4] == 'baseline':
+            baseline.append(trunc_bm_data[['pulse-rate', 'eda']].iloc[seg[1]:seg[3]+1])
+        elif seg[4] == 'toein':
+            if toein_count == 1:
+                toein1.append(trunc_bm_data[['pulse-rate', 'eda']].iloc[seg[1]:seg[3]+1])
+                toein_count += 1
+            elif toein_count == 2:
+                toein2.append(trunc_bm_data[['pulse-rate', 'eda']].iloc[seg[1]:seg[3]+1])
+                toein_count += 1
+            elif toein_count == 3:
+                toein3.append(trunc_bm_data[['pulse-rate', 'eda']].iloc[seg[1]:seg[3]+1])
+                toein_count += 1
+            elif toein_count == 4:
+                toein4.append(trunc_bm_data[['pulse-rate', 'eda']].iloc[seg[1]:seg[3]+1])
+        elif seg[4] == 'retention':
+            retention.append(trunc_bm_data[['pulse-rate', 'eda']].iloc[seg[1]:seg[3]+1])
     
-    ax.boxplot([box_plot_data[i][0] for i in range(len(box_plot_data))], positions = [i for i in range(len(box_plot_data))])
-    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_boxplot.pdf'), format='pdf', bbox_inches='tight')
+    baseline = pd.concat(baseline, axis=0)
+    toein1 = pd.concat(toein1, axis=0)
+    toein2 = pd.concat(toein2, axis=0)
+    toein3 = pd.concat(toein3, axis=0)
+    toein4 = pd.concat(toein4, axis=0)
+    retention = pd.concat(retention, axis=0)
+
+    # #box plots - NOTE: these look weird, so instead, I will plot the data in a line plot with error bars
+    # fig = plt.gcf()
+    # (ax1, ax2) = fig.subplots(2)
+    # fig.set_size_inches(18.5, 10.5)
+    # fig.subplots_adjust(top=1, bottom=0.05, left=0.05, right=0.95, hspace=0.5, wspace=0.5)
+    # plt.subplots_adjust(hspace=0.35, wspace=0.2)
+    # ax1.set_ylabel('Pulse Rate')
+    # ax2.set_ylabel('EDA')
+    # ax1.set_ylim([0, 150])
+    # ax2.set_ylim([0, 1.5])
+    # ax1.boxplot([out_lab['pulse-rate'], baseline['pulse-rate'], toein1['pulse-rate'], toein2['pulse-rate'], toein3['pulse-rate'], toein4['pulse-rate'], retention['pulse-rate']], labels=['Outside Lab', 'Baseline', 'Toe-in 1', 'Toe-in 2', 'Toe-in 3', 'Toe-in 4', 'Retention'])
+    # ax2.boxplot([out_lab['eda'], baseline['eda'], toein1['eda'], toein2['eda'], toein3['eda'], toein4['eda'], retention['eda']], labels=['Outside Lab', 'Baseline', 'Toe-in 1', 'Toe-in 2', 'Toe-in 3', 'Toe-in 4', 'Retention'])
+    # #save the plot and data to a file
+    # # plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_boxplot.pdf'), format='pdf', bbox_inches='tight')
+    # plt.show()
+
+     #eda and pulse rate means and stds
+    eda_means = [np.mean(out_lab['eda']), np.mean(baseline['eda']), np.mean(toein1['eda']), np.mean(toein2['eda']), np.mean(toein3['eda']), np.mean(toein4['eda']), np.mean(retention['eda'])]
+    eda_std = [np.std(out_lab['eda']), np.std(baseline['eda']), np.std(toein1['eda']), np.std(toein2['eda']), np.std(toein3['eda']), np.std(toein4['eda']), np.std(retention['eda'])]
+    pulse_means = [np.mean(out_lab['pulse-rate']), np.mean(baseline['pulse-rate']), np.mean(toein1['pulse-rate']), np.mean(toein2['pulse-rate']), np.mean(toein3['pulse-rate']), np.mean(toein4['pulse-rate']), np.mean(retention['pulse-rate'])]
+    pulse_std = [np.std(out_lab['pulse-rate']), np.std(baseline['pulse-rate']), np.std(toein1['pulse-rate']), np.std(toein2['pulse-rate']), np.std(toein3['pulse-rate']), np.std(toein4['pulse-rate']), np.std(retention['pulse-rate'])]
+
+    #plot line graph with error bars
+    fig, ax1 = plt.subplots()
+    fig.suptitle(subject_name)
+    fig.set_size_inches(18.5, 10.5)
+    ax2 = ax1.twinx()
+    ax1.errorbar(['Outside Lab', 'Baseline', 'Toe-in 1', 'Toe-in 2', 'Toe-in 3', 'Toe-in 4', 'Retention'], pulse_means, yerr=pulse_std, label='Pulse Rate', capsize=3, color='#805E73', fmt="--o")
+    ax2.errorbar(['Outside Lab', 'Baseline', 'Toe-in 1', 'Toe-in 2', 'Toe-in 3', 'Toe-in 4', 'Retention'], eda_means, yerr=eda_std, label='EDA', capsize=3, color='#52AA8A', fmt="--o")
+    ax1.set_ylabel('Pulse Rate (BPM)', color='#805E73')
+    ax2.set_ylabel('EDA (uS)', color='#52AA8A')
+    ax1.set_ylim([0, 150])
+    if max(eda_means) > 1.5:
+        ax2.set_ylim([0, 6])
+    else:
+        ax2.set_ylim([0, 1.5])    
+    plt.savefig(os.path.join(output_directory, subject_name, 'pulse_eda_plot.pdf'), format='pdf', bbox_inches='tight')
+    plt.show()
 
 def sleep_detection(trunc_bm_data):
     # based on https://www.tandfonline.com/doi/full/10.1080/07420528.2020.1835942
@@ -327,30 +394,28 @@ for subject_name in subject_process_list:
     # open the combined file for the subject and load it into a pandas dataframe, then trucate the data for plotting
     combined_bm_data = pd.read_csv(os.path.join(output_directory, subject_name, 'processed_biomarkers', 'biomarkers_combined.csv'))
     trunc_bm_data = parse_subject_data(combined_bm_data, startday, starttime, endday, endtime)   
-    print('Finished truncated file for subject: ', subject_name)
+    print('\nFinished truncated file for subject: ', subject_name)
 
-    # find sections of step data where the subject takes 350-450 steps in a five minute window, average the biomarker data
-    all_step_segs, sample_segs, step_seg_count = step_segmentation(trunc_bm_data)
-    print('Finished step segmentation for subject: ', subject_name)
+    if subject_empatica_data.iloc[16] == 'Y' and subject_empatica_data.iloc[15] == 'Y':
+        #get the step data for the lab walking trials
+        lab_step_segs = lab_step_segmentation(trunc_bm_data, subject_empatica_data)
+        print('Finished lab step segmentation for subject: ', subject_name)
 
-    # plot the pulse rate and eda for each of the ten 5-min walking trials
-    plot_pulse_eda(trunc_bm_data, sample_segs, output_directory, subject_name)
-    print('Finished plotting pulse and eda for subject (outside the lab): ', subject_name)
+        # find sections of step data where the subject takes 350-450 steps in a five minute window, average the biomarker data
+        all_step_segs, sample_segs, step_seg_count = step_segmentation(trunc_bm_data,lab_step_segs[0][1])
+        print('Finished step segmentation for subject: ', subject_name)
 
-    #get the step data for the lab walking trials
-    lab_step_segs = lab_step_segmentation(trunc_bm_data, subject_empatica_data)
-    print('Finished lab step segmentation for subject: ', subject_name)
+        # plot the pulse rate and eda for each of the ten 5-min walking trials
+        plot_pulse_eda_outside_lab(trunc_bm_data, sample_segs, output_directory, subject_name)
+        print('Finished plotting pulse and eda for subject (outside the lab): ', subject_name)
 
-    # plot box plots for the walking trials outside of the lab, the walking trials in the lab, and the retention trial 
-    # plot_boxplot(trunc_bm_data, sample_segs, output_directory, subject_name)
+        # plot biomarkers for walking trials outside of the lab, baseline, the walking trials in the lab, and the retention trial 
+        plot_biomarkers(trunc_bm_data, sample_segs, lab_step_segs, output_directory, subject_name)
+        print('Finished plotting pulse and eda for subject: ', subject_name)
 
     # look at sleep detection data and find how long the participant slept for
     sleep_cycle, sleep_qual, sleep_hours, sleep_count, sleep_wake, sleep_intrpt, sleep_full_wake = sleep_detection(trunc_bm_data)    
-    print('Finished sleep detection for subject: ', subject_name, ' ... hours asleep: ', round(sleep_hours,2), 'hrs & quality: ', round(sleep_qual,2))
-
-
-    # segment the data from the walking trials when they are in the lab (baseline, 4 training sessions, retention)
-    # TODO: change this to the tagged data right now I am just using the times from the protocol sheet
+    print('Finished sleep detection for subject: ', subject_name, ' ... hours asleep: ', round(sleep_hours,2), 'hrs & quality: ', round(sleep_qual,2), '\n')
      
 
     
@@ -361,3 +426,4 @@ for subject_name in subject_process_list:
 # print('Finished processing all subjects for both days')
 
 #TODO: deal with the raw data files, combine them and save them in the same output directory, use the tags to help with processing the data
+#TODO: calculate HRV
