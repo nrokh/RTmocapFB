@@ -144,7 +144,7 @@ try:
     catch_flag = 0
 
     ############## SCALED FEEDBACK SETUP ###############
-    band = 3 #degrees to either side
+    band = 2 #degrees to either side
 
     feedbackType = float(input("Select feedback type: (0) = no feedback; (1) = trinary; (2) = scaled: "))
     
@@ -262,7 +262,7 @@ try:
 
             elif feedbackType == 2.0 and catch_flag == 0: # scaled feedback mode
                 if meanFPAstep < targetFPA - band:
-                    duration = (targetFPA - meanFPAstep)*50 - 50
+                    duration = (targetFPA - meanFPAstep)*108 - 156
                     if duration > 600:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
@@ -270,7 +270,7 @@ try:
                     gaitEvent_store.append((time.time_ns(), 2.0, 'right', duration_packed))
 
                 elif meanFPAstep > targetFPA + band:
-                    duration = (meanFPAstep - targetFPA)*50 - 50
+                    duration = (meanFPAstep - targetFPA)*108 - 156
                     if duration > 600:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
