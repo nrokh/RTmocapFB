@@ -21,6 +21,8 @@ BLE_DURATION_STIM_SERVICE_UUID = '1111'
 BLE_AMPLITUDE_CHARACTERISTIC_UUID = '1112' 
 BLE_DURATION_RIGHT_CHARACTERISTIC_UUID = '1113'  # these need to be chaned at some point for BLE specificatin reasons '48e47602-1b27-11ee-be56-0242ac120002'
 BLE_DURATION_LEFT_CHARACTERISTIC_UUID = '1114'  # '63bae092-1b27-11ee-be56-0242ac120002'
+BLE_BATTERY_SERVICE_UUID = '180F'
+BLE_BATTERY_LEVEL_CHARACTERISTIC_UUID = '2A19'
 timeout = 5
 
 async def connect_to_device():
@@ -42,6 +44,10 @@ async def set_amp(client, characteristic, value):
 
 async def write_characteristic(client, characteristic, value):
     await client.write_gatt_char(characteristic, bytearray(value))
+
+async def read_characteristic(client, characteristic):
+    value = await client.read_gatt_char(characteristic)
+    return value
 
 ############# FILE SAVING #####################
 
@@ -116,6 +122,17 @@ try:
         Right = get_characteristic(service, BLE_DURATION_RIGHT_CHARACTERISTIC_UUID)
         Left = get_characteristic(service, BLE_DURATION_LEFT_CHARACTERISTIC_UUID)
         Ampl = get_characteristic(service, BLE_AMPLITUDE_CHARACTERISTIC_UUID)
+
+    # GG battery level checks:    
+    print('Getting GG battery service...')
+    BAT_service = GaitGuide.services.get_service(BLE_BATTERY_SERVICE_UUID)
+
+    if BAT_service:
+        Bat = get_characteristic(BAT_service, BLE_BATTERY_LEVEL_CHARACTERISTIC_UUID)
+
+    batteryLevel = asyncio.run(read_characteristic(GaitGuide, Bat))
+    batteryLevel_int = int.from_bytes(batteryLevel, "little")  # use "big" for big-endian
+    print(f'Bat_Level = [{batteryLevel_int}%]')
 
     print('Setting GaitGuide amplitude to max...')
     asyncio.run(set_amp(GaitGuide, Ampl, 127))
