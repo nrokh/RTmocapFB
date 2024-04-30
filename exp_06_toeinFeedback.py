@@ -146,7 +146,7 @@ try:
     gaitEvent_store = []
     FPAstep_store = []
     meanFPAstep_store = []  
-    fbEvent_store = []
+    # fbEvent_store = []
 
     # create flag to check for systemic occlusions
     occl_flag_foot = 0 
@@ -315,10 +315,10 @@ try:
     csv_file_GE = generate_csv_filename(directory, subjectNames, 'gaitEvents')
     df_GE.to_csv(csv_file_GE)
 
-    # save feedback event
-    df_FB = pd.DataFrame(fbEvent_store)
-    csv_file_GE = generate_csv_filename(directory, subjectNames, 'feedbackEvents')
-    df_GE.to_csv(csv_file_GE)
+    # # save feedback event
+    # df_FB = pd.DataFrame(fbEvent_store)
+    # csv_file_GE = generate_csv_filename(directory, subjectNames, 'feedbackEvents')
+    # df_GE.to_csv(csv_file_GE)
 
     # save DIFF
     df = pd.DataFrame(DIFF_store)
@@ -357,10 +357,10 @@ except KeyboardInterrupt: # CTRL-C to exit
     csv_file_GE = generate_csv_filename(directory, subjectNames, 'gaitEvents_Interrupted')
     df_GE.to_csv(csv_file_GE)
 
-    # save feedback event
-    df_FB = pd.DataFrame(fbEvent_store)
-    csv_file_GE = generate_csv_filename(directory, subjectNames, 'feedbackEvents_Interrupted')
-    df_GE.to_csv(csv_file_GE)
+    # # save feedback event
+    # df_FB = pd.DataFrame(fbEvent_store)
+    # csv_file_GE = generate_csv_filename(directory, subjectNames, 'feedbackEvents_Interrupted')
+    # df_GE.to_csv(csv_file_GE)
 
     # save DIFF
     df = pd.DataFrame(DIFF_store)
