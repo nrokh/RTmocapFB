@@ -12,7 +12,12 @@ from tkinter import filedialog
 
 setPairings = scipy.io.loadmat('setPairings2.mat') # [duration1, duration 2, 1=Left 0=Right] TODO: double check L/R with switch down
 
-subResponses = scipy.io.loadmat('C:/Users/rokhmanova/Documents/__CODE_local/RTmocapFB/analysis/pilotData_analysis/FPA_analysis/s04/s04_VBTest_responses.mat') #todo: make this nicer using tk
+# subResponses = scipy.io.loadmat('C:/Users/rokhmanova/Documents/__CODE_local/RTmocapFB/analysis/pilotData_analysis/FPA_analysis/s04/s04_VBTest_responses.mat')
+
+root = tk.Tk()
+root.withdraw()
+file_path = filedialog.askopenfilename()
+subResponses = scipy.io.loadmat(file_path)
 
 print(subResponses.keys()) # if you're getting a key error check to make sure that subresponses key is correct in row 20 below
 
