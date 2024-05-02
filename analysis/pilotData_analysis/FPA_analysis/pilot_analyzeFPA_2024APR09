@@ -20,7 +20,7 @@ vis = 1
 
 
 # b. load subject data
-for subject in range(3,4):#,subs_tot+1):
+for subject in range(2,8):#,subs_tot+1):
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
 
 
@@ -195,3 +195,8 @@ for i in range(5):
 #plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_meanSDFPA.svg')
 
 plt.show()
+
+# percent of steps in-range during retention, across fb/nf groups:
+print('Mean retention accuracy (FB): ' + str( np.mean([store_inRangePercent[2], store_inRangePercent[3], store_inRangePercent[1],store_inRangePercent[5]])) + '% SD: ' + str(np.std([store_inRangePercent[2], store_inRangePercent[3], store_inRangePercent[1],store_inRangePercent[5]])))
+print('Mean retention accuracy (FB): ' + str( np.mean([store_inRangePercent[4], store_inRangePercent[6]])) + '% SD: ' + str(np.std([store_inRangePercent[4], store_inRangePercent[6]])))
+
