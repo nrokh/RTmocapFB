@@ -266,28 +266,28 @@ try:
 
             elif feedbackType == 1.0 and catch_flag == 0: #trinary mode
                 if meanFPAstep < targetFPA - band: # too far in
-                    duration = 330
+                    duration = 300
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
                     gaitEvent_store.append((time.time_ns(), 1.0, 'right', duration_packed))
 
                 elif meanFPAstep > targetFPA + band: # too far out
-                    duration = 330
+                    duration = 300
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
                     gaitEvent_store.append((time.time_ns(), 1.0, 'left', duration_packed))
 
             elif feedbackType == 2.0 and catch_flag == 0: # scaled feedback mode
-                if meanFPAstep < targetFPA - band:
-                    duration = abs((targetFPA - meanFPAstep)*108 - 156)
+                if meanFPAstep < targetFPA - band: # too far in
+                    duration = abs((targetFPA - meanFPAstep))*108 - 156
                     if duration > 600:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
                     gaitEvent_store.append((time.time_ns(), 2.0, 'right', duration_packed))
 
-                elif meanFPAstep > targetFPA + band:
-                    duration = abs((meanFPAstep - targetFPA)*108 - 156)
+                elif meanFPAstep > targetFPA + band: # too far out
+                    duration = abs((targetFPA - meanFPAstep))*108 - 156
                     if duration > 600:
                         duration = 600
                     duration_packed = struct.pack('<H', int(duration))
