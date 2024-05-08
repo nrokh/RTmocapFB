@@ -133,6 +133,7 @@ try:
             footVec = (RTOE_translation[0] - RHEE_translation[0], RTOE_translation[1] - RHEE_translation[1])
             FPA = -math.degrees(math.atan(footVec[1] / footVec[0]))  # TODO: check signs for right foot
             CAL_store.append(CAL)
+            PSI_store.append(PSI)
 
         # get AP CAL and PSI markers 
         if PSI == 0:

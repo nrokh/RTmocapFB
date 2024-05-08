@@ -24,12 +24,12 @@ client = ViconDataStream.Client()
 
 def generate_csv_filename(directory, subject_name, parameter):
             
-    csv_file = os.path.join(directory, subject_name[0] + '_baseline_' + parameter + '.csv')
+    csv_file = os.path.join(directory, subject_name[0] + '_ROM_' + parameter + '.csv')
     counter = 0
 
     while os.path.exists(csv_file):
         counter += 1
-        csv_file = os.path.join(directory, subject_name[0] + '_baseline_' + parameter + str(counter) + '.csv')
+        csv_file = os.path.join(directory, subject_name[0] + '_ROM_' + parameter + str(counter) + '.csv')
     print('      Data will be saved to file: ', csv_file)
     return csv_file
 
@@ -93,15 +93,17 @@ try:
 
     for i in range(2):
         if i == 0:
+            print("-----------------------------------------------------------------")
             print("Press space when ready to measure outward ROM: ")
             keyboard.wait('space')
         else:
+            print("-----------------------------------------------------------------")
             print("Press space when ready to measure inward ROM: ")
             keyboard.wait('space')  
         
         local_max_detected = False
         step_count = 0 
-        while step_count < 5:  
+        while step_count <= 10:  
             subjectName = subjectNames[0]  # select the main subject
             client.GetFrame()  # get the frame
             marker_names = client.GetMarkerNames(subjectName)
@@ -134,8 +136,10 @@ try:
                 FPA = -math.degrees(math.atan(footVec[1] / footVec[0])) 
                 if i == 0:
                     CAL_store.append((CAL,'outward'))
+                    PSI_store.append((PSI,'outward'))
                 else:
                     CAL_store.append((CAL,'inward'))
+                    PSI_store.append((PSI,'inward'))
 
             # get AP CAL and PSI markers 
             if PSI == 0:
@@ -149,11 +153,11 @@ try:
             DIFFDV = DIFF_store[-1] - DIFF_store[-2]
             # DIFFDV_store.append(DIFFDV)
             if i == 0:
-                DIFF_store.append((DIFF, "outward"))
-                DIFFDV_store.append((DIFFDV, "outward"))
+                DIFF_store.append(DIFF)
+                DIFFDV_store.append(DIFFDV)
             else:
-                DIFF_store.append((DIFF, "inward"))
-                DIFFDV_store.append((DIFFDV, "inward"))
+                DIFF_store.append(DIFF)
+                DIFFDV_store.append(DIFFDV)
 
             # search for local max
             if DIFFDV_store[-1] >= 0 and DIFFDV_store[-2] <= 0 and DIFFDV_store[-3] <= 0 and DIFFDV_store[-4] <= 0:
@@ -166,9 +170,9 @@ try:
                     gaitEvent_store.append((time.time(), 1.0, "inward"))
 
             if i == 0:
-                FPAstep_store.append((FPA,"outward"))
+                FPAstep_store.append(FPA)
             else:
-                FPAstep_store.append((FPA,"inward"))
+                FPAstep_store.append(FPA)
 
             # search for min:
             if local_max_detected and DIFFDV_store[-1] <= 0 and DIFFDV_store[-2] >= 0 and DIFFDV_store[-3] >= 0 and DIFFDV_store[-4] >= 0:
@@ -211,8 +215,10 @@ try:
     df_GE.to_csv(csv_file_GE)
 
     # print avg of baseline FPA
-    print("Outward ROM: " + str(np.nanmean(FPA_outward)))
-    print("Inward ROM: " + str(np.nanmean(FPA_inward)))
+    print("-----------------------------------------------------------------")
+    print("Outward ROM: " + str(round(np.nanmean(FPA_outward),2)) + " (" + str(round(np.std(FPA_outward),2)) + ")")
+    print("Inward ROM: " + str(round(np.nanmean(FPA_inward),2)) + " (" + str(round(np.std(FPA_inward),2)) + ")")
+    print("-----------------------------------------------------------------")
     
     plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
     plt.xlabel('Time [ns]')
