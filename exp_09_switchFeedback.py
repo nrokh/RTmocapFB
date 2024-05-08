@@ -156,7 +156,7 @@ try:
     trial_time = 1 #  minutes
 
     ############## SCALED FEEDBACK SETUP ###############
-    band = 3 #degrees to either side
+    band = 2 #degrees to either side
 
     feedbackType = float(input("Select feedback type for the first part of the switch trial: (1) = trinary; (2) = scaled: "))
     if feedbackType == 1.0:

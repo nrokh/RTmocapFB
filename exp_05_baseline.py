@@ -189,9 +189,11 @@ try:
     df_GE.to_csv(csv_file_GE)
 
     # print avg of baseline FPA
-    print("Baseline FPA: " + str(round(np.nanmean(baselineFPA)),2))
-    print("Participant will walk at " + str(np.nanmean(baselineFPA) - 10.0) + " degrees for the experiment")
-    
+    print("-----------------------------------------------------------------")
+    print("Baseline FPA: " + str(round(np.nanmean(baselineFPA),2)))
+    print("Participant will walk at " + str(round((np.nanmean(baselineFPA) - 10.0),2)) + " degrees for the experiment")
+    print("-----------------------------------------------------------------")
+
     plt.plot(df_FPA.iloc[:,0], df_FPA.iloc[:,1])
     plt.xlabel('Time [ns]')
     plt.ylabel('FPA [deg]')
