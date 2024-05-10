@@ -171,9 +171,9 @@ try:
     
     # print avg error
     print("**---------------------------------------------------------------------------------------------------**")
-    print("        Average error: " + str(np.nanmean(err_prop)) + "  +/-  " + str(np.nanstd(err_prop_in)))
-    print("        Average toe-in error: " + str(np.nanmean(err_prop_in)) + "  +/-  " + str(np.nanstd(err_prop_in)))
-    print("        Average toe-out error: " + str(np.nanmean(err_prop_out)) + "  +/-  " + str(np.nanstd(err_prop_out)))
+    print("        Average error: " + str(round(np.nanmean(err_prop),2)) + "  +/-  " + str(round(np.nanstd(err_prop),2)))
+    print("        Average toe-in error: " + str(round(np.nanmean(err_prop_in),2)) + "  +/-  " + str(round(np.nanstd(err_prop_in),2)))
+    print("        Average toe-out error: " + str(round(np.nanmean(err_prop_out),2)) + "  +/-  " + str(round(np.nanstd(err_prop_out),2)))
     print("**---------------------------------------------------------------------------------------------------**")
         
 except ViconDataStream.DataStreamException as e:

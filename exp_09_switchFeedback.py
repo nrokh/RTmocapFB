@@ -156,7 +156,7 @@ try:
     trial_time = 1 #  minutes
 
     ############## SCALED FEEDBACK SETUP ###############
-    band = 3 #degrees to either side
+    band = 2 #degrees to either side
 
     feedbackType = float(input("Select feedback type for the first part of the switch trial: (1) = trinary; (2) = scaled: "))
     if feedbackType == 1.0:
@@ -166,7 +166,7 @@ try:
 
     ################# ENTER BASELINE FPA ###############
     baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
-    targetFPA = baselineFPA - 10.0
+    targetFPA = baselineFPA + 10.0
     print("Target toe-in angle is: ", targetFPA)
 
     for switch in range(2):
