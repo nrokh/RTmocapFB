@@ -79,7 +79,7 @@ asyncio.run(set_amp(GaitGuide, Ampl, 127))
 
 # Get pre-recorded FPA file:
 meanFPAstep = np.genfromtxt('demo/s_pilot_meanFPA.csv', delimiter=',')
-meanFPAstep = meanFPAstep[:][2:26]
+meanFPAstep = meanFPAstep[:]#[2:26]
 # TODO: crop array to video
 
 ############## SCALED FEEDBACK SETUP ###############
@@ -104,44 +104,52 @@ print("Press space when ready to start step detection: ")
 keyboard.wait('space')
 
 # cue
-for i in range(len(meanFPAstep)):
-    print(meanFPAstep[i][2])
-    if feedbackType == 1.0: #trinary mode
-        if meanFPAstep[i][2] < targetFPA - band: # too far in
-            duration = 330
-            duration_packed = struct.pack('<H', int(duration))
-            asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
+try:
+    while True:
+        for i in range(len(meanFPAstep)):
+            print(meanFPAstep[i][2])
+            if feedbackType == 1.0: #trinary mode
+                if meanFPAstep[i][2] < targetFPA - band: # too far in
+                    duration = 330
+                    duration_packed = struct.pack('<H', int(duration))
+                    asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
 
-            time.sleep(22) #todo: check time
+                    time.sleep(1.2) #todo: check time
 
-        elif meanFPAstep[i][2] > targetFPA - band:
-            duration = 330
-            duration_packed = struct.pack('<H', int(duration))
-            asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
+                elif meanFPAstep[i][2] > targetFPA - band:
+                    duration = 330
+                    duration_packed = struct.pack('<H', int(duration))
+                    asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
 
-            time.sleep(2) #todo: check time
-    
-    elif feedbackType == 2.0: #scaled mode
-        if meanFPAstep[i][2] < targetFPA - band: # too far in
-            duration = abs((targetFPA - meanFPAstep[i][2])*50-50)#108 - 156)
-            print(duration)
-            if duration > 600:
-                duration = 600
-            duration_packed = struct.pack('<H', int(duration))
-            asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
+                    time.sleep(1.2) #todo: check time
+            
+            elif feedbackType == 2.0: #scaled mode
+                if meanFPAstep[i][2] < targetFPA - band: # too far in
+                    duration = abs(targetFPA - meanFPAstep[i][2])*50-50#108 - 156)
+                    print(duration)
+                    if duration > 600:
+                        duration = 600
+                    if duration < 60:
+                        duration = 60
+                    duration_packed = struct.pack('<H', int(duration))
+                    asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
 
-            time.sleep(2) #todo: check time
+                    time.sleep(1.2) #todo: check time
 
-        elif meanFPAstep[i][2] > targetFPA - band:
-            duration = abs((targetFPA - meanFPAstep[i][2])*50-50)#108 - 156)
-            print(duration)
-            if duration > 600:
-                duration = 600
-            duration_packed = struct.pack('<H', int(duration))
-            asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
+                elif meanFPAstep[i][2] > targetFPA - band:
+                    duration = abs(targetFPA - meanFPAstep[i][2])*50-50#108 - 156)
+                    print(duration)
+                    if duration > 600:
+                        duration = 600
+                    if duration < 60:
+                        duration = 60
+                    duration_packed = struct.pack('<H', int(duration))
+                    asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
 
-            time.sleep(2) #todo: check time
-                    
+                    time.sleep(1.2) #todo: check time
+except KeyboardInterrupt:
+    pass
+                            
 
 
 
