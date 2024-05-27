@@ -20,30 +20,30 @@ vis = 0
 
 
 # b. load subject data
-for subject in range(5,8):
+for subject in range(1,4):
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
 
 
-    baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baselinemeanFPA.csv'))
+    baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baseline_meanFPA.csv'))
     baselineFPA = pd.read_csv(baseline_csv_file)
 
     # apparently dynamic variable naming is bad practice 
-    nf_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_noFBmeanFPA.csv'))
+    nf_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_noFB_meanFPA.csv'))
     nfFPA = pd.read_csv(nf_csv_file)
 
-    toein1_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA1.csv'))
+    toein1_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA_1.csv'))
     toein1FPA = pd.read_csv(toein1_csv_file)
 
-    toein2_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA2.csv'))
+    toein2_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA_2.csv'))
     toein2FPA = pd.read_csv(toein2_csv_file)
 
-    toein3_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA3.csv'))
+    toein3_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA_3.csv'))
     toein3FPA = pd.read_csv(toein3_csv_file)
 
-    toein4_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA4.csv'))
+    toein4_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_meanFPA_4.csv'))
     toein4FPA = pd.read_csv(toein4_csv_file)
 
-    ret_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_retentionmeanFPA.csv'))
+    ret_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_retention_meanFPA.csv'))
     retFPA = pd.read_csv(ret_csv_file)
 
     fullFPA = pd.concat([baselineFPA, toein1FPA, toein2FPA, toein3FPA, toein4FPA, retFPA])
@@ -152,18 +152,20 @@ for subject in range(5,8):
 # plot cumulative results: percent steps in-range
 
 # SCALED FB
-#plt.plot(store_inRangePercent[2], '-o', label = 'SF', color = '#05668D') 
-#plt.plot(store_inRangePercent[3], '-o', label = 'SF', color = '#05668D')
+plt.plot(store_inRangePercent[0], '-o', label = 'SF', color = '#05668D') 
+plt.plot(store_inRangePercent[1], '-o', label = 'SF', color = '#05668D')
 
 # TRI FB
-#plt.plot(store_inRangePercent[1], '-o', label = 'TRI', color = '#679436')
-plt.plot(store_inRangePercent[5], '-o', label = 'TRI', color = '#679436')
+plt.plot(store_inRangePercent[2], '-o', label = 'TRI', color = '#679436')
+#plt.plot(store_inRangePercent[3], '-o', label = 'TRI', color = '#679436')
 
 # NO FB
-plt.plot(store_inRangePercent[4], '-o', label = 'NF', color = '#805E73')
-plt.plot(store_inRangePercent[6], '-o', label = 'NF', color = '#805E73')
+#plt.plot(store_inRangePercent[4], '-o', label = 'NF', color = '#805E73')
+#plt.plot(store_inRangePercent[6], '-o', label = 'NF', color = '#805E73')
 
 plt.legend()
+plt.ylim([0,100])
+plt.ylabel('Steps within target range (%)')
 #plt.rc("svg", fonttype="none")
 #plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_inRange_withNF.svg')
 plt.show()
@@ -171,30 +173,31 @@ plt.show()
 
 # plot cumulative results: mean(SD) FPA
 # SCALED FB
-# plt.plot(store_meanFPASD[2, :, 0], '-o', color = '#05668D')
-# for i in range(5):
-#     plt.vlines(x=i, ymin = store_meanFPASD[2, i, 0]- store_meanFPASD[2,i,1], ymax = store_meanFPASD[2, i, 0]+ store_meanFPASD[2,i,1], color = '#05668D')
-# plt.plot(store_meanFPASD[3, :, 0], '-o', color = '#05668D')
-# for i in range(5):
-#     plt.vlines(x=i, ymin = store_meanFPASD[3, i, 0]- store_meanFPASD[3,i,1], ymax = store_meanFPASD[3, i, 0]+ store_meanFPASD[3,i,1], color = '#05668D')
+plt.plot(store_meanFPASD[0, :, 0], '-o', color = '#05668D')
+for i in range(6):
+    plt.vlines(x=i, ymin = store_meanFPASD[0, i, 0]- store_meanFPASD[0,i,1], ymax = store_meanFPASD[0, i, 0]+ store_meanFPASD[0,i,1], color = '#05668D')
+plt.plot(store_meanFPASD[1, :, 0], '-o', color = '#05668D')
+for i in range(6):
+    plt.vlines(x=i, ymin = store_meanFPASD[1, i, 0]- store_meanFPASD[1,i,1], ymax = store_meanFPASD[1, i, 0]+ store_meanFPASD[1,i,1], color = '#05668D')
 
 # # TRI FB
-# plt.plot(store_meanFPASD[1, :, 0], '-o', color = '#679436')
-# for i in range(5):
-#     plt.vlines(x=i, ymin = store_meanFPASD[1, i, 0]- store_meanFPASD[1,i,1], ymax = store_meanFPASD[1, i, 0]+ store_meanFPASD[1,i,1], color = '#679436')
-plt.plot(store_meanFPASD[5, :, 0], '-o', color = '#679436')
+plt.plot(store_meanFPASD[2, :, 0], '-o', color = '#679436')
 for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[5, i, 0]- store_meanFPASD[5,i,1], ymax = store_meanFPASD[5, i, 0]+ store_meanFPASD[5,i,1], color = '#679436')
+    plt.vlines(x=i, ymin = store_meanFPASD[2, i, 0]- store_meanFPASD[2,i,1], ymax = store_meanFPASD[2, i, 0]+ store_meanFPASD[2,i,1], color = '#679436')
+# plt.plot(store_meanFPASD[1, :, 0], '-o', color = '#679436')
+# for i in range(6):
+#     plt.vlines(x=i, ymin = store_meanFPASD[5, i, 0]- store_meanFPASD[5,i,1], ymax = store_meanFPASD[5, i, 0]+ store_meanFPASD[5,i,1], color = '#679436')
 
 # NO FB
-plt.plot(store_meanFPASD[4, :, 0], '-o', color = '#805E73')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[4, i, 0]- store_meanFPASD[4,i,1], ymax = store_meanFPASD[4, i, 0]+ store_meanFPASD[4,i,1], color = '#805E73')
-plt.plot(store_meanFPASD[6, :, 0], '-o', color = '#805E73')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[6, i, 0]- store_meanFPASD[6,i,1], ymax = store_meanFPASD[6, i, 0]+ store_meanFPASD[6,i,1], color = '#805E73')
+# plt.plot(store_meanFPASD[2, :, 0], '-o', color = '#805E73')
+# for i in range(6):
+#     plt.vlines(x=i, ymin = store_meanFPASD[4, i, 0]- store_meanFPASD[4,i,1], ymax = store_meanFPASD[4, i, 0]+ store_meanFPASD[4,i,1], color = '#805E73')
+# plt.plot(store_meanFPASD[6, :, 0], '-o', color = '#805E73')
+# for i in range(6):
+#     plt.vlines(x=i, ymin = store_meanFPASD[6, i, 0]- store_meanFPASD[6,i,1], ymax = store_meanFPASD[6, i, 0]+ store_meanFPASD[6,i,1], color = '#805E73')
 
 plt.rc("svg", fonttype="none")
-plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_meanSDFPA_withNF.svg')
+plt.ylabel('Mean (SD) FPA (deg)')
+#plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_meanSDFPA_withNF.svg')
 
 plt.show()
