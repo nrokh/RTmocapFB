@@ -92,7 +92,15 @@ try:
     cadence = 80 # steps per minute
     trial_time = 2 #  minutes
 
+    # in-range counting 
+    band = 2; # +/- 2 degrees
+    in_range_count = 0
+
     ################# STEP DETECTION ###################
+    baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
+    targetFPA = baselineFPA - 10.0
+    print("Target FPA: " + str(targetFPA))
+
     print("Press space when ready to start the no feedback toe-in trial: ")
     keyboard.wait('space')  
     
@@ -165,6 +173,10 @@ try:
 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time_ns(), 2.0))
+            if meanFPAstep < (targetFPA + band) and meanFPAstep > (targetFPA - band):
+                print("Step in range")
+                in_range_count += 1
+                
 
             local_max_detected = False
 
@@ -196,6 +208,9 @@ try:
 
     # print avg of baseline FPA
     print("Pre-training FPA: " + str(np.nanmean(baselineFPA)) + "(" + str(np.nanstd(baselineFPA)) + ")")
+
+    #find the % of steps in range of target FPA +/- 2 deg 
+    print("Percentage of steps in range: " + str((in_range_count/step_count)*100) + "%")
         
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
