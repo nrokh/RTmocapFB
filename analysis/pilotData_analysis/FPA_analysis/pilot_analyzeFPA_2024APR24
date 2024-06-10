@@ -20,7 +20,7 @@ vis = 0
 
 
 # b. load subject data
-for subject in range(1,4):
+for subject in range(1,5):
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
 
 
@@ -157,7 +157,7 @@ plt.plot(store_inRangePercent[1], '-o', label = 'SF', color = '#05668D')
 
 # TRI FB
 plt.plot(store_inRangePercent[2], '-o', label = 'TRI', color = '#679436')
-#plt.plot(store_inRangePercent[3], '-o', label = 'TRI', color = '#679436')
+plt.plot(store_inRangePercent[3], '-o', label = 'TRI', color = '#679436')
 
 # NO FB
 #plt.plot(store_inRangePercent[4], '-o', label = 'NF', color = '#805E73')
@@ -184,9 +184,9 @@ for i in range(6):
 plt.plot(store_meanFPASD[2, :, 0], '-o', color = '#679436')
 for i in range(6):
     plt.vlines(x=i, ymin = store_meanFPASD[2, i, 0]- store_meanFPASD[2,i,1], ymax = store_meanFPASD[2, i, 0]+ store_meanFPASD[2,i,1], color = '#679436')
-# plt.plot(store_meanFPASD[1, :, 0], '-o', color = '#679436')
-# for i in range(6):
-#     plt.vlines(x=i, ymin = store_meanFPASD[5, i, 0]- store_meanFPASD[5,i,1], ymax = store_meanFPASD[5, i, 0]+ store_meanFPASD[5,i,1], color = '#679436')
+plt.plot(store_meanFPASD[3, :, 0], '-o', color = '#679436')
+for i in range(6):
+    plt.vlines(x=i, ymin = store_meanFPASD[3, i, 0]- store_meanFPASD[3,i,1], ymax = store_meanFPASD[3, i, 0]+ store_meanFPASD[3,i,1], color = '#679436')
 
 # NO FB
 # plt.plot(store_meanFPASD[2, :, 0], '-o', color = '#805E73')
