@@ -80,7 +80,7 @@ try:
     DIFFDV_store = [0,0,0] # TODO: check if this is how you want to initialize
     gaitEvent_store = []
     FPAstep_store = []
-    baselineFPA = []
+    trainingFPA = []
     meanFPAstep_store = []
 
     # create flag to check for systemic occlusions
@@ -90,9 +90,17 @@ try:
     # trial length based on step count
     step_count = 0 
     cadence = 80 # steps per minute
-    trial_time = 2 #  minutes
+    trial_time = .1 #  minutes
+
+    # in-range counting 
+    band = 2; # +/- 2 degrees
+    in_range_count = 0
 
     ################# STEP DETECTION ###################
+    baselineFPA = float(input("Enter subject's baseline FPA and hit enter: "))
+    targetFPA = baselineFPA - 10.0
+    print("Target FPA: " + str(targetFPA))
+
     print("Press space when ready to start the no feedback toe-in trial: ")
     keyboard.wait('space')  
     
@@ -161,10 +169,14 @@ try:
             meanFPAstep = np.nanmean(FPAstep_store)
             meanFPAstep_store.append((time.time_ns(), meanFPAstep)) 
 
-            baselineFPA.append(meanFPAstep)
+            trainingFPA.append(meanFPAstep)
 
             print("mean FPA for step = " + str(meanFPAstep))
             gaitEvent_store.append((time.time_ns(), 2.0))
+            if meanFPAstep < (targetFPA + band) and meanFPAstep > (targetFPA - band):
+                print("Step in range")
+                in_range_count += 1
+                
 
             local_max_detected = False
 
@@ -195,7 +207,10 @@ try:
     plt.show()
 
     # print avg of baseline FPA
-    print("Pre-training FPA: " + str(np.nanmean(baselineFPA)) + "(" + str(np.nanstd(baselineFPA)) + ")")
+    print("Pre-training FPA: " + str(np.nanmean(trainingFPA)) + "(" + str(np.nanstd(trainingFPA)) + ")")
+
+    #find the % of steps in range of target FPA +/- 2 deg 
+    print("Percentage of steps in range: " + str((in_range_count/step_count)*100) + "%")
         
 except ViconDataStream.DataStreamException as e:
     print( 'Handled data stream error: ', e )
