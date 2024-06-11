@@ -90,7 +90,7 @@ try:
     # trial length based on step count
     step_count = 0 
     cadence = 80 # steps per minute
-    trial_time = .1 #  minutes
+    trial_time = 2 #  minutes
 
     # in-range counting 
     band = 2; # +/- 2 degrees
