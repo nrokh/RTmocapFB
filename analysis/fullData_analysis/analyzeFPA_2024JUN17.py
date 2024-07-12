@@ -5,7 +5,6 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 
-
 # 1. LOAD FPA DATA
 # a. Get the desired directory to save the data
 root = tk.Tk()
@@ -14,6 +13,7 @@ directory = filedialog.askdirectory()
 
 subs_tot = 21
 store_inRangePercent = np.zeros((subs_tot, 6)) #toein1-4, ret
+store_inRangeNFPercent = np.zeros((subs_tot, 6)) #toein1-4, ret
 store_meanFPASD = np.zeros((subs_tot, 6, 2)) #toein1-4, ret
 
 vis = 0
@@ -23,8 +23,6 @@ vis = 0
 for subject in range(1,34):
     if subject > 20 and subject < 34:
         continue
-
-    
 
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
 
@@ -158,8 +156,21 @@ for subject in range(1,34):
     inRange_ret = 100*len(retFPA[(retFPA.iloc[:,2]<targetFPA+2) & (retFPA.iloc[:,2]>targetFPA-2)])/len(retFPA)
     print('percent steps in range during retention: ' + str(inRange_ret)) 
 
+    # get % of steps in-range in catch trials:
+    inRange_c1 = 100 * len(toein1FPA.iloc[80:121][(toein1FPA.iloc[80:121, 2] < targetFPA + 2) & (toein1FPA.iloc[80:121, 2] > targetFPA - 2)]) / 40
+    print('percent steps in range during catch 1: ' + str(inRange_c1)) 
+    inRange_c2 = 100 * len(toein2FPA.iloc[80:121][(toein2FPA.iloc[80:121, 2] < targetFPA + 2) & (toein2FPA.iloc[80:121, 2] > targetFPA - 2)]) / 40
+    print('percent steps in range during catch 2: ' + str(inRange_c2))
+    inRange_c3 = 100 * len(toein3FPA.iloc[80:121][(toein3FPA.iloc[80:121, 2] < targetFPA + 2) & (toein3FPA.iloc[80:121, 2] > targetFPA - 2)]) / 40
+    print('percent steps in range during catch 3: ' + str(inRange_c3))
+    inRange_c4 = 100 * len(toein4FPA.iloc[80:121][(toein4FPA.iloc[80:121, 2] < targetFPA + 2) & (toein4FPA.iloc[80:121, 2] > targetFPA - 2)]) / 40
+    print('percent steps in range during catch 4: ' + str(inRange_c4))
+     
+
     inRange_all = [inRange_nf, inRange_t1, inRange_t2, inRange_t3, inRange_t4, inRange_ret]
+    inRange_NFs = [inRange_nf, inRange_c1, inRange_c2, inRange_c3, inRange_c4, inRange_ret]
     store_inRangePercent[subject-1] = inRange_all
+    store_inRangeNFPercent[subject-1] = inRange_NFs
 
     # b. get relative mean(SD) FPA per block
     meanNF = bFPA_deg - np.mean(nfFPA.iloc[:,2])
@@ -177,38 +188,6 @@ for subject in range(1,34):
 
     pairedMeanSTD = [(meanNF, stdNF), (meanT1, stdT1), (meanT2, stdT2), (meanT3, stdT3), (meanT4, stdT4), (meanR, stdR)]
     store_meanFPASD[subject-1] = pairedMeanSTD
-
-
-# plot cumulative results: percent steps in-range
-
-# SCALED FB
-plt.plot(store_inRangePercent[0], '-o', label = 'SF', color = '#05668D') 
-plt.plot(store_inRangePercent[1], '-o', label = 'SF', color = '#05668D')
-plt.plot(store_inRangePercent[6], '-o', label = 'SF', color = '#05668D')
-plt.plot(store_inRangePercent[8], '-o', label = 'SF', color = '#05668D')
-plt.plot(store_inRangePercent[11], '-o', label = 'SF', color = '#05668D')
-plt.plot(store_inRangePercent[14], '-o', label = 'SF', color = '#05668D')
-
-# TRI FB
-plt.plot(store_inRangePercent[2], '-o', label = 'TRI', color = '#679436')
-plt.plot(store_inRangePercent[3], '-o', label = 'TRI', color = '#679436')
-plt.plot(store_inRangePercent[7], '-o', label = 'TRI', color = '#679436')
-plt.plot(store_inRangePercent[12], '-o', label = 'TRI', color = '#679436')
-plt.plot(store_inRangePercent[15], '-o', label = 'TRI', color = '#679436')
-
-# NO FB
-plt.plot(store_inRangePercent[4], '-o', label = 'NF', color = '#805E73')
-plt.plot(store_inRangePercent[5], '-o', label = 'NF', color = '#805E73')
-plt.plot(store_inRangePercent[9], '-o', label = 'NF', color = '#805E73')
-plt.plot(store_inRangePercent[10], '-o', label = 'NF', color = '#805E73')
-
-plt.legend()
-plt.ylim([0,100])
-plt.ylabel('Steps within target range (%)')
-#plt.rc("svg", fonttype="none")
-#plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_inRange_withNF.svg')
-plt.show()
-
 
 # plot group means for cumulative results: percent steps in range
 SF_rows = [0, 1, 6, 8, 11, 14, 18]
@@ -230,85 +209,31 @@ plt.ylim([0,100])
 plt.ylabel('Steps within target range (%)')
 plt.show()
 
+# plot group means for cumulative results: percent steps in range during NF conds
+plt.plot(x, np.mean(store_inRangeNFPercent[SF_rows], axis=0), '-o', color = '#05668D', label = 'SF')
+plt.errorbar(x, np.mean(store_inRangeNFPercent[SF_rows], axis=0), yerr=np.std(store_inRangeNFPercent[SF_rows], axis=0), fmt='none', ecolor='#05668D', capsize=5)
 
+plt.plot(x, np.mean(store_inRangeNFPercent[TF_rows], axis=0), '-o', color = '#679436', label = 'TF')
+plt.errorbar(x, np.mean(store_inRangeNFPercent[TF_rows], axis=0), yerr=np.std(store_inRangeNFPercent[TF_rows], axis=0), fmt='none', ecolor='#679436', capsize=5)
 
-# plot cumulative results: mean(SD) FPA
-# SCALED FB
-plt.plot(store_meanFPASD[0, :, 0], '-o', color = '#05668D')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[0, i, 0]- store_meanFPASD[0,i,1], ymax = store_meanFPASD[0, i, 0]+ store_meanFPASD[0,i,1], color = '#05668D')
-plt.plot(store_meanFPASD[1, :, 0], '-o', color = '#05668D')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[1, i, 0]- store_meanFPASD[1,i,1], ymax = store_meanFPASD[1, i, 0]+ store_meanFPASD[1,i,1], color = '#05668D')
-plt.plot(store_meanFPASD[6, :, 0], '-o', color = '#05668D')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[6, i, 0]- store_meanFPASD[6,i,1], ymax = store_meanFPASD[6, i, 0]+ store_meanFPASD[6,i,1], color = '#05668D')
-plt.plot(store_meanFPASD[8, :, 0], '-o', color = '#05668D')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[8, i, 0]- store_meanFPASD[8,i,1], ymax = store_meanFPASD[8, i, 0]+ store_meanFPASD[8,i,1], color = '#05668D')
-plt.plot(store_meanFPASD[11, :, 0], '-o', color = '#05668D')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[11, i, 0]- store_meanFPASD[11,i,1], ymax = store_meanFPASD[11, i, 0]+ store_meanFPASD[11,i,1], color = '#05668D')
-plt.plot(store_meanFPASD[14, :, 0], '-o', color = '#05668D')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[14, i, 0]- store_meanFPASD[14,i,1], ymax = store_meanFPASD[14, i, 0]+ store_meanFPASD[14,i,1], color = '#05668D')
-
-# # TRI FB
-plt.plot(store_meanFPASD[2, :, 0], '-o', color = '#679436')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[2, i, 0]- store_meanFPASD[2,i,1], ymax = store_meanFPASD[2, i, 0]+ store_meanFPASD[2,i,1], color = '#679436')
-plt.plot(store_meanFPASD[3, :, 0], '-o', color = '#679436')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[3, i, 0]- store_meanFPASD[3,i,1], ymax = store_meanFPASD[3, i, 0]+ store_meanFPASD[3,i,1], color = '#679436')
-plt.plot(store_meanFPASD[7, :, 0], '-o', color = '#679436')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[7, i, 0]- store_meanFPASD[7,i,1], ymax = store_meanFPASD[7, i, 0]+ store_meanFPASD[7,i,1], color = '#679436')
-plt.plot(store_meanFPASD[12, :, 0], '-o', color = '#679436')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[12, i, 0]- store_meanFPASD[12,i,1], ymax = store_meanFPASD[12, i, 0]+ store_meanFPASD[12,i,1], color = '#679436')
-plt.plot(store_meanFPASD[15, :, 0], '-o', color = '#679436')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[15, i, 0]- store_meanFPASD[15,i,1], ymax = store_meanFPASD[15, i, 0]+ store_meanFPASD[15,i,1], color = '#679436')
-
-# NO FB
-plt.plot(store_meanFPASD[4, :, 0], '-o', color = '#805E73')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[4, i, 0]- store_meanFPASD[4,i,1], ymax = store_meanFPASD[4, i, 0]+ store_meanFPASD[4,i,1], color = '#805E73')
-plt.plot(store_meanFPASD[5, :, 0], '-o', color = '#805E73')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[5, i, 0]- store_meanFPASD[5,i,1], ymax = store_meanFPASD[5, i, 0]+ store_meanFPASD[5,i,1], color = '#805E73')
-plt.plot(store_meanFPASD[9, :, 0], '-o', color = '#805E73')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[9, i, 0]- store_meanFPASD[9,i,1], ymax = store_meanFPASD[9, i, 0]+ store_meanFPASD[9,i,1], color = '#805E73')
-plt.plot(store_meanFPASD[10, :, 0], '-o', color = '#805E73')
-for i in range(6):
-    plt.vlines(x=i, ymin = store_meanFPASD[10, i, 0]- store_meanFPASD[10,i,1], ymax = store_meanFPASD[10, i, 0]+ store_meanFPASD[10,i,1], color = '#805E73')
-
-plt.rc("svg", fonttype="none")
-plt.ylabel('Mean (SD) FPA (deg)')
-#plt.savefig('analysis/pilotData_analysis/FPA_analysis/pilot_meanSDFPA_withNF.svg')
-
-plt.show()
-
-
-# plot group means for cumulative results: mean FPA
-
-plt.plot(x, np.mean(store_meanFPASD[SF_rows, :, 0], axis=0), '-o', color = '#05668D', label = 'SF')
-plt.errorbar(x, np.mean(store_meanFPASD[SF_rows, :, 0], axis=0), yerr=np.std(store_meanFPASD[SF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
-
-plt.plot(x, np.mean(store_meanFPASD[TF_rows, :, 0], axis=0), '-o', color = '#679436', label = 'TF')
-plt.errorbar(x, np.mean(store_meanFPASD[TF_rows, :, 0], axis=0), yerr=np.std(store_meanFPASD[TF_rows, :, 0], axis=0), fmt='none', ecolor='#679436', capsize=5)
-
-plt.plot(x, np.mean(store_meanFPASD[NF_rows, :, 0], axis=0), '-o', color = '#805E73', label = 'NF')
-plt.errorbar(x, np.mean(store_meanFPASD[NF_rows, :, 0], axis=0), yerr=np.std(store_meanFPASD[NF_rows, :, 0], axis=0), fmt='none', ecolor='#805E73', capsize=5)
+plt.plot(x, np.mean(store_inRangeNFPercent[NF_rows], axis=0), '-o', color = '#805E73', label = 'NF')
+plt.errorbar(x, np.mean(store_inRangeNFPercent[NF_rows], axis=0), yerr=np.std(store_inRangeNFPercent[NF_rows], axis=0), fmt='none', ecolor='#805E73', capsize=5)
 
 plt.legend()
+plt.ylim([0,100])
 plt.ylabel('Steps within target range (%)')
 plt.show()
 
-#save stored fpa array
-# flat_array = store_meanFPASD.reshape(-1, store_meanFPASD.shape[-1])
-# df = pd.DataFrame(flat_array)
+# plot group means for cumulative results: mean abs error in FPA
+plt.plot(x, np.abs(10-np.mean(store_meanFPASD[SF_rows, :, 0], axis=0)), '-o', color = '#05668D', label = 'SF')
+plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[SF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[SF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
+plt.plot(x, np.abs(10-np.mean(store_meanFPASD[TF_rows, :, 0], axis=0)), '-o', color = '#679436', label = 'TF')
+plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[TF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[TF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
+plt.plot(x, np.abs(10-np.mean(store_meanFPASD[NF_rows, :, 0], axis=0)), '-o', color = '#805E73', label = 'NF')
+plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[NF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[NF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
+# todo: change the way i'm storing mean(SD) error 
 
-# # Save the DataFrame to a CSV file
-# df.to_csv('store_meanFPASD.csv', index=False)
+
+plt.legend()
+plt.ylabel('Mean FPA error (deg)')
+plt.show()
