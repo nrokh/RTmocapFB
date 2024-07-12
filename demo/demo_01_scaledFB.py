@@ -85,7 +85,7 @@ meanFPAstep = meanFPAstep[:]#[2:26]
 ############## SCALED FEEDBACK SETUP ###############
 band = 2 #degrees to either side
 
-feedbackType = float(input("Select feedback type: (0) = no feedback; (1) = trinary; (2) = scaled: "))
+feedbackType = float(input("\nSelect feedback type: (0) = no feedback; (1) = trinary; (2) = scaled: "))
 
 if feedbackType == 0.0:
     print("Starting no feedback mode...")
@@ -100,14 +100,15 @@ targetFPA = baselineFPA - 10.0
 print("Target toe-in angle is: ", targetFPA)
 
 ################# STEP DETECTION ###################
-print("Press space when ready to start step detection: ")
+print("\nPress space when ready to start step detection: ")
 keyboard.wait('space')
 
 # cue
 try:
     while True:
         for i in range(len(meanFPAstep)):
-            print(meanFPAstep[i][2])
+            # print(meanFPAstep[i][2])
+            print("\nThe mean FPA is: ", round(meanFPAstep[i][2], 2),"°")
             if feedbackType == 1.0: #trinary mode
                 if meanFPAstep[i][2] < targetFPA - band: # too far in
                     duration = 330
@@ -126,11 +127,13 @@ try:
             elif feedbackType == 2.0: #scaled mode
                 if meanFPAstep[i][2] < targetFPA - band: # too far in
                     duration = abs(targetFPA - meanFPAstep[i][2])*50-50#108 - 156)
-                    print(duration)
+                    # print(duration)
+                    
                     if duration > 600:
                         duration = 600
                     if duration < 60:
                         duration = 60
+                    print("The vibration duration is: ", round(duration,2), "ms")
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Right, duration_packed))
 
@@ -138,11 +141,12 @@ try:
 
                 elif meanFPAstep[i][2] > targetFPA - band:
                     duration = abs(targetFPA - meanFPAstep[i][2])*50-50#108 - 156)
-                    print(duration)
+                    
                     if duration > 600:
                         duration = 600
                     if duration < 60:
                         duration = 60
+                    print("The vibration duration is: ", round(duration,2), "ms")
                     duration_packed = struct.pack('<H', int(duration))
                     asyncio.run(write_characteristic(GaitGuide, Left, duration_packed))
 
