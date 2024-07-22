@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import tkinter as tk
 from tkinter import filedialog
+from scipy import stats
 
 # 1. LOAD FPA DATA
 # a. Get the desired directory to save the data
@@ -11,20 +12,30 @@ root = tk.Tk()
 root.withdraw() # we don't want a full GUI, so keep the root window from appearing
 directory = filedialog.askdirectory()
 
-subs_tot = 21
+subs_tot = 36
 store_inRangePercent = np.zeros((subs_tot, 6)) #toein1-4, ret
 store_inRangeNFPercent = np.zeros((subs_tot, 6)) #toein1-4, ret
 store_meanFPASD = np.zeros((subs_tot, 6, 2)) #toein1-4, ret
+store_MAE = np.zeros((subs_tot, 6))
+
+# load feedback condition ID (1:SF, 2:TF, 0:NF)
+feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
+feedbackCond_file = pd.read_csv(feedbackCond_csv_file)
 
 vis = 0
 
-
 # b. load subject data
-for subject in range(1,34):
-    if subject > 20 and subject < 34:
-        continue
+for subject in range(1,37):
 
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
+    if feedbackCond_file.cond[subject-1] == 1:
+        print('----------------CONDITION: SCALED FEEDBACK------------')
+    elif feedbackCond_file.cond[subject-1] == 2:
+        print('----------------CONDITION: TRINARY FEEDBACK------------')
+    elif feedbackCond_file.cond[subject-1] == 0:
+        print('----------------CONDITION: NO FEEDBACK------------')
+    else:
+        print('!!!--------ERROR: check feedback condition file?---------!!!')
 
     if subject < 10:
         baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baseline_meanFPA.csv'))
@@ -189,10 +200,39 @@ for subject in range(1,34):
     pairedMeanSTD = [(meanNF, stdNF), (meanT1, stdT1), (meanT2, stdT2), (meanT3, stdT3), (meanT4, stdT4), (meanR, stdR)]
     store_meanFPASD[subject-1] = pairedMeanSTD
 
+    # c. get MAE for FPA:
+    MAENF = np.mean(np.abs(bFPA_deg - 10 - nfFPA.iloc[:,2]))
+    MAET1 = np.mean(np.abs(bFPA_deg - 10 - toein1FPA.iloc[:,2]))
+    MAET2 = np.mean(np.abs(bFPA_deg - 10 - toein2FPA.iloc[:,2]))
+    MAET3 = np.mean(np.abs(bFPA_deg - 10 - toein3FPA.iloc[:,2]))
+    MAET4 = np.mean(np.abs(bFPA_deg - 10 - toein4FPA.iloc[:,2]))
+    MAER = np.mean(np.abs(bFPA_deg - 10 - retFPA.iloc[:,2]))
+
+    MAE_all = [MAENF, MAET1, MAET2, MAET3, MAET4, MAER]
+    print(str(MAE_all))
+    store_MAE[subject-1] = MAE_all
+
 # plot group means for cumulative results: percent steps in range
-SF_rows = [0, 1, 6, 8, 11, 14, 18]
-TF_rows = [2, 3, 7, 12, 15, 19, 20]
-NF_rows = [4, 5, 9, 10, 13, 16, 17]
+# SF_rows = [0, 1, 6, 8, 11, 14, 18]
+SF_rows = np.where(feedbackCond_file.cond == 1)[0]
+print(SF_rows)
+print('mean SF in-range: ' + str(np.mean(store_inRangePercent[SF_rows, 5])))
+print('SD SF in-range: ' + str(np.std(store_inRangePercent[SF_rows, 5])))
+print('SF normal: stats = ' + str(stats.normaltest(store_inRangePercent[SF_rows,5])))
+
+# TF_rows = [2, 3, 7, 12, 15, 19, 20]
+TF_rows = np.where(feedbackCond_file.cond == 2)[0]
+print(TF_rows)
+print('mean TF in-range: ' + str(np.mean(store_inRangePercent[TF_rows, 5])))
+print('SD TF in-range: ' + str(np.std(store_inRangePercent[TF_rows, 5])))
+print('TF normal: stats = ' + str(stats.normaltest(store_inRangePercent[TF_rows,5])))
+
+# NF_rows = [4, 5, 9, 10, 13, 16, 17]
+NF_rows = np.where(feedbackCond_file.cond == 0)[0]
+print(NF_rows)
+print('mean NF in-range: ' + str(np.mean(store_inRangePercent[NF_rows, 5])))
+print('SD NF in-range: ' + str(np.std(store_inRangePercent[NF_rows, 5])))
+print('NF normal: stats = ' + str(stats.normaltest(store_inRangePercent[NF_rows,5])))
 x = np.arange(6)
 
 plt.plot(x, np.mean(store_inRangePercent[SF_rows], axis=0), '-o', color = '#05668D', label = 'SF')
@@ -221,19 +261,83 @@ plt.errorbar(x, np.mean(store_inRangeNFPercent[NF_rows], axis=0), yerr=np.std(st
 
 plt.legend()
 plt.ylim([0,100])
-plt.ylabel('Steps within target range (%)')
+plt.ylabel('Steps within target range during NF conds (%)')
 plt.show()
 
-# plot group means for cumulative results: mean abs error in FPA
-plt.plot(x, np.abs(10-np.mean(store_meanFPASD[SF_rows, :, 0], axis=0)), '-o', color = '#05668D', label = 'SF')
-plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[SF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[SF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
-plt.plot(x, np.abs(10-np.mean(store_meanFPASD[TF_rows, :, 0], axis=0)), '-o', color = '#679436', label = 'TF')
-plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[TF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[TF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
-plt.plot(x, np.abs(10-np.mean(store_meanFPASD[NF_rows, :, 0], axis=0)), '-o', color = '#805E73', label = 'NF')
-plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[NF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[NF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
-# todo: change the way i'm storing mean(SD) error 
+# print mean MAEs
+print('MAE SF0: ' + str((store_MAE[SF_rows, 0])))
+print('MAE SF4: ' + str((store_MAE[SF_rows, 4])))
+print('MAE SF5: ' + str((store_MAE[SF_rows, 5])))
 
+print('MAE TF0: ' + str((store_MAE[TF_rows, 0])))
+print('MAE TF4: ' + str((store_MAE[TF_rows, 4])))
+print('MAE TF5: ' + str((store_MAE[TF_rows, 5])))
+
+print('MAE NF0: ' + str((store_MAE[NF_rows, 0])))
+print('MAE NF4: ' + str((store_MAE[NF_rows, 4])))
+print('MAE NF5: ' + str((store_MAE[NF_rows, 5])))
+
+# plot mean MAEs 
+plt.plot(x-0.05, np.mean(store_MAE[SF_rows], axis = 0), '-o', color = '#05668D', label = 'SF')
+plt.errorbar(x-0.05, np.mean(store_MAE[SF_rows], axis = 0), yerr=np.std(store_MAE[SF_rows], axis=0), fmt='none', ecolor='#05668D', capsize=5)
+
+plt.plot(x, np.mean(store_MAE[TF_rows], axis = 0), '-o', color = '#679436', label = 'TF')
+plt.errorbar(x, np.mean(store_MAE[TF_rows], axis = 0), yerr=np.std(store_MAE[TF_rows], axis=0), fmt='none', ecolor='#679436', capsize=5)
+
+plt.plot(x+0.05, np.mean(store_MAE[NF_rows], axis = 0), '-o', color = '#805E73', label = 'NF')
+plt.errorbar(x+0.05, np.mean(store_MAE[NF_rows], axis = 0), yerr=np.std(store_MAE[NF_rows], axis=0), fmt='none', ecolor='#805E73', capsize=5)
 
 plt.legend()
-plt.ylabel('Mean FPA error (deg)')
+plt.ylabel('MAE FPA (deg)')
 plt.show()
+
+
+
+# plot group means for cumulative results: mean abs error in FPA
+# plt.plot(x, np.abs(10-np.mean(store_meanFPASD[SF_rows, :, 0], axis=0)), '-o', color = '#05668D', label = 'SF')
+# plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[SF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[SF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
+# plt.plot(x, np.abs(10-np.mean(store_meanFPASD[TF_rows, :, 0], axis=0)), '-o', color = '#679436', label = 'TF')
+# plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[TF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[TF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
+# plt.plot(x, np.abs(10-np.mean(store_meanFPASD[NF_rows, :, 0], axis=0)), '-o', color = '#805E73', label = 'NF')
+# plt.errorbar(x, np.abs(10-np.mean(store_meanFPASD[NF_rows, :, 0], axis=0)), yerr=np.std(store_meanFPASD[NF_rows, :, 0], axis=0), fmt='none', ecolor='#05668D', capsize=5)
+# # todo: change the way i'm storing mean(SD) error 
+
+
+# plt.legend()
+# plt.ylabel('Mean FPA error (deg)')
+# plt.show()
+
+print('Mean (SD) percent change between first and last toe-in accuracy:')
+
+print('Mean SF delta: ' + str(np.mean(store_inRangePercent[SF_rows, 4] - store_inRangePercent[SF_rows,0])))
+print('SD SF delta: ' + str(np.std(store_inRangePercent[SF_rows, 4] - store_inRangePercent[SF_rows,0])))
+
+print('Mean TF delta: ' + str(np.mean(store_inRangePercent[TF_rows, 4] - store_inRangePercent[TF_rows,0])))
+print('SD TF delta: ' + str(np.std(store_inRangePercent[TF_rows, 4] - store_inRangePercent[TF_rows,0])))
+
+print('Mean NF delta: ' + str(np.mean(store_inRangePercent[NF_rows, 4] - store_inRangePercent[NF_rows,0])))
+print('SD NF delta: ' + str(np.std(store_inRangePercent[NF_rows, 4] - store_inRangePercent[NF_rows,0])))
+
+print('SF0: ' + str((store_inRangePercent[SF_rows, 0])))
+print('SF4: ' + str((store_inRangePercent[SF_rows, 4])))
+print('SF5: ' + str((store_inRangePercent[SF_rows, 5])))
+
+print('TF0: ' + str((store_inRangePercent[TF_rows, 0])))
+print('TF4: ' + str((store_inRangePercent[TF_rows, 4])))
+print('TF5: ' + str((store_inRangePercent[TF_rows, 5])))
+
+print('NF0: ' + str((store_inRangePercent[NF_rows, 0])))
+print('NF4: ' + str((store_inRangePercent[NF_rows, 4])))
+print('NF5: ' + str((store_inRangePercent[NF_rows, 5])))
+
+print('Mean (SD) percent change between last toe-in accuracy and retention:')
+
+print('Mean SF delta: ' + str(np.mean(store_inRangePercent[SF_rows, 5] - store_inRangePercent[SF_rows,4])))
+print('SD SF delta: ' + str(np.std(store_inRangePercent[SF_rows, 5] - store_inRangePercent[SF_rows,4])))
+
+print('Mean TF delta: ' + str(np.mean(store_inRangePercent[TF_rows, 5] - store_inRangePercent[TF_rows,4])))
+print('SD TF delta: ' + str(np.std(store_inRangePercent[TF_rows, 5] - store_inRangePercent[TF_rows,4])))
+
+print('Mean NF delta: ' + str(np.mean(store_inRangePercent[NF_rows, 5] - store_inRangePercent[NF_rows,4])))
+print('SD NF delta: ' + str(np.std(store_inRangePercent[NF_rows, 5] - store_inRangePercent[NF_rows,4])))
+
