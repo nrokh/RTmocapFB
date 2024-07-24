@@ -5,6 +5,9 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 from scipy import stats
+from matplotlib.colors import to_rgba
+import ptitprince as pt 
+import seaborn as sns
 
 # 1. LOAD FPA DATA
 # a. Get the desired directory to save the data
@@ -17,6 +20,9 @@ store_inRangePercent = np.zeros((subs_tot, 6)) #toein1-4, ret
 store_inRangeNFPercent = np.zeros((subs_tot, 6)) #toein1-4, ret
 store_meanFPASD = np.zeros((subs_tot, 6, 2)) #toein1-4, ret
 store_MAE = np.zeros((subs_tot, 6))
+store_allFPA_NF = np.zeros((subs_tot, 80))
+store_allFPA_RT4 = np.zeros((subs_tot, 200))
+store_allFPA_RET = np.zeros((subs_tot, 200))
 
 # load feedback condition ID (1:SF, 2:TF, 0:NF)
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
@@ -200,6 +206,18 @@ for subject in range(1,37):
     pairedMeanSTD = [(meanNF, stdNF), (meanT1, stdT1), (meanT2, stdT2), (meanT3, stdT3), (meanT4, stdT4), (meanR, stdR)]
     store_meanFPASD[subject-1] = pairedMeanSTD
 
+    # b.ii: store all rFPA:
+    if subject==11:
+        allFPA_RT4 = bFPA_deg - 10 - toein3FPA.iloc[:,2]
+    else:
+        allFPA_RT4 = bFPA_deg - 10 - toein4FPA.iloc[:,2]
+    allFPA_NF = bFPA_deg - 10 - nfFPA.iloc[:,2]
+    allFPA_RET = bFPA_deg - 10 - retFPA.iloc[:,2]
+
+    store_allFPA_NF[subject-1] =  allFPA_NF
+    store_allFPA_RT4[subject-1] = allFPA_RT4
+    store_allFPA_RET[subject-1] = allFPA_RET
+
     # c. get MAE for FPA:
     MAENF = np.mean(np.abs(bFPA_deg - 10 - nfFPA.iloc[:,2]))
     MAET1 = np.mean(np.abs(bFPA_deg - 10 - toein1FPA.iloc[:,2]))
@@ -235,14 +253,14 @@ print('SD NF in-range: ' + str(np.std(store_inRangePercent[NF_rows, 5])))
 print('NF normal: stats = ' + str(stats.normaltest(store_inRangePercent[NF_rows,5])))
 x = np.arange(6)
 
-plt.plot(x, np.mean(store_inRangePercent[SF_rows], axis=0), '-o', color = '#05668D', label = 'SF')
-plt.errorbar(x, np.mean(store_inRangePercent[SF_rows], axis=0), yerr=np.std(store_inRangePercent[SF_rows], axis=0), fmt='none', ecolor='#05668D', capsize=5)
+plt.plot(x-0.05, np.mean(store_inRangePercent[SF_rows], axis=0), '-o', color = '#05668D', label = 'SF')
+plt.errorbar(x-0.05, np.mean(store_inRangePercent[SF_rows], axis=0), yerr=np.std(store_inRangePercent[SF_rows], axis=0), fmt='none', ecolor='#05668D', capsize=5)
 
 plt.plot(x, np.mean(store_inRangePercent[TF_rows], axis=0), '-o', color = '#679436', label = 'TF')
 plt.errorbar(x, np.mean(store_inRangePercent[TF_rows], axis=0), yerr=np.std(store_inRangePercent[TF_rows], axis=0), fmt='none', ecolor='#679436', capsize=5)
 
-plt.plot(x, np.mean(store_inRangePercent[NF_rows], axis=0), '-o', color = '#805E73', label = 'NF')
-plt.errorbar(x, np.mean(store_inRangePercent[NF_rows], axis=0), yerr=np.std(store_inRangePercent[NF_rows], axis=0), fmt='none', ecolor='#805E73', capsize=5)
+plt.plot(x+0.05, np.mean(store_inRangePercent[NF_rows], axis=0), '-o', color = '#805E73', label = 'NF')
+plt.errorbar(x+0.05, np.mean(store_inRangePercent[NF_rows], axis=0), yerr=np.std(store_inRangePercent[NF_rows], axis=0), fmt='none', ecolor='#805E73', capsize=5)
 
 plt.legend()
 plt.ylim([0,100])
@@ -341,3 +359,160 @@ print('SD TF delta: ' + str(np.std(store_inRangePercent[TF_rows, 5] - store_inRa
 print('Mean NF delta: ' + str(np.mean(store_inRangePercent[NF_rows, 5] - store_inRangePercent[NF_rows,4])))
 print('SD NF delta: ' + str(np.std(store_inRangePercent[NF_rows, 5] - store_inRangePercent[NF_rows,4])))
 
+# making nice figures, 2024JUL23
+# fig 1: paired scatter plots for NF, RT4, RE; 3 groups
+fig1_SF = store_MAE[SF_rows][:, [0,5]]
+
+x = ['NF','RE']
+base_color = '#05668D'
+colors = [to_rgba(base_color, alpha) for alpha in np.linspace(0.3, 1, 12)]
+
+# Transpose the data so each row becomes a line
+for i, row in enumerate(fig1_SF):
+    plt.plot(x, row, 'o-', color=colors[i])
+
+plt.ylim([0, 16])
+plt.xlabel('Sample')
+plt.ylabel('MAE')
+plt.title('SF')
+plt.show()
+
+fig1_TF = store_MAE[TF_rows][:, [0,5]]
+
+x = ['NF','RE']
+base_color = '#679436'
+colors = [to_rgba(base_color, alpha) for alpha in np.linspace(0.3, 1, 12)]
+
+# Transpose the data so each row becomes a line
+for i, row in enumerate(fig1_TF):
+    plt.plot(x, row, 'o-', color=colors[i])
+
+plt.ylim([0, 16])
+plt.xlabel('Sample')
+plt.ylabel('MAE')
+plt.title('TF')
+plt.show()
+
+fig1_NF = store_MAE[NF_rows][:, [0,5]]
+
+x = ['NF','RE']
+base_color = '#805E73'
+colors = [to_rgba(base_color, alpha) for alpha in np.linspace(0.3, 1, 12)]
+
+# Transpose the data so each row becomes a line
+for i, row in enumerate(fig1_NF):
+    plt.plot(x, row, 'o-', color=colors[i])
+
+plt.ylim([0, 16])
+plt.xlabel('Sample')
+plt.ylabel('MAE')
+plt.title('NF')
+plt.show()
+
+# Fig 2: raincloud plots
+
+NF_flat = store_allFPA_NF[SF_rows].reshape(1, -1).flatten()
+RT4_flat = store_allFPA_RT4[SF_rows].reshape(1, -1).flatten()
+RE_flat = store_allFPA_RET[SF_rows].reshape(1, -1).flatten()
+
+# Create separate DataFrames
+df_NF = pd.DataFrame({'group': 'NF', 'value': NF_flat})
+df_RT4 = pd.DataFrame({'group': 'RT4', 'value': RT4_flat})
+df_RE = pd.DataFrame({'group': 'RE', 'value': RE_flat})
+
+# Concatenate the DataFrames
+df_long = pd.concat([df_NF, df_RT4, df_RE], ignore_index=True)
+
+# Set up the figure
+f, ax = plt.subplots(figsize=(15, 8))
+
+custom_palette = ['#05668D', '#05668DAA', '#05668D55'] 
+
+# Create the raincloud plot
+pt.RainCloud(x='group', y='value', data=df_long, palette=custom_palette,
+             bw=.2, width_viol=.6, ax=ax, orient="v",
+             alpha=0.65, dodge=True, move=0.2)
+
+plt.title('SF: distribution of FPAs')
+plt.ylim([-25, 25])
+plt.xlabel('Columns')
+plt.ylabel('Values')
+plt.show()
+
+####
+NF_flat = store_allFPA_NF[TF_rows].reshape(1, -1).flatten()
+RT4_flat = store_allFPA_RT4[TF_rows].reshape(1, -1).flatten()
+RE_flat = store_allFPA_RET[TF_rows].reshape(1, -1).flatten()
+
+# Create separate DataFrames
+df_NF = pd.DataFrame({'group': 'NF', 'value': NF_flat})
+df_RT4 = pd.DataFrame({'group': 'RT4', 'value': RT4_flat})
+df_RE = pd.DataFrame({'group': 'RE', 'value': RE_flat})
+
+# Concatenate the DataFrames
+df_long = pd.concat([df_NF, df_RT4, df_RE], ignore_index=True)
+
+# Set up the figure
+f, ax = plt.subplots(figsize=(15, 8))
+
+custom_palette = ['#679436', '#679436AA', '#67943655'] # Use the same color for all three groups
+
+# Create the raincloud plot
+pt.RainCloud(x='group', y='value', data=df_long, palette=custom_palette,
+             bw=.2, width_viol=.6, ax=ax, orient="v",
+             alpha=0.65, dodge=True, move=0.2)
+
+plt.title('TF: distribution of FPAs')
+plt.ylim([-25, 25])
+plt.xlabel('Columns')
+plt.ylabel('Values')
+plt.show()
+
+#############
+
+
+####
+NF_flat = store_allFPA_NF[NF_rows].reshape(1, -1).flatten()
+RT4_flat = store_allFPA_RT4[NF_rows].reshape(1, -1).flatten()
+RE_flat = store_allFPA_RET[NF_rows].reshape(1, -1).flatten()
+
+# Create separate DataFrames
+df_NF = pd.DataFrame({'group': 'NF', 'value': NF_flat})
+df_RT4 = pd.DataFrame({'group': 'RT4', 'value': RT4_flat})
+df_RE = pd.DataFrame({'group': 'RE', 'value': RE_flat})
+
+# Concatenate the DataFrames
+df_long = pd.concat([df_NF, df_RT4, df_RE], ignore_index=True)
+
+# Set up the figure
+f, ax = plt.subplots(figsize=(15, 8))
+
+custom_palette = ['#805E73', '#805E73AA', '#805E7355'] # Use the same color for all three groups
+
+# Create the raincloud plot
+pt.RainCloud(x='group', y='value', data=df_long, palette=custom_palette,
+             bw=.2, width_viol=.6, ax=ax, orient="v",
+             alpha=0.65, dodge=True, move=0.2)
+
+plt.title('NF: distribution of FPAs')
+plt.ylim([-25, 25])
+plt.xlabel('Columns')
+plt.ylabel('Values')
+plt.show()
+
+# fig 3: correlation plots for TF/SF MAE, between NF and RE
+plt.scatter(store_MAE[SF_rows, 0], store_MAE[SF_rows, 5], color='#05668D')
+plt.xlabel('No-feedback toe-in')
+plt.ylabel('Retention')
+plt.xlim([1,12])
+plt.ylim([1,5])
+plt.title('SF: MAE Correlation')
+plt.show()
+
+plt.scatter(store_MAE[TF_rows, 0], store_MAE[TF_rows, 5], color='#679436')
+plt.xlabel('No-feedback toe-in')
+plt.xlim([1,12])
+plt.ylim([1,5])
+plt.ylabel('Retention')
+plt.title('TF: MAE Correlation')
+plt.show()
