@@ -8,6 +8,9 @@ library(emmeans)
 if (!require("lme4")) install.packages("lme4")
 library(lme4)
 
+if (!require("pwr")) install.packages("pwr")
+library(pwr)
+
 # Create vectors for each group (SF, TF, NF) and sample (NF, RT4, RET)
 group1_sample1 <- c(2.50185862,  1.5548734,   4.07692357,  5.7896682,   3.28695714,  3.93631991,
   5.55045399, 10.99351834,  7.50758052,  9.16712041,  8.6378882,   8.64835465)
@@ -75,3 +78,27 @@ pairs(sample_means)
 # interaction effects:
 interaction_means <- emmeans(model, c("Group", "Sample"))
 pairs(interaction_means)
+
+# checking power: pull out Group2 data
+group2_data <- subset(df, Group == "Group2")
+
+# calculate mean difference and pooled standard deviation
+mean_diff <- mean(group2_data$Value[group2_data$Sample == "Sample1"]) - 
+              mean(group2_data$Value[group2_data$Sample == "Sample2"])
+pooled_sd <- sqrt((var(group2_data$Value[group2_data$Sample == "Sample1"]) + 
+                   var(group2_data$Value[group2_data$Sample == "Sample2"])) / 2)
+
+# calculate Cohen's d
+cohens_d <- mean_diff / pooled_sd
+
+# print Cohen's d
+print(paste("Cohen's d for Group2:", round(cohens_d, 3)))
+
+# number of subjects in Group2
+n <- 12
+
+# perform power analysis
+power_analysis <- pwr.t.test(n = n, d = abs(cohens_d), sig.level = 0.05, type = "paired", alternative = "two.sided")
+
+# print power
+print(paste("Statistical Power:", round(power_analysis$power, 3)))
