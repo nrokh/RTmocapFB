@@ -1,11 +1,6 @@
 # Real-time Motion Capture Feedback
 To do:
-* GG battery life testing
-* GG battery status implementation
-* finalize recruitment emails and poster
-* get survey questions approved by kjk
-* order the new Vicon cameras
-* get a laptop/ ipad to use for participant surveys
+
 
 Changes after pilot testing:
 * catch trials at 40 steps (20 on right side) (maybe centered at halfway point)
@@ -17,6 +12,12 @@ Changes after pilot testing:
 * switch to different/ main Empatica study portal 
 
 Completed:
+* GG battery life testing
+* GG battery status implementation
+* finalize recruitment emails and poster
+* get survey questions approved by kjk
+* order the new Vicon cameras
+* get a laptop/ ipad to use for participant surveys
 * set subject numbering, file structure, saving protocol
 * find adjustable chair
 * modify the matlab GUI with better buttons
