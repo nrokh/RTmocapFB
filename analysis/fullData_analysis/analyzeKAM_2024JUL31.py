@@ -50,6 +50,8 @@ directory = filedialog.askdirectory()
 inputFeatures_csv_file = os.path.normpath(os.path.join(directory, 'pKAM_features.csv'))
 inputFeatures = pd.read_csv(inputFeatures_csv_file)
 
+print(inputFeatures.head()) #speed, height, weight, bFPA
+
 # 2. compute static alignment for each sub
 
     # a. open subject static file
@@ -64,9 +66,11 @@ inputFeatures = pd.read_csv(inputFeatures_csv_file)
 
 # 3. compute rKAM at each step
 
-    # a. for all steps in NF, RT4, RET, find rKAM
+    # a. normalize arrays
+    
+    # b. for all steps in NF, RT4, RET, find rKAM
 
-    # b. store subject rKAMs
+    # c. store subject rKAMs
 
 # 4. visualize
 
