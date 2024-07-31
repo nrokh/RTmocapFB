@@ -28,7 +28,7 @@ store_allFPA_RET = np.zeros((subs_tot, 200))
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
 feedbackCond_file = pd.read_csv(feedbackCond_csv_file)
 
-vis = 1
+vis = 0
 
 # b. load subject data
 for subject in range(1,37):
