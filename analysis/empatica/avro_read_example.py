@@ -1,3 +1,4 @@
+import avro.schema
 from avro.datafile import DataFileReader
 from avro.io import DatumReader
 import json
@@ -18,7 +19,7 @@ output_dir = "C:/Users/vsun/Documents/Research/GaitGuide_N_Collab/Empatica_Data/
 
 
 ## Read Avro file
-reader = DataFileReader(open(avro_file_path, "rb"), DatumReader())
+reader = DataFileReader(open(avro_file_path, "rb"), DatumReader()) #rb = read binary, binary mode to prevent corrupting the data file
 schema = json.loads(reader.meta.get('avro.schema').decode('utf-8'))
 data= next(reader)
 
