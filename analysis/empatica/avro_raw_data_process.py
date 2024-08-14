@@ -148,7 +148,29 @@ for subject_folder in os.listdir(sorted_data_path):
             else:
                 subject_data["gyroscope"] = {"timestamp": timestamp, "x": x_dps, "y": y_dps, "z": z_dps}
             
-            
+    # sort each of the subject's data by timestamp and then match the timestamps of eda, bvp, tags, and steps to export to a csv file with 5 columns (timestamp, eda, bvp, tags, steps)
+    # sort the data by timestamp
+    for key in subject_data:
+        df = pd.DataFrame(subject_data[key])
+        df = df.sort_values(by=["timestamp"])
+        subject_data[key] = df
+    # match the timestamps of eda, bvp, tags, and steps
+    timestamps = []
+    for key in subject_data:
+        timestamps += list(subject_data[key]["timestamp"])
+    timestamps = list(set(timestamps))
+    timestamps.sort()
+    # export the data to a csv file
+    with open(sorted_data_path + subject_folder + "/concatenated_data.csv", 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["timestamp", "eda", "bvp", "tags", "steps"])
+        for ts in timestamps:
+            eda_val = subject_data["eda"][subject_data["eda"]["timestamp"] == ts]["eda"].values[0] if ts in list(subject_data["eda"]["timestamp"]) else np.nan
+            bvp_val = subject_data["bvp"][subject_data["bvp"]["timestamp"] == ts]["bvp"].values[0] if ts in list(subject_data["bvp"]["timestamp"]) else np.nan
+            tags_val = 1 if ts in list(subject_data["tags"]["tags"]) else 0
+            steps_val = subject_data["steps"][subject_data["steps"]["timestamp"] == ts]["steps"].values[0] if ts in list(subject_data["steps"]["timestamp"]) else np.nan
+            writer.writerow([ts, eda_val, bvp_val, tags_val, steps_val])
+        
 
 
 
