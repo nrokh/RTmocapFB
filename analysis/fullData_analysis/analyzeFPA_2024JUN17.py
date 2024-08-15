@@ -30,6 +30,8 @@ feedbackCond_file = pd.read_csv(feedbackCond_csv_file)
 
 vis = 0
 rmCatchSteps = 1
+rmInRange = 1
+zeroInRange = 0
 
 # b. load subject data
 for subject in range(1,37):
@@ -237,16 +239,41 @@ for subject in range(1,37):
     store_allFPA_RET[subject-1] = allFPA_RET
 
     # c. get MAE for FPA:
-    MAENF = np.mean(np.abs(bFPA_deg - 10 - nfFPA.iloc[:,2]))
-    MAET1 = np.mean(np.abs(bFPA_deg - 10 - toein1FPA.iloc[:,2]))
-    MAET2 = np.mean(np.abs(bFPA_deg - 10 - toein2FPA.iloc[:,2]))
-    MAET3 = np.mean(np.abs(bFPA_deg - 10 - toein3FPA.iloc[:,2]))
-    MAET4 = np.mean(np.abs(bFPA_deg - 10 - toein4FPA.iloc[:,2]))
-    MAER = np.mean(np.abs(bFPA_deg - 10 - retFPA.iloc[:,2]))
+    if rmInRange:
+        MAENF = np.mean(np.abs(bFPA_deg - 10 - nfFPA.iloc[:,2])[(nfFPA.iloc[:,2] > targetFPA + 2) | (nfFPA.iloc[:,2] < targetFPA - 2)])
+        MAET1 = np.mean(np.abs(bFPA_deg - 10 - toein1FPA.iloc[:,2])[(toein1FPA.iloc[:,2] > targetFPA + 2) | (toein1FPA.iloc[:,2] < targetFPA - 2)])
+        MAET2 = np.mean(np.abs(bFPA_deg - 10 - toein2FPA.iloc[:,2])[(toein2FPA.iloc[:,2] > targetFPA + 2) | (toein2FPA.iloc[:,2] < targetFPA - 2)])
+        MAET3 = np.mean(np.abs(bFPA_deg - 10 - toein3FPA.iloc[:,2])[(toein3FPA.iloc[:,2] > targetFPA + 2) | (toein3FPA.iloc[:,2] < targetFPA - 2)])
+        MAET4 = np.mean(np.abs(bFPA_deg - 10 - toein4FPA.iloc[:,2])[(toein4FPA.iloc[:,2] > targetFPA + 2) | (toein4FPA.iloc[:,2] < targetFPA - 2)])
+        MAER = np.mean(np.abs(bFPA_deg - 10 - retFPA.iloc[:,2])[(retFPA.iloc[:,2] > targetFPA + 2) | (retFPA.iloc[:,2] < targetFPA - 2)])
+               
+    elif zeroInRange:
+        adjusted_nfFPA = np.where((nfFPA.iloc[:,2] >= targetFPA - 2) & (nfFPA.iloc[:,2] <= targetFPA + 2), targetFPA, nfFPA.iloc[:,2])
+        adjusted_toein1FPA = np.where((toein1FPA.iloc[:,2] >= targetFPA - 2) & (toein1FPA.iloc[:,2] <= targetFPA + 2), targetFPA, toein1FPA.iloc[:,2])
+        adjusted_toein2FPA = np.where((toein2FPA.iloc[:,2] >= targetFPA - 2) & (toein2FPA.iloc[:,2] <= targetFPA + 2), targetFPA, toein2FPA.iloc[:,2])
+        adjusted_toein3FPA = np.where((toein3FPA.iloc[:,2] >= targetFPA - 2) & (toein3FPA.iloc[:,2] <= targetFPA + 2), targetFPA, toein3FPA.iloc[:,2])
+        adjusted_toein4FPA = np.where((toein4FPA.iloc[:,2] >= targetFPA - 2) & (toein4FPA.iloc[:,2] <= targetFPA + 2), targetFPA, toein4FPA.iloc[:,2])
+        adjusted_retFPA = np.where((retFPA.iloc[:,2] >= targetFPA - 2) & (retFPA.iloc[:,2] <= targetFPA + 2), targetFPA, retFPA.iloc[:,2])
+        MAENF = np.mean(np.abs(bFPA_deg - 10 - adjusted_nfFPA))
+        MAET1 = np.mean(np.abs(bFPA_deg - 10 - adjusted_toein1FPA))
+        MAET2 = np.mean(np.abs(bFPA_deg - 10 - adjusted_toein2FPA))
+        MAET3 = np.mean(np.abs(bFPA_deg - 10 - adjusted_toein3FPA))
+        MAET4 = np.mean(np.abs(bFPA_deg - 10 - adjusted_toein4FPA))
+        MAER = np.mean(np.abs(bFPA_deg - 10 - adjusted_retFPA))
+
+    else:
+        MAENF = np.mean(np.abs(bFPA_deg - 10 - nfFPA.iloc[:,2]))
+        MAET1 = np.mean(np.abs(bFPA_deg - 10 - toein1FPA.iloc[:,2]))
+        MAET2 = np.mean(np.abs(bFPA_deg - 10 - toein2FPA.iloc[:,2]))
+        MAET3 = np.mean(np.abs(bFPA_deg - 10 - toein3FPA.iloc[:,2]))
+        MAET4 = np.mean(np.abs(bFPA_deg - 10 - toein4FPA.iloc[:,2]))
+        MAER = np.mean(np.abs(bFPA_deg - 10 - retFPA.iloc[:,2]))
 
     MAE_all = [MAENF, MAET1, MAET2, MAET3, MAET4, MAER]
     print(str(MAE_all))
     store_MAE[subject-1] = MAE_all
+
+    # 
 
 
 
@@ -295,6 +322,35 @@ print('perfect-relative MAE: SF0-SF4: ' + str((store_MAE[SF_rows,4] - store_MAE[
 print('TF0-TF4: ' + str((store_MAE[TF_rows,4] - store_MAE[TF_rows,0])/(0 - store_MAE[TF_rows,0])))
 print('NF0-NF4: ' + str((store_MAE[NF_rows,4] - store_MAE[NF_rows,0])/(0 - store_MAE[NF_rows,0]))) 
 
+print('######### nf vs. ret #########')
+print('absolute MAE: SF0-SF5: ' + str(store_MAE[SF_rows,5] - store_MAE[SF_rows,0])) 
+print('TF0-TF5: ' + str(store_MAE[TF_rows,5] - store_MAE[TF_rows,0])) 
+print('NF0-NF5: ' + str(store_MAE[NF_rows,5] - store_MAE[NF_rows,0])) 
+
+print('relative MAE: SF0-SF5: ' + str((store_MAE[SF_rows,5] - store_MAE[SF_rows,0])/store_MAE[SF_rows,0])) 
+print('TF0-TF5: ' + str((store_MAE[TF_rows,5] - store_MAE[TF_rows,0])/store_MAE[TF_rows,0])) 
+print('NF0-NF5: ' + str((store_MAE[NF_rows,5] - store_MAE[NF_rows,0])/store_MAE[NF_rows,0])) 
+
+# make a plot:
+fig, ax = plt.subplots(figsize = (8,6))
+sf_data = (store_MAE[SF_rows,5] - store_MAE[SF_rows,0])/store_MAE[SF_rows,0]
+tf_data = (store_MAE[TF_rows,5] - store_MAE[TF_rows,0])/store_MAE[TF_rows,0]
+nf_data = (store_MAE[NF_rows,5] - store_MAE[NF_rows,0])/store_MAE[NF_rows,0]
+violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
+                             positions=[1, 2, 3], 
+                             showmeans=True, 
+                             showextrema=True, 
+                             showmedians=False)
+
+# Customize the plot
+ax.set_title('Change in MAE between NF and Retention')
+ax.set_ylabel('Relative change in MAE')
+ax.set_xticks([1, 2, 3])
+ax.set_xticklabels(['SF', 'TF', 'NF'])
+
+for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
+    ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
+plt.show()
 
 
 
