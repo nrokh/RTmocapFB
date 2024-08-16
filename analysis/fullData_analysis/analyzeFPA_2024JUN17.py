@@ -9,6 +9,7 @@ from matplotlib.colors import to_rgba
 import ptitprince as pt 
 import seaborn as sns
 
+
 # 1. LOAD FPA DATA
 # a. Get the desired directory to save the data
 root = tk.Tk()
@@ -23,6 +24,7 @@ store_MAE = np.zeros((subs_tot, 6))
 store_allFPA_NF = np.zeros((subs_tot, 80))
 store_allFPA_RT4 = np.zeros((subs_tot, 200))
 store_allFPA_RET = np.zeros((subs_tot, 200))
+store_RMSE = np.zeros((subs_tot, 6))
 
 # load feedback condition ID (1:SF, 2:TF, 0:NF)
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
@@ -30,8 +32,8 @@ feedbackCond_file = pd.read_csv(feedbackCond_csv_file)
 
 vis = 0
 rmCatchSteps = 1
-rmInRange = 1
-zeroInRange = 0
+rmInRange = 0
+zeroInRange = 1
 
 # b. load subject data
 for subject in range(1,37):
@@ -273,7 +275,39 @@ for subject in range(1,37):
     print(str(MAE_all))
     store_MAE[subject-1] = MAE_all
 
-    # 
+    # d. get RMSE for FPA:
+    if rmInRange:
+        RMSENF = np.sqrt(np.mean(((bFPA_deg - 10 - nfFPA.iloc[:,2])[(nfFPA.iloc[:,2] > targetFPA + 2) | (nfFPA.iloc[:,2] < targetFPA - 2)])**2))
+        RMSET1 = np.sqrt(np.mean(((bFPA_deg - 10 - toein1FPA.iloc[:,2])[(toein1FPA.iloc[:,2] > targetFPA + 2) | (toein1FPA.iloc[:,2] < targetFPA - 2)])**2))
+        RMSET2 = np.sqrt(np.mean(((bFPA_deg - 10 - toein2FPA.iloc[:,2])[(toein2FPA.iloc[:,2] > targetFPA + 2) | (toein2FPA.iloc[:,2] < targetFPA - 2)])**2))
+        RMSET3 = np.sqrt(np.mean(((bFPA_deg - 10 - toein3FPA.iloc[:,2])[(toein3FPA.iloc[:,2] > targetFPA + 2) | (toein3FPA.iloc[:,2] < targetFPA - 2)])**2))
+        RMSET4 = np.sqrt(np.mean(((bFPA_deg - 10 - toein4FPA.iloc[:,2])[(toein4FPA.iloc[:,2] > targetFPA + 2) | (toein4FPA.iloc[:,2] < targetFPA - 2)])**2))
+        RMSER = np.sqrt(np.mean(((bFPA_deg - 10 - retFPA.iloc[:,2])[(retFPA.iloc[:,2] > targetFPA + 2) | (retFPA.iloc[:,2] < targetFPA - 2)])**2))
+  
+    elif zeroInRange:
+        adjusted_nfFPA = np.where((nfFPA.iloc[:,2] >= targetFPA - 2) & (nfFPA.iloc[:,2] <= targetFPA + 2), targetFPA, nfFPA.iloc[:,2])
+        adjusted_toein1FPA = np.where((toein1FPA.iloc[:,2] >= targetFPA - 2) & (toein1FPA.iloc[:,2] <= targetFPA + 2), targetFPA, toein1FPA.iloc[:,2])
+        adjusted_toein2FPA = np.where((toein2FPA.iloc[:,2] >= targetFPA - 2) & (toein2FPA.iloc[:,2] <= targetFPA + 2), targetFPA, toein2FPA.iloc[:,2])
+        adjusted_toein3FPA = np.where((toein3FPA.iloc[:,2] >= targetFPA - 2) & (toein3FPA.iloc[:,2] <= targetFPA + 2), targetFPA, toein3FPA.iloc[:,2])
+        adjusted_toein4FPA = np.where((toein4FPA.iloc[:,2] >= targetFPA - 2) & (toein4FPA.iloc[:,2] <= targetFPA + 2), targetFPA, toein4FPA.iloc[:,2])
+        adjusted_retFPA = np.where((retFPA.iloc[:,2] >= targetFPA - 2) & (retFPA.iloc[:,2] <= targetFPA + 2), targetFPA, retFPA.iloc[:,2])
+        RMSENF = np.sqrt(np.mean( (bFPA_deg-10-adjusted_nfFPA)**2 ))
+        RMSET1 = np.sqrt(np.mean( (bFPA_deg-10-adjusted_toein1FPA)**2 ))
+        RMSET2 = np.sqrt(np.mean( (bFPA_deg-10-adjusted_toein2FPA)**2 ))
+        RMSET3 = np.sqrt(np.mean( (bFPA_deg-10-adjusted_toein3FPA)**2 ))
+        RMSET4 = np.sqrt(np.mean( (bFPA_deg-10-adjusted_toein4FPA)**2 ))
+        RMSER = np.sqrt(np.mean( (bFPA_deg-10-adjusted_retFPA)**2 ))
+    else:
+        RMSENF = np.sqrt(np.mean( (bFPA_deg-10-nfFPA.iloc[:,2])**2 ))
+        RMSET1 = np.sqrt(np.mean( (bFPA_deg-10-toein1FPA.iloc[:,2])**2 ))
+        RMSET2 = np.sqrt(np.mean( (bFPA_deg-10-toein2FPA.iloc[:,2])**2 ))
+        RMSET3 = np.sqrt(np.mean( (bFPA_deg-10-toein3FPA.iloc[:,2])**2 ))
+        RMSET4 = np.sqrt(np.mean( (bFPA_deg-10-toein4FPA.iloc[:,2])**2 ))
+        RMSER = np.sqrt(np.mean( (bFPA_deg-10-retFPA.iloc[:,2])**2 ))
+
+    RMSE_all = [RMSENF, RMSET1, RMSET2, RMSET3, RMSET4, RMSER]
+    store_RMSE[subject-1] = RMSE_all
+
 
 
 
@@ -300,42 +334,62 @@ print('SD NF in-range: ' + str(np.std(store_inRangePercent[NF_rows, 5])))
 print('NF normal: stats = ' + str(stats.normaltest(store_inRangePercent[NF_rows,5])))
 
 
-# NR 2024AUG14: output change in % acc after removing catch trials
-print('absolute ACC: SF0-SF4: ' + str(store_inRangePercent[SF_rows,4] - store_inRangePercent[SF_rows,0])) 
-print('TF0-TF4: ' + str(store_inRangePercent[TF_rows,4] - store_inRangePercent[TF_rows,0])) 
-print('NF0-NF4: ' + str(store_inRangePercent[NF_rows,4] - store_inRangePercent[NF_rows,0])) 
+# # NR 2024AUG14: output change in % acc after removing catch trials
+# print('absolute ACC: SF0-SF4: ' + str(store_inRangePercent[SF_rows,4] - store_inRangePercent[SF_rows,0])) 
+# print('TF0-TF4: ' + str(store_inRangePercent[TF_rows,4] - store_inRangePercent[TF_rows,0])) 
+# print('NF0-NF4: ' + str(store_inRangePercent[NF_rows,4] - store_inRangePercent[NF_rows,0])) 
 
-print('perfect-relative ACC: SF0-SF4: ' + str((store_inRangePercent[SF_rows,4] - store_inRangePercent[SF_rows,0])/(100 - store_inRangePercent[SF_rows,0]))) 
-print('TF0-TF4: ' + str((store_inRangePercent[TF_rows,4] - store_inRangePercent[TF_rows,0])/(100 - store_inRangePercent[TF_rows,0])))
-print('NF0-NF4: ' + str((store_inRangePercent[NF_rows,4] - store_inRangePercent[NF_rows,0])/(100 - store_inRangePercent[NF_rows,0]))) 
+# print('perfect-relative ACC: SF0-SF4: ' + str((store_inRangePercent[SF_rows,4] - store_inRangePercent[SF_rows,0])/(100 - store_inRangePercent[SF_rows,0]))) 
+# print('TF0-TF4: ' + str((store_inRangePercent[TF_rows,4] - store_inRangePercent[TF_rows,0])/(100 - store_inRangePercent[TF_rows,0])))
+# print('NF0-NF4: ' + str((store_inRangePercent[NF_rows,4] - store_inRangePercent[NF_rows,0])/(100 - store_inRangePercent[NF_rows,0]))) 
 
-print('absolute MAE: SF0-SF4: ' + str(store_MAE[SF_rows,4] - store_MAE[SF_rows,0])) 
-print('TF0-TF4: ' + str(store_MAE[TF_rows,4] - store_MAE[TF_rows,0])) 
-print('NF0-NF4: ' + str(store_MAE[NF_rows,4] - store_MAE[NF_rows,0])) 
+# print('absolute MAE: SF0-SF4: ' + str(store_MAE[SF_rows,4] - store_MAE[SF_rows,0])) 
+# print('TF0-TF4: ' + str(store_MAE[TF_rows,4] - store_MAE[TF_rows,0])) 
+# print('NF0-NF4: ' + str(store_MAE[NF_rows,4] - store_MAE[NF_rows,0])) 
 
-print('relative MAE: SF0-SF4: ' + str((store_MAE[SF_rows,4] - store_MAE[SF_rows,0])/store_MAE[SF_rows,0])) 
-print('TF0-TF4: ' + str((store_MAE[TF_rows,4] - store_MAE[TF_rows,0])/store_MAE[TF_rows,0])) 
-print('NF0-NF4: ' + str((store_MAE[NF_rows,4] - store_MAE[NF_rows,0])/store_MAE[NF_rows,0])) 
+# print('relative MAE: SF0-SF4: ' + str((store_MAE[SF_rows,4] - store_MAE[SF_rows,0])/store_MAE[SF_rows,0])) 
+# print('TF0-TF4: ' + str((store_MAE[TF_rows,4] - store_MAE[TF_rows,0])/store_MAE[TF_rows,0])) 
+# print('NF0-NF4: ' + str((store_MAE[NF_rows,4] - store_MAE[NF_rows,0])/store_MAE[NF_rows,0])) 
 
-# note: this is the same as the above rel. mae, but with signs changed
-print('perfect-relative MAE: SF0-SF4: ' + str((store_MAE[SF_rows,4] - store_MAE[SF_rows,0])/(0 - store_MAE[SF_rows,0]))) 
-print('TF0-TF4: ' + str((store_MAE[TF_rows,4] - store_MAE[TF_rows,0])/(0 - store_MAE[TF_rows,0])))
-print('NF0-NF4: ' + str((store_MAE[NF_rows,4] - store_MAE[NF_rows,0])/(0 - store_MAE[NF_rows,0]))) 
+# # note: this is the same as the above rel. mae, but with signs changed
+# print('perfect-relative MAE: SF0-SF4: ' + str((store_MAE[SF_rows,4] - store_MAE[SF_rows,0])/(0 - store_MAE[SF_rows,0]))) 
+# print('TF0-TF4: ' + str((store_MAE[TF_rows,4] - store_MAE[TF_rows,0])/(0 - store_MAE[TF_rows,0])))
+# print('NF0-NF4: ' + str((store_MAE[NF_rows,4] - store_MAE[NF_rows,0])/(0 - store_MAE[NF_rows,0]))) 
 
-print('######### nf vs. ret #########')
-print('absolute MAE: SF0-SF5: ' + str(store_MAE[SF_rows,5] - store_MAE[SF_rows,0])) 
-print('TF0-TF5: ' + str(store_MAE[TF_rows,5] - store_MAE[TF_rows,0])) 
-print('NF0-NF5: ' + str(store_MAE[NF_rows,5] - store_MAE[NF_rows,0])) 
+# print('######### nf vs. ret #########')
+# print('absolute MAE: SF0-SF5: ' + str(store_MAE[SF_rows,5] - store_MAE[SF_rows,0])) 
+# print('TF0-TF5: ' + str(store_MAE[TF_rows,5] - store_MAE[TF_rows,0])) 
+# print('NF0-NF5: ' + str(store_MAE[NF_rows,5] - store_MAE[NF_rows,0])) 
 
-print('relative MAE: SF0-SF5: ' + str((store_MAE[SF_rows,5] - store_MAE[SF_rows,0])/store_MAE[SF_rows,0])) 
-print('TF0-TF5: ' + str((store_MAE[TF_rows,5] - store_MAE[TF_rows,0])/store_MAE[TF_rows,0])) 
-print('NF0-NF5: ' + str((store_MAE[NF_rows,5] - store_MAE[NF_rows,0])/store_MAE[NF_rows,0])) 
+# print('relative MAE: SF0-SF5: ' + str((store_MAE[SF_rows,5] - store_MAE[SF_rows,0])/store_MAE[SF_rows,0])) 
+# print('TF0-TF5: ' + str((store_MAE[TF_rows,5] - store_MAE[TF_rows,0])/store_MAE[TF_rows,0])) 
+# print('NF0-NF5: ' + str((store_MAE[NF_rows,5] - store_MAE[NF_rows,0])/store_MAE[NF_rows,0])) 
 
-# make a plot:
+print('##########RMSE##############')
+print('relative RMSE: SF0-SF4: ' + str((store_RMSE[SF_rows,4] - store_RMSE[SF_rows,0])/store_RMSE[SF_rows,0]))
+print('relative RMSE: TF0-TF4: ' + str((store_RMSE[TF_rows,4] - store_RMSE[TF_rows,0])/store_RMSE[TF_rows,0]))
+print('relative RMSE: NF0-NF4: ' + str((store_RMSE[NF_rows,4] - store_RMSE[NF_rows,0])/store_RMSE[NF_rows,0]))
+print('_____________________')
+print('relative RMSE: SF0-SF5: ' + str((store_RMSE[SF_rows,5] - store_RMSE[SF_rows,0])/store_RMSE[SF_rows,0]))
+print('relative RMSE: TF0-TF5: ' + str((store_RMSE[TF_rows,5] - store_RMSE[TF_rows,0])/store_RMSE[TF_rows,0]))
+print('relative RMSE: NF0-NF5: ' + str((store_RMSE[NF_rows,5] - store_RMSE[NF_rows,0])/store_RMSE[NF_rows,0]))
+print('_____________________')
+print('relative RMSE: SF4-SF5: ' + str((store_RMSE[SF_rows,5] - store_RMSE[SF_rows,4])/store_RMSE[SF_rows,4]))
+print('relative RMSE: TF4-TF5: ' + str((store_RMSE[TF_rows,5] - store_RMSE[TF_rows,4])/store_RMSE[TF_rows,4]))
+print('relative RMSE: NF4-NF5: ' + str((store_RMSE[NF_rows,5] - store_RMSE[NF_rows,4])/store_RMSE[NF_rows,4]))
+print('_____________________')
+print('NF RMSE: SF' + str(store_RMSE[SF_rows,0]))
+print('NF RMSE: TF' + str(store_RMSE[TF_rows,0]))
+print('NF RMSE: NF' + str(store_RMSE[NF_rows,0]))
+print('RET RMSE: SF' + str(store_RMSE[SF_rows,5]))
+print('RET RMSE: TF' + str(store_RMSE[TF_rows,5]))
+print('RET RMSE: NF' + str(store_RMSE[NF_rows,5]))
+
+# make an RMSE plot:
 fig, ax = plt.subplots(figsize = (8,6))
-sf_data = (store_MAE[SF_rows,5] - store_MAE[SF_rows,0])/store_MAE[SF_rows,0]
-tf_data = (store_MAE[TF_rows,5] - store_MAE[TF_rows,0])/store_MAE[TF_rows,0]
-nf_data = (store_MAE[NF_rows,5] - store_MAE[NF_rows,0])/store_MAE[NF_rows,0]
+sf_data = (store_RMSE[SF_rows,5] - store_RMSE[SF_rows,0])/store_RMSE[SF_rows,0]
+tf_data = (store_RMSE[TF_rows,5] - store_RMSE[TF_rows,0])/store_RMSE[TF_rows,0]
+nf_data = (store_RMSE[NF_rows,5] - store_RMSE[NF_rows,0])/store_RMSE[NF_rows,0]
 violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
                              positions=[1, 2, 3], 
                              showmeans=True, 
@@ -343,8 +397,8 @@ violin_parts = ax.violinplot([sf_data, tf_data, nf_data],
                              showmedians=False)
 
 # Customize the plot
-ax.set_title('Change in MAE between NF and Retention')
-ax.set_ylabel('Relative change in MAE')
+ax.set_title('Change in RMSE between NF and Retention')
+ax.set_ylabel('Relative change in RMSE')
 ax.set_xticks([1, 2, 3])
 ax.set_xticklabels(['SF', 'TF', 'NF'])
 
