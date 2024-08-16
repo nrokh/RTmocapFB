@@ -36,6 +36,29 @@ rmCatchSteps = 1
 rmInRange = 0
 zeroInRange = 1
 
+# supporting functions
+def calculate_responsiveness(input_FPA, targetFPA):
+    incorrect_steps = 0
+    resp_tally = 0
+    
+    for step in range(len(input_FPA) - 1):
+        current_fpa = input_FPA.iloc[step, 2]
+        next_fpa = input_FPA.iloc[step + 1, 2]
+        
+        if current_fpa < targetFPA - 2:
+            incorrect_steps += 1
+            if next_fpa > current_fpa:
+                resp_tally += 1
+        
+        elif current_fpa > targetFPA + 2:
+            incorrect_steps += 1
+            if next_fpa < current_fpa:
+                resp_tally += 1
+    
+    store_resp = resp_tally / incorrect_steps if incorrect_steps > 0 else 0
+    
+    return store_resp
+
 # b. load subject data
 for subject in range(1,37):
 
@@ -310,15 +333,15 @@ for subject in range(1,37):
     store_RMSE[subject-1] = RMSE_all
 
     # d. get responsiveness
-    # for each step, from 0 to N-1: check if FPA < targetFPA-2
-        # if yes, add 1 to incorrect_steps and check if next FPA > previous FPA
-        # if yes, add 1 to resp_tally
-    # check if FPA > targetFPA +2 
-        # if yes, add 1 to incorrect_steps and check if next FPA < previous FPA
-        # if yes, add 1 to resp_tally
-    # at end of loop, store resp_tally/incorrect_steps in store_resp[subject-1]
+    store_resp_NF = calculate_responsiveness(nfFPA, targetFPA)
+    store_resp_RT1 = calculate_responsiveness(toein1FPA, targetFPA)
+    store_resp_RT2 = calculate_responsiveness(toein2FPA, targetFPA)
+    store_resp_RT3 = calculate_responsiveness(toein3FPA, targetFPA)
+    store_resp_RT4 = calculate_responsiveness(toein4FPA, targetFPA)
+    store_resp_RET = calculate_responsiveness(retFPA, targetFPA)
 
-
+    resp_all = [store_resp_NF, store_resp_RT1, store_resp_RT2, store_resp_RT3, store_resp_RT4, store_resp_RET]
+    store_resp[subject-1] = resp_all
 
 
 # plot group means for cumulative results: percent steps in range
@@ -394,6 +417,15 @@ print('NF RMSE: NF' + str(store_RMSE[NF_rows,0]))
 print('RET RMSE: SF' + str(store_RMSE[SF_rows,5]))
 print('RET RMSE: TF' + str(store_RMSE[TF_rows,5]))
 print('RET RMSE: NF' + str(store_RMSE[NF_rows,5]))
+
+print('############# RESPONSIVENESS ###############')
+print('resp RT1: SF:' + str(store_resp[SF_rows,1]))
+print('resp RT1: TF:' + str(store_resp[TF_rows,1]))
+print('resp RT1: NF:' + str(store_resp[NF_rows,1]))
+print('_____________________')
+print('resp RT4: SF:' + str(store_resp[SF_rows,4]))
+print('resp RT4: TF:' + str(store_resp[TF_rows,4]))
+print('resp RT4: NF:' + str(store_resp[NF_rows,4]))
 
 # make an RMSE plot:
 fig, ax = plt.subplots(figsize = (8,6))
