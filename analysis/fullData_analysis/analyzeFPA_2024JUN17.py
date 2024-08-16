@@ -25,6 +25,7 @@ store_allFPA_NF = np.zeros((subs_tot, 80))
 store_allFPA_RT4 = np.zeros((subs_tot, 200))
 store_allFPA_RET = np.zeros((subs_tot, 200))
 store_RMSE = np.zeros((subs_tot, 6))
+store_resp = np.zeros((subs_tot, 6))
 
 # load feedback condition ID (1:SF, 2:TF, 0:NF)
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
@@ -307,6 +308,15 @@ for subject in range(1,37):
 
     RMSE_all = [RMSENF, RMSET1, RMSET2, RMSET3, RMSET4, RMSER]
     store_RMSE[subject-1] = RMSE_all
+
+    # d. get responsiveness
+    # for each step, from 0 to N-1: check if FPA < targetFPA-2
+        # if yes, add 1 to incorrect_steps and check if next FPA > previous FPA
+        # if yes, add 1 to resp_tally
+    # check if FPA > targetFPA +2 
+        # if yes, add 1 to incorrect_steps and check if next FPA < previous FPA
+        # if yes, add 1 to resp_tally
+    # at end of loop, store resp_tally/incorrect_steps in store_resp[subject-1]
 
 
 
