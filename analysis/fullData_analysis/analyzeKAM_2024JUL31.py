@@ -106,14 +106,13 @@ for subject in range(1,37):
     # TODO: check if it's 180-alignment or alignemnt-180
     alignment = 180 - np.rad2deg(np.arccos( (B**2 + A**2 - C**2)/(2*A*B) ))
 
-    # d. store alignment
+    # d. store alignment; add to feature array (manually)
     store_staticAlignment[subject-1] = alignment
 
-    # e. add alignment to feature array
-print(str(store_staticAlignment))
+
 # 3. compute rKAM at each step
 
-    # a. normalize arrays
+    # a. normalize features
     
     # b. for all steps in NF, RT4, RET, find rKAM
 
