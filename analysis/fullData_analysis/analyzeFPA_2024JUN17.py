@@ -217,27 +217,27 @@ for subject in range(1,37):
 
     # save tFPAs:
     if subject < 10:
-        store_allFPA_NF = pd.DataFrame(store_allFPA_NF)
+        store_allFPA_NF = pd.DataFrame(allFPA_NF)
         output_NF = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_NF.csv'))
         store_allFPA_NF.to_csv(output_NF, index=False)
 
-        store_allFPA_RT4 = pd.DataFrame(store_allFPA_RT4)
+        store_allFPA_RT4 = pd.DataFrame(allFPA_RT4)
         output_RT4 = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_RT4.csv'))
         store_allFPA_RT4.to_csv(output_RT4, index=False)
 
-        store_allFPA_RET = pd.DataFrame(store_allFPA_RET)
+        store_allFPA_RET = pd.DataFrame(allFPA_RET)
         output_RET = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_RET.csv'))
         store_allFPA_RET.to_csv(output_RET, index=False)
     else:
-        store_allFPA_NF = pd.DataFrame(store_allFPA_NF)
+        store_allFPA_NF = pd.DataFrame(allFPA_NF)
         output_NF = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_NF.csv'))
         store_allFPA_NF.to_csv(output_NF, index=False)
 
-        store_allFPA_RT4 = pd.DataFrame(store_allFPA_RT4)
+        store_allFPA_RT4 = pd.DataFrame(allFPA_RT4)
         output_RT4 = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_RT4.csv'))
         store_allFPA_RT4.to_csv(output_RT4, index=False)
 
-        store_allFPA_RET = pd.DataFrame(store_allFPA_RET)
+        store_allFPA_RET = pd.DataFrame(allFPA_RET)
         output_RET = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_RET.csv'))
         store_allFPA_RET.to_csv(output_RET, index=False)
         

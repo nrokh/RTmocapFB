@@ -5,7 +5,20 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 
-#TODO: save tFPAs from analyzeFPA file
+def predKAM(tFPA_array, weight, height, speed, alignment, bFPA):
+    # normalize input features
+    w = (weight - mean_weight)/std_weight
+    h = (height - mean_height)/std_height
+    s = (speed - mean_speed)/std_speed
+    a = (alignment - mean_alignment)/std_alignment
+    b = (bFPA - mean_bFPA)/std_bFPA
+
+    rKAM_array = np.zeros((len(tFPA_array)))
+    for i in range(len(tFPA_array)):
+        t = (tFPA_array.iloc[i] - mean_tFPA)/std_tFPA
+        pKAM = offset + b_weight*b + b_height*h + b_speed*s + b_alignment*a + b_bFPA*b + b_tFPA*t
+        rKAM_array[i] = pKAM    
+    return rKAM_array
 
 # 0. SETUP
 # a. set model and normalization coefficients from Rokhmanova et al. 2022
@@ -50,7 +63,7 @@ directory = filedialog.askdirectory()
 # a. load feature array
 inputFeatures_csv_file = os.path.normpath(os.path.join(directory, 'pKAM_features.csv'))
 inputFeatures = pd.read_csv(inputFeatures_csv_file)
-print(inputFeatures.head()) #speed, height, weight, bFPA, tFPA
+print(inputFeatures.head()) #speed, height, weight, bFPA, alignment
 
 # b. load feedback condition ID (1:SF, 2:TF, 0:NF)
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
@@ -126,15 +139,42 @@ for subject in range(1,37):
 
 
 # 3. compute rKAM at each step
-
-    # a. normalize features
-    
+  
     # b. for all steps in NF, RT4, RET, find rKAM
+    rKAM_NF = predKAM(tFPA_NF, inputFeatures.weight[subject-1], inputFeatures.height[subject-1], inputFeatures.speed[subject-1], inputFeatures.alignment[subject-1], inputFeatures.bfpa[subject-1])
+    rKAM_RT4 = predKAM(tFPA_RT4, inputFeatures.weight[subject-1], inputFeatures.height[subject-1], inputFeatures.speed[subject-1], inputFeatures.alignment[subject-1], inputFeatures.bfpa[subject-1])
+    rKAM_RET = predKAM(tFPA_RET, inputFeatures.weight[subject-1], inputFeatures.height[subject-1], inputFeatures.speed[subject-1], inputFeatures.alignment[subject-1], inputFeatures.bfpa[subject-1])
 
     # c. store subject rKAMs
-
-
+    print(rKAM_NF.shape)
+    store_allrKAM_NF[subject-1] = rKAM_NF
+    store_allrKAM_RT4[subject-1] = rKAM_RT4
+    store_allrKAM_RET[subject-1] = rKAM_RET
 
 # 4. visualize
+#SF_rows = np.where(feedbackCond_file.cond == 1)[0]
+SF_rows = [0, 1, 6, 8, 11, 18]
+TF_rows = np.where(feedbackCond_file.cond == 2)[0]
+#NF_rows = np.where(feedbackCond_file.cond == 0)[0]
+NF_rows = [4, 5, 9, 10, 16, 17]
 
-# a. 
+# make an RMSE plot: change between NF and RET
+fig, ax = plt.subplots(figsize = (8,6))
+sf_data = store_allrKAM_RET[SF_rows].flatten()
+tf_data = store_allrKAM_RET[TF_rows].flatten()
+nf_data = store_allrKAM_RET[NF_rows].flatten() # TODO: also try averaging?
+violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
+                             positions=[1, 2, 3], 
+                             showmeans=True, 
+                             showextrema=True, 
+                             showmedians=False)
+
+# Customize the plot
+ax.set_title('rKAM across groups, RET')
+ax.set_ylabel('rKAM')
+ax.set_xticks([1, 2, 3])
+ax.set_xticklabels(['SF', 'TF', 'NF'])
+
+for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
+    ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
+plt.show()
