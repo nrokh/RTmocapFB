@@ -68,14 +68,29 @@ for subject in range(1,37):
     elif feedbackCond_file.cond[subject-1] == 0:
         print('----------------CONDITION: NO FEEDBACK------------')
 
-    # a. open subject static file
+    # a. open subject static file and tFPAs
     if subject < 10: 
         static_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_static.csv'))
         staticDF = pd.read_csv(static_csv_file, skiprows=4)
 
+        tFPA_NF_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_NF.csv'))
+        tFPA_NF = pd.read_csv(tFPA_NF_file)
+        tFPA_RT4_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_RT4.csv'))
+        tFPA_RT4 = pd.read_csv(tFPA_RT4_file)
+        tFPA_RET_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_RET.csv'))
+        tFPA_RET = pd.read_csv(tFPA_RET_file)
+        
+
     else: 
         static_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_static.csv'))
         staticDF = pd.read_csv(static_csv_file, skiprows=4)
+
+        tFPA_NF_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_NF.csv'))
+        tFPA_NF = pd.read_csv(tFPA_NF_file)
+        tFPA_RT4_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_RT4.csv'))
+        tFPA_RT4 = pd.read_csv(tFPA_RT4_file)
+        tFPA_RET_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_RET.csv'))
+        tFPA_RET = pd.read_csv(tFPA_RET_file)
 
     # b. compute right leg AJC, KJC, HJC
     MANK = np.mean(staticDF.iloc[:,11:14], axis=0)
