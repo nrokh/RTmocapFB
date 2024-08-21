@@ -31,6 +31,8 @@ store_resp = np.zeros((subs_tot, 6))
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
 feedbackCond_file = pd.read_csv(feedbackCond_csv_file)
 
+# load proprio acc
+
 vis = 0
 rmCatchSteps = 1
 rmInRange = 0
