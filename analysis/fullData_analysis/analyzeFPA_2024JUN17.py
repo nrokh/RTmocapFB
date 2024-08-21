@@ -31,8 +31,6 @@ store_resp = np.zeros((subs_tot, 6))
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
 feedbackCond_file = pd.read_csv(feedbackCond_csv_file)
 
-# load proprio acc
-
 vis = 0
 rmCatchSteps = 1
 rmInRange = 0
@@ -75,10 +73,14 @@ for subject in range(1,37):
         print('!!!--------ERROR: check feedback condition file?---------!!!')
 
     if subject < 10:
+        # TODO: load proprio:
+
+        # TODO: load vbtest: 
+
+        # load FPAs:
         baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baseline_meanFPA.csv'))
         baselineFPA = pd.read_csv(baseline_csv_file)
 
-        # apparently dynamic variable naming is bad practice 
         nf_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_noFB_meanFPA.csv'))
         nfFPA = pd.read_csv(nf_csv_file)
 
@@ -102,7 +104,6 @@ for subject in range(1,37):
         baseline_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_baseline_meanFPA.csv'))
         baselineFPA = pd.read_csv(baseline_csv_file)
 
-        # apparently dynamic variable naming is bad practice 
         nf_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_noFB_meanFPA.csv'))
         nfFPA = pd.read_csv(nf_csv_file)
 
@@ -128,57 +129,9 @@ for subject in range(1,37):
     bFPA_deg = np.mean(baselineFPA.iloc[:,2])
     print('Baseline FPA was: ' + str(bFPA_deg) + '(' + str(np.std(baselineFPA.iloc[:,2])) + ')')
 
-    # note: this way of defining catch trials is not correct; they were 40 steps long and started at step #80
-
-    # catch1 = len(baselineFPA) + len(toein1FPA)/2
-    # catch2 = len(baselineFPA) + len(toein1FPA) + len(toein2FPA)/2
-    # catch3 = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA)/2
-    # catch4 = len(baselineFPA) + len(toein1FPA) + len(toein2FPA) + len(toein3FPA) + len(toein4FPA)/2
-
-    # print('TI1: ' + str(np.mean(toein1FPA.iloc[:,2])) + '(' + str(np.std(toein1FPA.iloc[:,2])) + ')')
-    # print('C1: ' + str(np.mean(fullFPA.iloc[int(catch1):int(catch1+40),2])) + '(' + str(np.std(fullFPA.iloc[int(catch1):int(catch1+40),2])) + ')')
-    # print('TI2: ' + str(np.mean(toein2FPA.iloc[:,2])) + '(' + str(np.std(toein2FPA.iloc[:,2])) + ')')
-    # print('C2: ' + str(np.mean(fullFPA.iloc[int(catch2):int(catch2+40),2])) + '(' + str(np.std(fullFPA.iloc[int(catch2):int(catch2+40),2])) + ')')
-    # print('TI3: ' + str(np.mean(toein3FPA.iloc[:,2])) + '(' + str(np.std(toein3FPA.iloc[:,2])) + ')')
-    # print('C3: ' + str(np.mean(fullFPA.iloc[int(catch3):int(catch3+40),2])) + '(' + str(np.std(fullFPA.iloc[int(catch3):int(catch3+40),2])) + ')')
-    # print('TI4: ' + str(np.mean(toein4FPA.iloc[:,2])) + '(' + str(np.std(toein4FPA.iloc[:,2])) + ')')
-    # print('C4: ' + str(np.mean(fullFPA.iloc[int(catch4):int(catch4+40),2])) + '(' + str(np.std(fullFPA.iloc[int(catch4):int(catch4+40),2])) + ')')
-    # print('Re: ' + str(np.mean(retFPA.iloc[:,2])) + '(' + str(np.std(retFPA.iloc[:,2])) + ')')
 
     if vis:
-        # # d. generate plot of all FPA across time
-        # x = np.linspace(0, len(fullFPA), len(fullFPA))
-        # plt.plot(x, fullFPA.iloc[:,2], '--o')
-
-        # # vertical lines for retraining periods: 
-        # plt.vlines(x = len(baselineFPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 1 start time
-        # plt.vlines(x = len(baselineFPA)+len(toein1FPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 2 start time
-        # plt.vlines(x = len(baselineFPA)+len(toein1FPA)+len(toein2FPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 3 start time
-        # plt.vlines(x = len(baselineFPA)+len(toein1FPA)+len(toein2FPA)+len(toein3FPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # toein 4 start time
-        # plt.vlines(x = len(fullFPA) - len(retFPA)+1, ymin = -25.0, ymax = 15.0, colors = 'k') # retention start time
-
-        # # vertical lines for catch trials:
-        # plt.vlines(x = catch1, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 1 start time
-        # plt.vlines(x = catch1 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 1 end time
-
-        # plt.vlines(x = catch2, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 2 start time
-        # plt.vlines(x = catch2 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 2 end time
-
-        # plt.vlines(x = catch3, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 3 start time
-        # plt.vlines(x = catch3 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 3 end time
-
-        # plt.vlines(x = catch4, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 start time
-        # plt.vlines(x = catch4 + 40, ymin = -25.0, ymax = 15.0, colors = 'k', linestyles = '--') # catch 4 end time 
-        # # horizontal line for target FPA:
-        # plt.hlines(y = bFPA_deg-10, xmin = len(baselineFPA)+1, xmax = len(fullFPA), colors = 'r', linestyles = '--')
-
-        # plt.ylim([-25,15]) #TODO: set this to be consistent across all subs based on all-sub max and min FPAs (approx.)
-        # plt.xlabel('Step number')
-        # plt.ylabel('FPA (deg)')
-        # plt.title('Walking trials FPA: S0' + str(subject))
-        # plt.show()
-
-        # new fig: plot running mean
+        # fig: plot running mean
         x = np.linspace(0, len(fullFPA), len(fullFPA))
         plt.plot(x, fullFPA.iloc[:,2], 'o', alpha = 0.5, )
         window_size = 20
@@ -186,9 +139,6 @@ for subject in range(1,37):
         runnavg = np.convolve(fullFPA.iloc[:,2], kernel, mode = 'same')
         plt.plot(x, runnavg, '-')
         plt.show()
-    
-            
-    # save metrics to subject folder to analyze in aggregate:
 
     # a. get % of steps in-range: 5 conds x 1 
     targetFPA = bFPA_deg-10
@@ -206,7 +156,6 @@ for subject in range(1,37):
         print('percent steps in range during toe-in 3: ' + str(inRange_t3))
         inRange_t4 = 100 * len(pd.concat([toein4FPA.iloc[:80], toein4FPA.iloc[121:]])[(pd.concat([toein4FPA.iloc[:80], toein4FPA.iloc[121:]]).iloc[:, 2] < targetFPA + 2) & (pd.concat([toein4FPA.iloc[:80], toein4FPA.iloc[121:]]).iloc[:, 2] > targetFPA - 2)]) / (len(toein4FPA) - 41)
         print('percent steps in range during toe-in 4: ' + str(inRange_t4))
-
 
     else:
         inRange_t1 = 100*len(toein1FPA[(toein1FPA.iloc[:,2]<targetFPA+2) & (toein1FPA.iloc[:,2]>targetFPA-2)])/len(toein1FPA)
