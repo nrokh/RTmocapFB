@@ -203,7 +203,7 @@ for subject in range(1,37):
     pairedMeanSTD = [(meanNF, stdNF), (meanT1, stdT1), (meanT2, stdT2), (meanT3, stdT3), (meanT4, stdT4), (meanR, stdR)]
     store_meanFPASD[subject-1] = pairedMeanSTD
 
-    # b.ii: store all rFPA:
+    # b.ii: store all tFPA:
     if subject==11:
         allFPA_RT4 = bFPA_deg - 10 - toein3FPA.iloc[:,2]
     else:
@@ -214,6 +214,33 @@ for subject in range(1,37):
     store_allFPA_NF[subject-1] =  allFPA_NF
     store_allFPA_RT4[subject-1] = allFPA_RT4
     store_allFPA_RET[subject-1] = allFPA_RET
+
+    # save tFPAs:
+    if subject < 10:
+        store_allFPA_NF = pd.DataFrame(store_allFPA_NF)
+        output_NF = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_NF.csv'))
+        store_allFPA_NF.to_csv(output_NF, index=False)
+
+        store_allFPA_RT4 = pd.DataFrame(store_allFPA_RT4)
+        output_RT4 = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_RT4.csv'))
+        store_allFPA_RT4.to_csv(output_RT4, index=False)
+
+        store_allFPA_RET = pd.DataFrame(store_allFPA_RET)
+        output_RET = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_RET.csv'))
+        store_allFPA_RET.to_csv(output_RET, index=False)
+    else:
+        store_allFPA_NF = pd.DataFrame(store_allFPA_NF)
+        output_NF = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_NF.csv'))
+        store_allFPA_NF.to_csv(output_NF, index=False)
+
+        store_allFPA_RT4 = pd.DataFrame(store_allFPA_RT4)
+        output_RT4 = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_RT4.csv'))
+        store_allFPA_RT4.to_csv(output_RT4, index=False)
+
+        store_allFPA_RET = pd.DataFrame(store_allFPA_RET)
+        output_RET = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_RET.csv'))
+        store_allFPA_RET.to_csv(output_RET, index=False)
+        
 
     # c. get MAE for FPA:
     if rmInRange:
