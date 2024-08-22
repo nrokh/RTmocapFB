@@ -179,7 +179,7 @@ NF_rows = np.where(feedbackCond_file.cond == 0)[0]
 # plt.show()
 
 # __________ FIG 2 _____________________________
-# mean rKAM between NF and RT4:
+# mean rKAM at RET
 fig, ax = plt.subplots(figsize = (8,6))
 
 sf_data = np.mean(store_allrKAM_RET[SF_rows],1) 
