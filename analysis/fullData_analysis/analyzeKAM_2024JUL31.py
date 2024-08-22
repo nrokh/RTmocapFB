@@ -71,7 +71,7 @@ feedbackCond_file = pd.read_csv(feedbackCond_csv_file)
 
 # 2. compute static alignment for each sub
 for subject in range(1,37):
-    if subject == 14 or subject == 15:
+    if subject == 14:
         continue
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
     if feedbackCond_file.cond[subject-1] == 1:
@@ -152,17 +152,44 @@ for subject in range(1,37):
     store_allrKAM_RET[subject-1] = rKAM_RET
 
 # 4. visualize
-#SF_rows = np.where(feedbackCond_file.cond == 1)[0]
-SF_rows = [0, 1, 6, 8, 11, 18]
+SF_rows = np.where(feedbackCond_file.cond == 1)[0]
 TF_rows = np.where(feedbackCond_file.cond == 2)[0]
-#NF_rows = np.where(feedbackCond_file.cond == 0)[0]
-NF_rows = [4, 5, 9, 10, 16, 17]
+NF_rows = np.where(feedbackCond_file.cond == 0)[0]
 
-# make an RMSE plot: change between NF and RET
+# ___________ FIG 1 _________________________________
+# make a violin plot: RET
+# fig, ax = plt.subplots(figsize = (8,6))
+# sf_data = store_allrKAM_RT4[SF_rows].flatten()
+# tf_data = store_allrKAM_RT4[TF_rows].flatten()
+# nf_data = store_allrKAM_RT4[NF_rows].flatten() # TODO: also try averaging?
+# violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
+#                              positions=[1, 2, 3], 
+#                              showmeans=True, 
+#                              showextrema=True, 
+#                              showmedians=False)
+
+# # Customize the plot
+# ax.set_title('rKAM across groups, RET')
+# ax.set_ylabel('rKAM')
+# ax.set_xticks([1, 2, 3])
+# ax.set_xticklabels(['SF', 'TF', 'NF'])
+
+# for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
+#     ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
+# plt.show()
+
+# __________ FIG 2 _____________________________
+# mean rKAM between NF and RT4:
 fig, ax = plt.subplots(figsize = (8,6))
-sf_data = store_allrKAM_RET[SF_rows].flatten()
-tf_data = store_allrKAM_RET[TF_rows].flatten()
-nf_data = store_allrKAM_RET[NF_rows].flatten() # TODO: also try averaging?
+
+sf_data = np.mean(store_allrKAM_RET[SF_rows],1) 
+print('data: ')
+print(str(sf_data))
+tf_data = np.mean(store_allrKAM_RET[TF_rows],1)  
+print(str(tf_data))
+nf_data = np.mean(store_allrKAM_RET[NF_rows],1) 
+print(str(nf_data))
+
 violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
                              positions=[1, 2, 3], 
                              showmeans=True, 
