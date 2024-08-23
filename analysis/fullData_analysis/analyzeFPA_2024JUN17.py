@@ -26,6 +26,9 @@ store_allFPA_RT4 = np.zeros((subs_tot, 200))
 store_allFPA_RET = np.zeros((subs_tot, 200))
 store_RMSE = np.zeros((subs_tot, 6))
 store_resp = np.zeros((subs_tot, 6))
+store_proprio_RMSE = np.zeros((subs_tot,1))
+store_proprio_MSE_in = np.zeros((subs_tot,1))
+store_proprio_MSE_out = np.zeros((subs_tot,1))
 
 # load feedback condition ID (1:SF, 2:TF, 0:NF)
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
@@ -60,7 +63,7 @@ def calculate_responsiveness(input_FPA, targetFPA):
     return store_resp
 
 # b. load subject data
-for subject in range(1,37):
+for subject in range(1,2):#37):
 
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
     if feedbackCond_file.cond[subject-1] == 1:
@@ -73,9 +76,13 @@ for subject in range(1,37):
         print('!!!--------ERROR: check feedback condition file?---------!!!')
 
     if subject < 10:
-        # TODO: load proprio:
+        # load proprio:
+        proprio_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_proprioception.csv'))
+        proprio = pd.read_csv(proprio_csv_file)
 
-        # TODO: load vbtest: 
+        # load vbtest: 
+        vbtest_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_proprioception.csv'))
+        vbtest = pd.read_csv(proprio_csv_file)
 
         # load FPAs:
         baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baseline_meanFPA.csv'))
@@ -101,6 +108,14 @@ for subject in range(1,37):
 
         fullFPA = pd.concat([baselineFPA, toein1FPA, toein2FPA, toein3FPA, toein4FPA, retFPA])
     else:
+        # load proprio:
+        proprio_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_proprioception.csv'))
+        proprio = pd.read_csv(proprio_csv_file)
+
+        # load vbtest: 
+        vbtest_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_proprioception.csv'))
+        vbtest = pd.read_csv(proprio_csv_file)
+
         baseline_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_baseline_meanFPA.csv'))
         baselineFPA = pd.read_csv(baseline_csv_file)
 
@@ -274,7 +289,6 @@ for subject in range(1,37):
         MAER = np.mean(np.abs(bFPA_deg - 10 - retFPA.iloc[:,2]))
 
     MAE_all = [MAENF, MAET1, MAET2, MAET3, MAET4, MAER]
-    print(str(MAE_all))
     store_MAE[subject-1] = MAE_all
 
     # d. get RMSE for FPA:
@@ -310,7 +324,7 @@ for subject in range(1,37):
     RMSE_all = [RMSENF, RMSET1, RMSET2, RMSET3, RMSET4, RMSER]
     store_RMSE[subject-1] = RMSE_all
 
-    # d. get responsiveness
+    # e. get responsiveness
     store_resp_NF = calculate_responsiveness(nfFPA, targetFPA)
     store_resp_RT1 = calculate_responsiveness(toein1FPA, targetFPA)
     store_resp_RT2 = calculate_responsiveness(toein2FPA, targetFPA)
@@ -320,6 +334,13 @@ for subject in range(1,37):
 
     resp_all = [store_resp_NF, store_resp_RT1, store_resp_RT2, store_resp_RT3, store_resp_RT4, store_resp_RET]
     store_resp[subject-1] = resp_all
+
+    # f. get proprio accuracy
+    store_proprio_RMSE[subject-1] = np.sqrt(np.mean( (proprio.iloc[:,3] - proprio.iloc[:,4]) **2))
+    out_inds = [1, 4, 5, 6, 8, 10, 12, 14, 16]
+    in_inds = [0, 2, 3, 7, 9, 11, 13, 15, 17]
+    store_proprio_MSE_out[subject-1] = np.mean( proprio.iloc[out_inds,3] - proprio.iloc[out_inds,4])
+    store_proprio_MSE_in[subject-1] = np.mean( proprio.iloc[in_inds,3] - proprio.iloc[in_inds,4])
 
 
 # plot group means for cumulative results: percent steps in range
