@@ -30,6 +30,8 @@ store_proprio_RMSE = np.zeros((subs_tot,1))
 store_proprio_MSE_in = np.zeros((subs_tot,1))
 store_proprio_MSE_out = np.zeros((subs_tot,1))
 store_vbtest_acc = np.zeros((subs_tot,1))
+store_ROM_in = np.zeros((subs_tot,1))
+store_ROM_out = np.zeros((subs_tot,1))
 
 # load feedback condition ID (1:SF, 2:TF, 0:NF)
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
@@ -89,6 +91,10 @@ for subject in range(1,2):#37):
         vbtest_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_day1_vbtest.csv'))
         vbtest = np.genfromtxt(vbtest_csv_file, delimiter=',')
 
+        # load ROM:
+        ROM_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_ROM_meanFPA.csv'))
+        ROM = pd.read_csv(ROM_csv_file)
+
         # load FPAs:
         baseline_csv_file = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\s0' + str(subject) + '_baseline_meanFPA.csv'))
         baselineFPA = pd.read_csv(baseline_csv_file)
@@ -120,6 +126,10 @@ for subject in range(1,2):#37):
         # load vbtest: 
         vbtest_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_day1_vbtest.csv'))
         vbtest = np.genfromtxt(vbtest_csv_file, delimiter=',')
+
+        # load ROM:
+        ROM_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_ROM_meanFPA.csv'))
+        ROM = pd.read_csv(ROM_csv_file)
 
         baseline_csv_file = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\s' + str(subject) + '_baseline_meanFPA.csv'))
         baselineFPA = pd.read_csv(baseline_csv_file)
@@ -350,6 +360,9 @@ for subject in range(1,2):#37):
     # g. get vbtest accuracy
     store_vbtest_acc[subject-1] = np.sum(vbtest)/len(vbtest)
 
+    # h. get ROM:
+    store_ROM_out[subject-1] = np.mean(ROM.iloc[0:6,2])
+    store_ROM_in[subject-1] = np.mean(ROM.iloc[6:,2])
 
 
 # # plot group means for cumulative results: percent steps in range
