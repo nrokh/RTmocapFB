@@ -235,11 +235,11 @@ for subject in range(1,2):#37):
 
     # b.ii: store all tFPA:
     if subject==11:
-        allFPA_RT4 = bFPA_deg - 10 - toein3FPA.iloc[:,2]
+        allFPA_RT4 = bFPA_deg - toein3FPA.iloc[:,2]
     else:
-        allFPA_RT4 = bFPA_deg - 10 - toein4FPA.iloc[:,2]
-    allFPA_NF = bFPA_deg - 10 - nfFPA.iloc[:,2]
-    allFPA_RET = bFPA_deg - 10 - retFPA.iloc[:,2]
+        allFPA_RT4 = bFPA_deg - toein4FPA.iloc[:,2]
+    allFPA_NF = bFPA_deg - nfFPA.iloc[:,2]
+    allFPA_RET = bFPA_deg - retFPA.iloc[:,2]
 
     store_allFPA_NF[subject-1] =  allFPA_NF
     store_allFPA_RT4[subject-1] = allFPA_RT4

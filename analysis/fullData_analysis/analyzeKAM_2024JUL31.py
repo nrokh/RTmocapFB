@@ -139,6 +139,13 @@ for subject in range(1,37):
 
 
 # 3. compute rKAM at each step
+    # a. remove FPAs <-10 deg
+    # tFPA_NF = tFPA_NF.iloc[1:]
+    # tFPA_NF = tFPA_NF[tFPA_NF >= -10]
+    # tFPA_RT4 = tFPA_RT4.iloc[1:]
+    # tFPA_RT4 = tFPA_RT4[tFPA_RT4 >= -10]
+    # tFPA_RET = tFPA_RET.iloc[1:]
+    # tFPA_RET = tFPA_RET[tFPA_RT4 >= -10]
   
     # b. for all steps in NF, RT4, RET, find rKAM
     rKAM_NF = predKAM(tFPA_NF, inputFeatures.weight[subject-1], inputFeatures.height[subject-1], inputFeatures.speed[subject-1], inputFeatures.alignment[subject-1], inputFeatures.bfpa[subject-1])
