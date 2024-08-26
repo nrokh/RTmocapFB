@@ -15,9 +15,12 @@ def predKAM(tFPA_array, weight, height, speed, alignment, bFPA):
 
     rKAM_array = np.zeros((len(tFPA_array)))
     for i in range(len(tFPA_array)):
-        t = (tFPA_array.iloc[i] - mean_tFPA)/std_tFPA
-        pKAM = offset + b_weight*b + b_height*h + b_speed*s + b_alignment*a + b_bFPA*b + b_tFPA*t
-        rKAM_array[i] = pKAM    
+        if tFPA_array.iloc[i,0] >=13: #outside of bounds of training data
+            rKAM_array[i] = 0
+        else:
+            t = (tFPA_array.iloc[i,0] - mean_tFPA)/std_tFPA
+            pKAM = offset + b_weight*b + b_height*h + b_speed*s + b_alignment*a + b_bFPA*b + b_tFPA*t
+            rKAM_array[i] = pKAM    
     return rKAM_array
 
 # 0. SETUP
@@ -71,8 +74,7 @@ feedbackCond_file = pd.read_csv(feedbackCond_csv_file)
 
 # 2. compute static alignment for each sub
 for subject in range(1,37):
-    if subject == 14:
-        continue
+
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
     if feedbackCond_file.cond[subject-1] == 1:
         print('----------------CONDITION: SCALED FEEDBACK------------')
@@ -139,21 +141,13 @@ for subject in range(1,37):
 
 
 # 3. compute rKAM at each step
-    # a. remove FPAs <-10 deg
-    # tFPA_NF = tFPA_NF.iloc[1:]
-    # tFPA_NF = tFPA_NF[tFPA_NF >= -10]
-    # tFPA_RT4 = tFPA_RT4.iloc[1:]
-    # tFPA_RT4 = tFPA_RT4[tFPA_RT4 >= -10]
-    # tFPA_RET = tFPA_RET.iloc[1:]
-    # tFPA_RET = tFPA_RET[tFPA_RT4 >= -10]
-  
+ 
     # b. for all steps in NF, RT4, RET, find rKAM
     rKAM_NF = predKAM(tFPA_NF, inputFeatures.weight[subject-1], inputFeatures.height[subject-1], inputFeatures.speed[subject-1], inputFeatures.alignment[subject-1], inputFeatures.bfpa[subject-1])
     rKAM_RT4 = predKAM(tFPA_RT4, inputFeatures.weight[subject-1], inputFeatures.height[subject-1], inputFeatures.speed[subject-1], inputFeatures.alignment[subject-1], inputFeatures.bfpa[subject-1])
     rKAM_RET = predKAM(tFPA_RET, inputFeatures.weight[subject-1], inputFeatures.height[subject-1], inputFeatures.speed[subject-1], inputFeatures.alignment[subject-1], inputFeatures.bfpa[subject-1])
 
     # c. store subject rKAMs
-    print(rKAM_NF.shape)
     store_allrKAM_NF[subject-1] = rKAM_NF
     store_allrKAM_RT4[subject-1] = rKAM_RT4
     store_allrKAM_RET[subject-1] = rKAM_RET
@@ -189,13 +183,12 @@ NF_rows = np.where(feedbackCond_file.cond == 0)[0]
 # mean rKAM at RET
 fig, ax = plt.subplots(figsize = (8,6))
 
-sf_data = np.mean(store_allrKAM_RET[SF_rows],1) 
-print('data: ')
-print(str(sf_data))
-tf_data = np.mean(store_allrKAM_RET[TF_rows],1)  
-print(str(tf_data))
-nf_data = np.mean(store_allrKAM_RET[NF_rows],1) 
-print(str(nf_data))
+sf_data = np.mean(store_allrKAM_RT4[SF_rows],1) 
+print(sf_data)
+tf_data = np.mean(store_allrKAM_RT4[TF_rows],1) 
+print(tf_data)
+nf_data = np.mean(store_allrKAM_RT4[NF_rows],1) 
+print(nf_data)
 
 violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
                              positions=[1, 2, 3], 
@@ -204,7 +197,7 @@ violin_parts = ax.violinplot([sf_data, tf_data, nf_data],
                              showmedians=False)
 
 # Customize the plot
-ax.set_title('rKAM across groups, RET')
+ax.set_title('rKAM across groups, RT4')
 ax.set_ylabel('rKAM')
 ax.set_xticks([1, 2, 3])
 ax.set_xticklabels(['SF', 'TF', 'NF'])
@@ -212,3 +205,8 @@ ax.set_xticklabels(['SF', 'TF', 'NF'])
 for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
     ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
 plt.show()
+
+print('_______________')
+print('sf mean: ' + str(np.mean(sf_data)) + ' sd: ' + str(np.std(sf_data)))
+print('tf mean: ' + str(np.mean(tf_data)) + ' sd: ' + str(np.std(tf_data)))
+print('nf mean: ' + str(np.mean(nf_data)) + ' sd: ' + str(np.std(nf_data)))

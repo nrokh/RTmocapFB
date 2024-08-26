@@ -70,7 +70,7 @@ def calculate_responsiveness(input_FPA, targetFPA):
     return store_resp
 
 # b. load subject data
-for subject in range(1,2):#37):
+for subject in range(1,37):
 
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
     if feedbackCond_file.cond[subject-1] == 1:
