@@ -32,6 +32,7 @@ store_proprio_MSE_out = np.zeros((subs_tot,1))
 store_vbtest_acc = np.zeros((subs_tot,1))
 store_ROM_in = np.zeros((subs_tot,1))
 store_ROM_out = np.zeros((subs_tot,1))
+store_bFPA = np.zeros((subs_tot,1))
 
 # load feedback condition ID (1:SF, 2:TF, 0:NF)
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
@@ -69,7 +70,7 @@ def calculate_responsiveness(input_FPA, targetFPA):
     
     return store_resp
 
-# b. load subject data
+# 2. load subject data
 for subject in range(1,37):
 
     print('----------------Starting analysis for subject ' + str(subject) + '--------------------')
@@ -158,6 +159,8 @@ for subject in range(1,37):
     # c. extract baseline FPA
     bFPA_deg = np.mean(baselineFPA.iloc[:,2])
     print('Baseline FPA was: ' + str(bFPA_deg) + '(' + str(np.std(baselineFPA.iloc[:,2])) + ')')
+
+    store_bFPA[subject-1] = bFPA_deg
 
 
     if vis:
@@ -363,6 +366,22 @@ for subject in range(1,37):
     # h. get ROM:
     store_ROM_out[subject-1] = np.mean(ROM.iloc[0:6,2])
     store_ROM_in[subject-1] = np.mean(ROM.iloc[6:,2])
+
+# 3. save all inputs and outputs to /features folder
+# a. responsiveness
+in_resp = pd.DataFrame(store_resp)
+filename = os.path.normpath(os.path.join(directory, 'features\\in_resp.csv'))
+in_resp.to_csv(filename, index=False)
+
+# b. proprioception RMSE
+in_proprio_RMSE = pd.DataFrame(store_proprio_RMSE)
+filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_RMSE.csv'))
+in_proprio_RMSE.to_csv(filename, index=False)
+
+# c. bFPA
+in_bFPA = pd.DataFrame(store_bFPA)
+filename = os.path.normpath(os.path.join(directory, 'features\\in_bFPA.csv'))
+in_bFPA.to_csv(filename, index=False)
 
 
 # # plot group means for cumulative results: percent steps in range
