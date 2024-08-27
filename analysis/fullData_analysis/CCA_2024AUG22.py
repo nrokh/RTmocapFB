@@ -7,7 +7,7 @@ n_features_in = 3  # input
 n_features_out = 2  # output
 
 # load inputs:
-# a. resp
+# a. resp (36x6; probably want RT4 resp)
 # b. proprio
 # c. bFPA
 

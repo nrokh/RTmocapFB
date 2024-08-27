@@ -383,6 +383,10 @@ in_bFPA = pd.DataFrame(store_bFPA)
 filename = os.path.normpath(os.path.join(directory, 'features\\in_bFPA.csv'))
 in_bFPA.to_csv(filename, index=False)
 
+# i. rmse
+out_RMSE = pd.DataFrame(store_RMSE)
+filename = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
+out_RMSE.to_csv(filename, index=False)
 
 # # plot group means for cumulative results: percent steps in range
 # # SF_rows = [0, 1, 6, 8, 11, 14, 18]
