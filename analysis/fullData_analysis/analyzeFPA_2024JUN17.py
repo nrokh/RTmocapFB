@@ -362,6 +362,8 @@ for subject in range(1,37):
 
     # g. get vbtest accuracy
     store_vbtest_acc[subject-1] = np.sum(vbtest)/len(vbtest)
+    if subject==4:
+        store_vbtest_acc[subject-1] = 47.0/60.0 # TODO: figure out how to fix this??, the first entry is a nan instead of a 1 and nothing I do fixes it
 
     # h. get ROM:
     store_ROM_out[subject-1] = np.mean(ROM.iloc[0:6,2])
@@ -383,7 +385,22 @@ in_bFPA = pd.DataFrame(store_bFPA)
 filename = os.path.normpath(os.path.join(directory, 'features\\in_bFPA.csv'))
 in_bFPA.to_csv(filename, index=False)
 
-# i. rmse
+# d. vb test
+in_vbtest = pd.DataFrame(store_vbtest_acc)
+filename = os.path.normpath(os.path.join(directory, 'features\\in_vbtest.csv'))
+in_vbtest.to_csv(filename, index=False)
+
+# e. ROM TI and TO
+in_ROM_in = pd.DataFrame(store_ROM_in)
+filename = os.path.normpath(os.path.join(directory, 'features\\in_ROM_in.csv'))
+in_ROM_in.to_csv(filename, index=False)
+
+in_ROM_out = pd.DataFrame(store_ROM_out)
+filename = os.path.normpath(os.path.join(directory, 'features\\in_ROM_out.csv'))
+in_ROM_out.to_csv(filename, index=False)
+
+
+# out: rmse
 out_RMSE = pd.DataFrame(store_RMSE)
 filename = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
 out_RMSE.to_csv(filename, index=False)
