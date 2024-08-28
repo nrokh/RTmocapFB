@@ -58,8 +58,12 @@ for i in range(1,37):
                 in_cond_SF[i-1] = 1
         elif feedbackCond_file.cond[i-1] == 2: # TF
                 in_cond_TF[i-1] = 1
-print(np.shape(in_cond_SF))
-print(np.shape(in_ROM_out[1:]))
+
+        # 7b. feedback condition (binary with NF as 0)
+in_cond_fb = np.zeros((36,))
+for i in range(1,37):
+        if feedbackCond_file.cond[i-1] == 1 or feedbackCond_file.cond[i-1] == 2:
+                in_cond_fb[i-1] = 1
 
         # 8. proprio in vs out
 in_proprio_in_file = os.path.normpath(os.path.join(directory,'features\\in_proprio_in.csv'))
@@ -75,7 +79,7 @@ out_delta_RT4 = (out_RMSE[1:,4] - out_RMSE[1:,0])/out_RMSE[1:,0]
 out_delta_RET = (out_RMSE[1:,5] - out_RMSE[1:,0])/out_RMSE[1:,0]
 
     # ii. assemble inputs into single numpy array:
-X = np.stack((in_resp[1:,4], in_vbtest[1:], out_RMSE[1:,0], in_proprio[1:], in_bFPA[1:], -in_ROM_in[1:], in_ROM_out[1:], in_cond_SF, in_cond_TF), axis=1) # shape = 36xN
+X = np.stack((in_resp[1:,4], in_proprio_out[1:], in_bFPA[1:], -in_ROM_in[1:]-in_bFPA[1:], in_cond_fb), axis=1) # shape = 36xN
 if norm:
         X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
 

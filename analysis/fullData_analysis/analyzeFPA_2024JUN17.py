@@ -355,8 +355,8 @@ for subject in range(1,37):
 
     # f. get proprio accuracy
     store_proprio_RMSE[subject-1] = np.sqrt(np.mean( (proprio.iloc[:,3] - proprio.iloc[:,4]) **2))
-    out_inds = [1, 4, 5, 6, 8, 10, 12, 14, 16]
-    in_inds = [0, 2, 3, 7, 9, 11, 13, 15, 17]
+    in_inds = [1, 4, 5, 6, 8, 10, 12, 14, 16]
+    out_inds = [0, 2, 3, 7, 9, 11, 13, 15, 17]
     store_proprio_MSE_out[subject-1] = np.mean( proprio.iloc[out_inds,3] - proprio.iloc[out_inds,4])
     store_proprio_MSE_in[subject-1] = np.mean( proprio.iloc[in_inds,3] - proprio.iloc[in_inds,4])
 
