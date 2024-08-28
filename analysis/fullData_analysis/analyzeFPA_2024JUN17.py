@@ -399,6 +399,15 @@ in_ROM_out = pd.DataFrame(store_ROM_out)
 filename = os.path.normpath(os.path.join(directory, 'features\\in_ROM_out.csv'))
 in_ROM_out.to_csv(filename, index=False)
 
+# f. proprio in/out
+in_proprio_in = pd.DataFrame(store_proprio_MSE_in)
+filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_in.csv'))
+in_proprio_in.to_csv(filename, index=False)
+
+in_proprio_out = pd.DataFrame(store_proprio_MSE_out)
+filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_out.csv'))
+in_proprio_out.to_csv(filename, index=False)
+
 
 # out: rmse
 out_RMSE = pd.DataFrame(store_RMSE)

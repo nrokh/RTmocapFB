@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from statsmodels.multivariate.cancorr import CanCorr
 import scipy
 
+np.set_printoptions(suppress=True) # suppress scientific notation
 # a. Get the desired directory to load/save the data
 root = tk.Tk()
 root.withdraw() # we don't want a full GUI, so keep the root window from appearing
@@ -15,7 +16,7 @@ directory = filedialog.askdirectory()
 
 # b. set up
 n_features_in = 7  # input
-n_features_out = 4  # output
+n_features_out = 2  # output
 norm = 1 # normalization?
 
 
@@ -60,10 +61,11 @@ for i in range(1,37):
 print(np.shape(in_cond_SF))
 print(np.shape(in_ROM_out[1:]))
 
-    # ii. assemble inputs into single numpy array:
-X = np.stack((in_resp[1:,4], in_proprio[1:], in_bFPA[1:], -in_ROM_in[1:], in_ROM_out[1:], in_cond_SF, in_cond_TF), axis=1) # shape = 36xN
-if norm:
-        X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
+        # 8. proprio in vs out
+in_proprio_in_file = os.path.normpath(os.path.join(directory,'features\\in_proprio_in.csv'))
+in_proprio_in = np.abs(np.genfromtxt(in_proprio_in_file, delimiter=','))
+in_proprio_out_file = os.path.normpath(os.path.join(directory,'features\\in_proprio_out.csv'))
+in_proprio_out = np.abs(np.genfromtxt(in_proprio_out_file, delimiter=','))
 
     # iii. load outputs as numpy arrays:
 out_RMSE_file = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
@@ -72,8 +74,13 @@ out_RMSE = np.genfromtxt(out_RMSE_file, delimiter=',')
 out_delta_RT4 = (out_RMSE[1:,4] - out_RMSE[1:,0])/out_RMSE[1:,0]
 out_delta_RET = (out_RMSE[1:,5] - out_RMSE[1:,0])/out_RMSE[1:,0]
 
+    # ii. assemble inputs into single numpy array:
+X = np.stack((in_resp[1:,4], in_vbtest[1:], out_RMSE[1:,0], in_proprio[1:], in_bFPA[1:], -in_ROM_in[1:], in_ROM_out[1:], in_cond_SF, in_cond_TF), axis=1) # shape = 36xN
+if norm:
+        X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
+
     # iv. assemble outputs into single numpy array:
-Y = np.stack((out_RMSE[1:, 4], out_RMSE[1:,5], out_delta_RT4, out_delta_RET), axis=1)
+Y = np.stack((out_RMSE[1:,4], out_RMSE[1:,5]), axis=1)
 if norm:
         Yn = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
 
@@ -138,7 +145,7 @@ t_Y = cca.y_loadings_ / se_Y
 p_X = 2 * (1 - scipy.stats.t.cdf(np.abs(t_X), n-2))
 p_Y = 2 * (1 - scipy.stats.t.cdf(np.abs(t_Y), n-2))
 
-np.set_printoptions(suppress=True) # suppress scientific notation
+
 print("\nP-values for X loadings:")
 print(str(p_X))
 
