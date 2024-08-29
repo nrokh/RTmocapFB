@@ -79,7 +79,7 @@ out_delta_RT4 = (out_RMSE[1:,4] - out_RMSE[1:,0])/out_RMSE[1:,0]
 out_delta_RET = (out_RMSE[1:,5] - out_RMSE[1:,0])/out_RMSE[1:,0]
 
     # ii. assemble inputs into single numpy array:
-X = np.stack((in_resp[1:,4], in_proprio_out[1:], in_bFPA[1:], -in_ROM_in[1:]-in_bFPA[1:], in_cond_fb), axis=1) # shape = 36xN
+X = np.stack((in_resp[1:,4], in_proprio_in[1:], in_proprio_out[1:], in_bFPA[1:], -in_ROM_in[1:]-in_bFPA[1:], in_cond_fb), axis=1) # shape = 36xN
 if norm:
         X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
 
@@ -99,8 +99,14 @@ print("Canonical correlations:", cca.score(X, Y))
 # this represents the strength of the relationship between the two sets of variables in the canonical variate space
 
     # ii. plot the first two canonical variates (the first are usually the strongest)
+
+SF_rows = np.where(feedbackCond_file.cond == 1)[0]
+TF_rows = np.where(feedbackCond_file.cond == 2)[0]
+NF_rows = np.where(feedbackCond_file.cond == 0)[0]
 plt.figure(figsize=(10, 6))
-plt.scatter(X_c[:, 0], Y_c[:, 0], alpha=0.7)
+plt.scatter(X_c[SF_rows, 0], Y_c[SF_rows, 0], alpha=0.7)
+plt.scatter(X_c[TF_rows, 0], Y_c[TF_rows, 0], alpha=0.7)
+plt.scatter(X_c[NF_rows, 0], Y_c[NF_rows, 0], alpha=0.7)
 plt.title("First Canonical Variate")
 plt.xlabel("X canonical variate 1")
 plt.ylabel("Y canonical variate 1")
@@ -108,7 +114,9 @@ plt.grid(True)
 plt.show()
 
 plt.figure(figsize=(10, 6))
-plt.scatter(X_c[:, 1], Y_c[:, 1], alpha=0.7)
+plt.scatter(X_c[SF_rows, 1], Y_c[SF_rows, 1], alpha=0.7)
+plt.scatter(X_c[TF_rows, 1], Y_c[TF_rows, 1], alpha=0.7)
+plt.scatter(X_c[NF_rows, 1], Y_c[NF_rows, 1], alpha=0.7)
 plt.xlabel('X_c2')
 plt.ylabel('Y_c2')
 plt.title("Second Canonical Variate")
