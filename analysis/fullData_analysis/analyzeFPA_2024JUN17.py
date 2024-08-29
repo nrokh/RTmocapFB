@@ -345,22 +345,22 @@ for subject in range(1,37):
     store_RMSE[subject-1] = RMSE_all
 
     # d.2. get ratio of steps too far in vs. too far out
-    errorRatio_NF_in = np.sum(nfFPA.iloc[:, 2] <= targetFPA - 2)/len(nfFPA.iloc[:, 2])
-    errorRatio_RT1_in = np.sum(toein1FPA.iloc[:, 2] <= targetFPA - 2)/len(toein1FPA.iloc[:, 2])
-    errorRatio_RT2_in = np.sum(toein2FPA.iloc[:, 2] <= targetFPA - 2)/len(toein2FPA.iloc[:, 2])
-    errorRatio_RT3_in = np.sum(toein3FPA.iloc[:, 2] <= targetFPA - 2)/len(toein3FPA.iloc[:, 2])
-    errorRatio_RT4_in = np.sum(toein4FPA.iloc[:, 2] <= targetFPA - 2)/len(toein4FPA.iloc[:, 2])
-    errorRatio_RET_in = np.sum(retFPA.iloc[:, 2] <= targetFPA - 2)/len(retFPA.iloc[:, 2])
+    errorRatio_NF_in = np.sum(nfFPA.iloc[:, 2] <= targetFPA - 2)/np.sum( (nfFPA.iloc[:, 2] <= targetFPA - 2) | (nfFPA.iloc[:, 2] >= targetFPA + 2))
+    errorRatio_RT1_in = np.sum(toein1FPA.iloc[:, 2] <= targetFPA - 2)/np.sum( (toein1FPA.iloc[:, 2] <= targetFPA - 2) | (toein1FPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RT2_in = np.sum(toein2FPA.iloc[:, 2] <= targetFPA - 2)/np.sum(( toein2FPA.iloc[:, 2] <= targetFPA - 2) | (toein2FPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RT3_in = np.sum(toein3FPA.iloc[:, 2] <= targetFPA - 2)/np.sum(( toein3FPA.iloc[:, 2] <= targetFPA - 2) | (toein3FPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RT4_in = np.sum(toein4FPA.iloc[:, 2] <= targetFPA - 2)/np.sum(( toein4FPA.iloc[:, 2] <= targetFPA - 2) | (toein4FPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RET_in = np.sum(retFPA.iloc[:, 2] <= targetFPA - 2)/np.sum(( retFPA.iloc[:, 2] <= targetFPA - 2) | (retFPA.iloc[:, 2] >= targetFPA + 2) )
 
     errorRatio_in_all = [errorRatio_NF_in, errorRatio_RT1_in, errorRatio_RT2_in, errorRatio_RT3_in, errorRatio_RT4_in, errorRatio_RET_in]
     store_errorRatio_in[subject-1] = errorRatio_in_all
 
-    errorRatio_NF_out = np.sum(nfFPA.iloc[:, 2] >= targetFPA + 2)/len(nfFPA.iloc[:, 2])
-    errorRatio_RT1_out = np.sum(toein1FPA.iloc[:, 2] >= targetFPA + 2)/len(toein1FPA.iloc[:, 2])
-    errorRatio_RT2_out = np.sum(toein2FPA.iloc[:, 2] >= targetFPA + 2)/len(toein2FPA.iloc[:, 2])
-    errorRatio_RT3_out = np.sum(toein3FPA.iloc[:, 2] >= targetFPA + 2)/len(toein3FPA.iloc[:, 2])
-    errorRatio_RT4_out = np.sum(toein4FPA.iloc[:, 2] >= targetFPA + 2)/len(toein4FPA.iloc[:, 2])
-    errorRatio_RET_out = np.sum(retFPA.iloc[:, 2] >= targetFPA + 2)/len(retFPA.iloc[:, 2])
+    errorRatio_NF_out = np.sum(nfFPA.iloc[:, 2] >= targetFPA + 2)/np.sum( (nfFPA.iloc[:, 2] <= targetFPA - 2) | (nfFPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RT1_out = np.sum(toein1FPA.iloc[:, 2] >= targetFPA + 2)/np.sum( (toein1FPA.iloc[:, 2] <= targetFPA - 2) | (toein1FPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RT2_out = np.sum(toein2FPA.iloc[:, 2] >= targetFPA + 2)/np.sum( (toein2FPA.iloc[:, 2] <= targetFPA - 2) | (toein2FPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RT3_out = np.sum(toein3FPA.iloc[:, 2] >= targetFPA + 2)/np.sum( (toein3FPA.iloc[:, 2] <= targetFPA - 2) | (toein3FPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RT4_out = np.sum(toein4FPA.iloc[:, 2] >= targetFPA + 2)/np.sum( (toein4FPA.iloc[:, 2] <= targetFPA - 2) | (toein4FPA.iloc[:, 2] >= targetFPA + 2) )
+    errorRatio_RET_out = np.sum(retFPA.iloc[:, 2] >= targetFPA + 2)/np.sum( (retFPA.iloc[:, 2] <= targetFPA - 2) | (retFPA.iloc[:, 2] >= targetFPA + 2) )
 
     errorRatio_out_all = [errorRatio_NF_out, errorRatio_RT1_out, errorRatio_RT2_out, errorRatio_RT3_out, errorRatio_RT4_out, errorRatio_RET_out]
     store_errorRatio_out[subject-1] = errorRatio_out_all
