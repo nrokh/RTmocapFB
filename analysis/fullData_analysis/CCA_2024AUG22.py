@@ -72,11 +72,20 @@ in_proprio_out_file = os.path.normpath(os.path.join(directory,'features\\in_prop
 in_proprio_out = np.abs(np.genfromtxt(in_proprio_out_file, delimiter=','))
 
     # iii. load outputs as numpy arrays:
+    # 1. RMSE
 out_RMSE_file = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
 out_RMSE = np.genfromtxt(out_RMSE_file, delimiter=',')
 
+        # 2. delta RMSE
 out_delta_RT4 = (out_RMSE[1:,4] - out_RMSE[1:,0])/out_RMSE[1:,0]
 out_delta_RET = (out_RMSE[1:,5] - out_RMSE[1:,0])/out_RMSE[1:,0]
+
+        # 3. error ratios
+in_errRatio_in_file = os.path.normpath(os.path.join(directory,'features\\in_errRatio_in.csv'))
+in_errRatio_in = np.abs(np.genfromtxt(in_errRatio_in_file, delimiter=','))
+in_errRatio_out_file = os.path.normpath(os.path.join(directory,'features\\in_errRatio_out.csv'))
+in_errRatio_out = np.abs(np.genfromtxt(in_errRatio_out_file, delimiter=','))
+
 
     # ii. assemble inputs into single numpy array:
 X = np.stack((in_resp[1:,4], in_proprio_in[1:], in_proprio_out[1:], in_bFPA[1:], -in_ROM_in[1:]-in_bFPA[1:], in_cond_fb), axis=1) # shape = 36xN

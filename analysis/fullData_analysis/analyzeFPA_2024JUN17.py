@@ -33,6 +33,8 @@ store_vbtest_acc = np.zeros((subs_tot,1))
 store_ROM_in = np.zeros((subs_tot,1))
 store_ROM_out = np.zeros((subs_tot,1))
 store_bFPA = np.zeros((subs_tot,1))
+store_errorRatio_in = np.zeros((subs_tot, 6))
+store_errorRatio_out = np.zeros((subs_tot, 6))
 
 # load feedback condition ID (1:SF, 2:TF, 0:NF)
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
@@ -342,6 +344,28 @@ for subject in range(1,37):
     RMSE_all = [RMSENF, RMSET1, RMSET2, RMSET3, RMSET4, RMSER]
     store_RMSE[subject-1] = RMSE_all
 
+    # d.2. get ratio of steps too far in vs. too far out
+    errorRatio_NF_in = np.sum(nfFPA.iloc[:, 2] <= targetFPA - 2)/len(nfFPA.iloc[:, 2])
+    errorRatio_RT1_in = np.sum(toein1FPA.iloc[:, 2] <= targetFPA - 2)/len(toein1FPA.iloc[:, 2])
+    errorRatio_RT2_in = np.sum(toein2FPA.iloc[:, 2] <= targetFPA - 2)/len(toein2FPA.iloc[:, 2])
+    errorRatio_RT3_in = np.sum(toein3FPA.iloc[:, 2] <= targetFPA - 2)/len(toein3FPA.iloc[:, 2])
+    errorRatio_RT4_in = np.sum(toein4FPA.iloc[:, 2] <= targetFPA - 2)/len(toein4FPA.iloc[:, 2])
+    errorRatio_RET_in = np.sum(retFPA.iloc[:, 2] <= targetFPA - 2)/len(retFPA.iloc[:, 2])
+
+    errorRatio_in_all = [errorRatio_NF_in, errorRatio_RT1_in, errorRatio_RT2_in, errorRatio_RT3_in, errorRatio_RT4_in, errorRatio_RET_in]
+    store_errorRatio_in[subject-1] = errorRatio_in_all
+
+    errorRatio_NF_out = np.sum(nfFPA.iloc[:, 2] >= targetFPA + 2)/len(nfFPA.iloc[:, 2])
+    errorRatio_RT1_out = np.sum(toein1FPA.iloc[:, 2] >= targetFPA + 2)/len(toein1FPA.iloc[:, 2])
+    errorRatio_RT2_out = np.sum(toein2FPA.iloc[:, 2] >= targetFPA + 2)/len(toein2FPA.iloc[:, 2])
+    errorRatio_RT3_out = np.sum(toein3FPA.iloc[:, 2] >= targetFPA + 2)/len(toein3FPA.iloc[:, 2])
+    errorRatio_RT4_out = np.sum(toein4FPA.iloc[:, 2] >= targetFPA + 2)/len(toein4FPA.iloc[:, 2])
+    errorRatio_RET_out = np.sum(retFPA.iloc[:, 2] >= targetFPA + 2)/len(retFPA.iloc[:, 2])
+
+    errorRatio_out_all = [errorRatio_NF_out, errorRatio_RT1_out, errorRatio_RT2_out, errorRatio_RT3_out, errorRatio_RT4_out, errorRatio_RET_out]
+    store_errorRatio_out[subject-1] = errorRatio_out_all
+
+
     # e. get responsiveness
     store_resp_NF = calculate_responsiveness(nfFPA, targetFPA)
     store_resp_RT1 = calculate_responsiveness(toein1FPA, targetFPA)
@@ -413,6 +437,15 @@ in_proprio_out.to_csv(filename, index=False)
 out_RMSE = pd.DataFrame(store_RMSE)
 filename = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
 out_RMSE.to_csv(filename, index=False)
+
+# out: error ratios
+out_errRatio_in = pd.DataFrame(store_errorRatio_in)
+filename = os.path.normpath(os.path.join(directory, 'features\\out_errRatio_in.csv'))
+out_errRatio_in.to_csv(filename, index=False)
+
+out_errRatio_out = pd.DataFrame(store_errorRatio_out)
+filename = os.path.normpath(os.path.join(directory, 'features\\out_errRatio_out.csv'))
+out_errRatio_out.to_csv(filename, index=False)
 
 # # plot group means for cumulative results: percent steps in range
 # # SF_rows = [0, 1, 6, 8, 11, 14, 18]
