@@ -16,7 +16,7 @@ directory = filedialog.askdirectory()
 
 # b. set up
 n_features_in = 7  # input
-n_features_out = 4  # output
+n_features_out = 3  # output
 norm = 1 # normalization?
 
 
@@ -88,12 +88,12 @@ out_errRatio_out = np.abs(np.genfromtxt(out_errRatio_out_file, delimiter=','))
 
 
     # ii. assemble inputs into single numpy array:
-X = np.stack((in_resp[1:,4], in_proprio_in[1:], in_proprio_out[1:], in_bFPA[1:], -in_ROM_in[1:]-in_bFPA[1:], in_ROM_out[1:]-in_bFPA[1:], in_cond_fb), axis=1) # shape = 36xN
+X = np.stack((in_resp[1:,4], in_proprio_in[1:], in_proprio_out[1:], in_bFPA[1:], -in_ROM_in[1:]-in_bFPA[1:],  in_cond_fb), axis=1) # shape = 36xN
 if norm:
         X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
 
     # iv. assemble outputs into single numpy array:
-Y = np.stack((out_RMSE[1:,4], out_RMSE[1:,5], out_errRatio_in[1:,5], out_errRatio_out[1:,5]), axis=1)
+Y = np.stack((out_RMSE[1:,4], out_RMSE[1:,5], out_errRatio_in[1:,5]), axis=1)
 if norm:
         Yn = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
 
