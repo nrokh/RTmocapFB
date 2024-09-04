@@ -112,11 +112,10 @@ if norm:
     # iv. assemble outputs into single numpy array:
 Y = np.stack((out_RMSE[1:,4], out_RMSE[1:,5], out_errRatio_in[1:,5]), axis=1)
 if norm:
-        Yn = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
+        Y = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
 
 # lasso regression for feature selection
-alpha = 0.1  
-lasso = Lasso(alpha=alpha)
+lasso = Lasso(alpha=0.1)
 lasso.fit(X, Y)
 
 selected_features = np.abs(lasso.coef_) > 0
@@ -138,25 +137,25 @@ SF_rows = np.where(feedbackCond_file.cond == 1)[0]
 TF_rows = np.where(feedbackCond_file.cond == 2)[0]
 NF_rows = np.where(feedbackCond_file.cond == 0)[0]
 plt.figure(figsize=(10, 6))
-plt.scatter(X_c[SF_rows, 0], Y_c[SF_rows, 0], alpha=0.7)
-plt.scatter(X_c[TF_rows, 0], Y_c[TF_rows, 0], alpha=0.7)
-plt.scatter(X_c[NF_rows, 0], Y_c[NF_rows, 0], alpha=0.7)
+plt.scatter(X_c[SF_rows, 0], Y_c[SF_rows, 0], alpha=0.7, color = '#05668D', label = 'SF')
+plt.scatter(X_c[TF_rows, 0], Y_c[TF_rows, 0], alpha=0.7, color = '#679436', label = 'TF')
+plt.scatter(X_c[NF_rows, 0], Y_c[NF_rows, 0], alpha=0.7, color = '#805E73', label = 'NF')
 plt.title("First Canonical Variate")
 plt.xlabel("X canonical variate 1")
 plt.ylabel("Y canonical variate 1")
-plt.grid(True)
+plt.legend()
 plt.show()
 
 plt.figure(figsize=(10, 6))
-plt.scatter(X_c[SF_rows, 1], Y_c[SF_rows, 1], alpha=0.7)
-plt.scatter(X_c[TF_rows, 1], Y_c[TF_rows, 1], alpha=0.7)
-plt.scatter(X_c[NF_rows, 1], Y_c[NF_rows, 1], alpha=0.7)
+plt.scatter(X_c[SF_rows, 1], Y_c[SF_rows, 1], alpha=0.7, color = '#05668D', label = 'SF')
+plt.scatter(X_c[TF_rows, 1], Y_c[TF_rows, 1], alpha=0.7, color = '#679436', label = 'TF')
+plt.scatter(X_c[NF_rows, 1], Y_c[NF_rows, 1], alpha=0.7, color = '#805E73', label = 'NF')
 plt.xlabel('X_c2')
 plt.ylabel('Y_c2')
 plt.title("Second Canonical Variate")
 plt.xlabel("X canonical variate 2")
 plt.ylabel("Y canonical variate 2")
-plt.grid(True)
+plt.legend()
 plt.show()
 
     # iii. print feature loadings
