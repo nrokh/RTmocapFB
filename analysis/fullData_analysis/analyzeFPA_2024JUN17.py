@@ -25,6 +25,7 @@ store_allFPA_NF = np.zeros((subs_tot, 80))
 store_allFPA_RT4 = np.zeros((subs_tot, 200))
 store_allFPA_RET = np.zeros((subs_tot, 200))
 store_RMSE = np.zeros((subs_tot, 6))
+store_C_RMSE = np.zeros((subs_tot, 4))
 store_resp = np.zeros((subs_tot, 6))
 store_proprio_RMSE = np.zeros((subs_tot,1))
 store_proprio_MSE_in = np.zeros((subs_tot,1))
@@ -47,7 +48,7 @@ vbtestPairings_file = pd.read_csv(vbtestPairings_csv_file)
 vis = 0
 rmCatchSteps = 1
 rmInRange = 0
-zeroInRange = 1
+zeroInRange = 0
 
 # supporting functions
 def calculate_responsiveness(input_FPA, targetFPA):
@@ -341,8 +342,16 @@ for subject in range(1,37):
         RMSET4 = np.sqrt(np.mean( (bFPA_deg-10-toein4FPA.iloc[:,2])**2 ))
         RMSER = np.sqrt(np.mean( (bFPA_deg-10-retFPA.iloc[:,2])**2 ))
 
+    RMSEC1 = np.sqrt(np.mean( (bFPA_deg-10-toein1FPA.iloc[80:121,2])**2 ))
+    RMSEC2 = np.sqrt(np.mean( (bFPA_deg-10-toein2FPA.iloc[80:121,2])**2 ))
+    RMSEC3 = np.sqrt(np.mean( (bFPA_deg-10-toein3FPA.iloc[80:121,2])**2 ))
+    RMSEC4 = np.sqrt(np.mean( (bFPA_deg-10-toein4FPA.iloc[80:121,2])**2 ))
+
     RMSE_all = [RMSENF, RMSET1, RMSET2, RMSET3, RMSET4, RMSER]
     store_RMSE[subject-1] = RMSE_all
+
+    C_RMSE_all = [RMSEC1, RMSEC2, RMSEC3, RMSEC4]
+    store_C_RMSE[subject-1] = RMSEC4
 
     # d.2. get ratio of steps too far in vs. too far out
     errorRatio_NF_in = np.sum(nfFPA.iloc[:, 2] <= targetFPA - 2)/np.sum( (nfFPA.iloc[:, 2] <= targetFPA - 2) | (nfFPA.iloc[:, 2] >= targetFPA + 2))
@@ -437,6 +446,11 @@ in_proprio_out.to_csv(filename, index=False)
 out_RMSE = pd.DataFrame(store_RMSE)
 filename = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
 out_RMSE.to_csv(filename, index=False)
+
+# out: catch trial rmse
+out_cRMSE = pd.DataFrame(store_C_RMSE)
+filename = os.path.normpath(os.path.join(directory, 'features\\out_cRMSE.csv'))
+out_cRMSE.to_csv(filename, index=False)
 
 # out: error ratios
 out_errRatio_in = pd.DataFrame(store_errorRatio_in)
