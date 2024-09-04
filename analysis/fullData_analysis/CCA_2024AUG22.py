@@ -105,7 +105,7 @@ out_cRMSE = np.genfromtxt(out_cRMSE_file, delimiter=',')
 
 
     # ii. assemble inputs into single numpy array:
-X = np.stack((in_resp[1:,4], in_proprio_in[1:], in_bFPA[1:], np.abs(in_ROM_in[1:]),  in_cond_fb), axis=1) # shape = 36xN
+X = np.stack((in_proprio_in[1:], in_bFPA[1:], np.abs(in_ROM_in[1:])-in_bFPA[1:],  in_cond_fb, in_resp[1:,4]), axis=1) # shape = 36xN
 if norm:
         X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
 
