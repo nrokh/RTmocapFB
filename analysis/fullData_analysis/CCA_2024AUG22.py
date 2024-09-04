@@ -4,6 +4,7 @@ import os
 import tkinter as tk
 from tkinter import filedialog
 from sklearn.cross_decomposition import CCA
+from sklearn.linear_model import Lasso
 import matplotlib.pyplot as plt
 from statsmodels.multivariate.cancorr import CanCorr
 import scipy
@@ -98,6 +99,10 @@ out_errRatio_in = np.abs(np.genfromtxt(out_errRatio_in_file, delimiter=','))
 out_errRatio_out_file = os.path.normpath(os.path.join(directory,'features\\out_errRatio_out.csv'))
 out_errRatio_out = np.abs(np.genfromtxt(out_errRatio_out_file, delimiter=','))
 
+        # 4. catch trial RMSE
+out_cRMSE_file = os.path.normpath(os.path.join(directory, 'features\\out_cRMSE.csv'))
+out_cRMSE = np.genfromtxt(out_cRMSE_file, delimiter=',')
+
 
     # ii. assemble inputs into single numpy array:
 X = np.stack((in_resp[1:,4], in_proprio_in[1:], in_proprio_out[1:], in_bFPA[1:], np.abs(in_ROM_in[1:]),  in_cond_fb), axis=1) # shape = 36xN
@@ -108,6 +113,14 @@ if norm:
 Y = np.stack((out_RMSE[1:,4], out_RMSE[1:,5], out_errRatio_in[1:,5]), axis=1)
 if norm:
         Yn = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
+
+# lasso regression for feature selection
+alpha = 0.1  
+lasso = Lasso(alpha=alpha)
+lasso.fit(X, Y)
+
+selected_features = np.abs(lasso.coef_) > 0
+print("Selected features:", selected_features)
 
     # v. run cca:
 n_components = min(n_features_in, n_features_out)
@@ -184,3 +197,4 @@ print(str(p_X))
 
 print("\nP-values for Y loadings:")
 print(str(p_Y))
+
