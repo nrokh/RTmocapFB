@@ -71,6 +71,18 @@ in_proprio_in = np.abs(np.genfromtxt(in_proprio_in_file, delimiter=','))
 in_proprio_out_file = os.path.normpath(os.path.join(directory,'features\\in_proprio_out.csv'))
 in_proprio_out = np.abs(np.genfromtxt(in_proprio_out_file, delimiter=','))
 
+        # 9. height
+in_height_file = os.path.normpath(os.path.join(directory,'features\\in_height.csv'))
+in_height = np.abs(np.genfromtxt(in_height_file, delimiter=','))
+
+        # 10. weight
+in_weight_file = os.path.normpath(os.path.join(directory,'features\\in_weight.csv'))
+in_weight = np.abs(np.genfromtxt(in_weight_file, delimiter=','))
+
+        # 11. sex
+in_isFemale_file = os.path.normpath(os.path.join(directory,'features\\in_isFemale.csv'))
+in_isFemale = np.abs(np.genfromtxt(in_isFemale_file, delimiter=','))
+
     # iii. load outputs as numpy arrays:
     # 1. RMSE
 out_RMSE_file = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
