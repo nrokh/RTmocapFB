@@ -1,5 +1,7 @@
 # Load data
-data <- read.csv("analysis/fullData_analysis/survey_analysis/parsed_survey_data.csv")
+data <- read.csv(
+  "analysis/fullData_analysis/survey_analysis/parsed_survey_data.csv"
+)
 data <- data[order(data$test_group),]
 
 # # RTLX
@@ -22,8 +24,8 @@ data <- data[order(data$test_group),]
 # print(blt_test)
 
 # # Perform one-way ANOVA - RTLX... p = 0.111
-# anova_result_RTLX <- aov(value ~ group, data = data)
-# print(summary(anova_result_RTLX))
+# anova_result_rtlx <- aov(value ~ group, data = data)
+# print(summary(anova_result_rtlx))
 
 # #########################################################################################################
 
