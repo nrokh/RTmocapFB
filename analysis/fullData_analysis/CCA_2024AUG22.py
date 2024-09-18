@@ -186,81 +186,90 @@ for train_index, test_index in kf.split(X):
         Y_c_folds.append(Y_c_test)
 
 
-#     # v. run cca:
-# # n_components = min(n_features_in, n_features_out)
-# # cca = CCA(n_components=n_components)
-# # X_c, Y_c = cca.fit_transform(X, Y)
+##### NON-k-FOLD RESULTS:
+    # v. run cca:
+n_components = min(n_features_in, n_features_out)
+cca = CCA(n_components=n_components)
+X_c, Y_c = cca.fit_transform(X, Y)
 
-# # d. interpretation
-#     # i. print canonical correlations
-# print("Canonical correlations:", cca.score(X, Y))
-# # this represents the strength of the relationship between the two sets of variables in the canonical variate space
+# d. interpretation
+    # i. print canonical correlations
+print("Canonical correlations:", cca.score(X, Y))
+# this represents the strength of the relationship between the two sets of variables in the canonical variate space
 
-#     # iii. print feature loadings
-# print("\nX loadings:")
-# print(cca.x_loadings_)
-# print("\nY loadings:")
-# print(cca.y_loadings_)
-# # each column = the x loadings for each variate;
-# # first column (first variate) shows the strength of contributions of each input feature to that variate
+    # iii. print feature loadings
+print("\nX loadings:")
+print(cca.x_loadings_)
+print("\nY loadings:")
+print(cca.y_loadings_)
+# each column = the x loadings for each variate;
+# first column (first variate) shows the strength of contributions of each input feature to that variate
 
-# # run stats?
-# cca_model = CanCorr(X,Y)
+# run stats?
+cca_model = CanCorr(X,Y)
 
-# # Perform the hypothesis test
-# results = cca_model.corr_test()
+# Perform the hypothesis test
+results = cca_model.corr_test()
 
-# print("\nSummary:")
-# print(results.summary())
+print("\nSummary:")
+print(results.summary())
 
-# # manually calculate p-values for the loadings between the original variables and the canonical variates:
-# n = X.shape[0]  # sample size
+# manually calculate p-values for the loadings between the original variables and the canonical variates:
+n = X.shape[0]  # sample size
 
-# # get standard errors
-# se_X = np.sqrt((1 - cca.x_loadings_**2) / (n - 2))
-# se_Y = np.sqrt((1 - cca.y_loadings_**2) / (n - 2))
+# get standard errors
+se_X = np.sqrt((1 - cca.x_loadings_**2) / (n - 2))
+se_Y = np.sqrt((1 - cca.y_loadings_**2) / (n - 2))
 
-# # get t-values
-# t_X = cca.x_loadings_ / se_X
-# t_Y = cca.y_loadings_ / se_Y
+# get t-values
+t_X = cca.x_loadings_ / se_X
+t_Y = cca.y_loadings_ / se_Y
 
-# # get p-values (two-tailed test)
-# p_X = 2 * (1 - scipy.stats.t.cdf(np.abs(t_X), n-2))
-# p_Y = 2 * (1 - scipy.stats.t.cdf(np.abs(t_Y), n-2))
-
-
-# print("\nP-values for X loadings:")
-# print(str(p_X))
-
-# print("\nP-values for Y loadings:")
-# print(str(p_Y))
+# get p-values (two-tailed test)
+p_X = 2 * (1 - scipy.stats.t.cdf(np.abs(t_X), n-2))
+p_Y = 2 * (1 - scipy.stats.t.cdf(np.abs(t_Y), n-2))
 
 
+print("\nP-values for X loadings:")
+print(str(p_X))
 
-#     # ii. plot the first two canonical variates (the first are usually the strongest)
+print("\nP-values for Y loadings:")
+print(str(p_Y))
 
-# SF_rows = np.where(feedbackCond_file.cond == 1)[0]
-# TF_rows = np.where(feedbackCond_file.cond == 2)[0]
-# NF_rows = np.where(feedbackCond_file.cond == 0)[0]
-# plt.figure(figsize=(10, 6))
-# plt.scatter(X_c[SF_rows, 0], Y_c[SF_rows, 0], alpha=0.7, color = '#05668D', label = 'SF')
-# plt.scatter(X_c[TF_rows, 0], Y_c[TF_rows, 0], alpha=0.7, color = '#679436', label = 'TF')
-# plt.scatter(X_c[NF_rows, 0], Y_c[NF_rows, 0], alpha=0.7, color = '#805E73', label = 'NF')
-# plt.title("First Canonical Variate")
-# plt.xlabel("X canonical variate 1")
-# plt.ylabel("Y canonical variate 1")
-# plt.legend()
-# plt.show()
 
-# plt.figure(figsize=(10, 6))
-# plt.scatter(X_c[SF_rows, 1], Y_c[SF_rows, 1], alpha=0.7, color = '#05668D', label = 'SF')
-# plt.scatter(X_c[TF_rows, 1], Y_c[TF_rows, 1], alpha=0.7, color = '#679436', label = 'TF')
-# plt.scatter(X_c[NF_rows, 1], Y_c[NF_rows, 1], alpha=0.7, color = '#805E73', label = 'NF')
-# plt.xlabel('X_c2')
-# plt.ylabel('Y_c2')
-# plt.title("Second Canonical Variate")
-# plt.xlabel("X canonical variate 2")
-# plt.ylabel("Y canonical variate 2")
-# plt.legend()
-# plt.show()
+
+    # ii. plot the first two canonical variates (the first are usually the strongest)
+
+SF_rows = np.where(feedbackCond_file.cond == 1)[0]
+TF_rows = np.where(feedbackCond_file.cond == 2)[0]
+NF_rows = np.where(feedbackCond_file.cond == 0)[0]
+plt.figure(figsize=(6, 6))
+plt.scatter(X_c[SF_rows, 0], Y_c[SF_rows, 0], alpha=0.7, color = '#0f4c5c', label = 'SF', s = 60)
+plt.scatter(X_c[TF_rows, 0], Y_c[TF_rows, 0], alpha=0.7, color = '#5f0f40', label = 'TF', s = 60)
+plt.scatter(X_c[NF_rows, 0], Y_c[NF_rows, 0], alpha=0.7, color = '#e36414', label = 'NF', s = 60)
+plt.title("First Canonical Variate")
+plt.xlabel("X canonical variate 1")
+plt.ylabel("Y canonical variate 1")
+plt.ylim([-2.2, 2])
+plt.xlim([-2.5, 1.7])
+plt.legend()
+
+plt.savefig("analysis/fullData_analysis/pp_Results/CCA1.svg", format="svg")
+plt.show()
+
+plt.figure(figsize=(6, 6))
+plt.scatter(X_c[SF_rows, 1], Y_c[SF_rows, 1], alpha=0.7, color = '#0f4c5c', label = 'SF', s = 60)
+plt.scatter(X_c[TF_rows, 1], Y_c[TF_rows, 1], alpha=0.7, color = '#5f0f40', label = 'TF', s = 60)
+plt.scatter(X_c[NF_rows, 1], Y_c[NF_rows, 1], alpha=0.7, color = '#e36414', label = 'NF', s = 60)
+plt.xlabel('X_c2')
+plt.ylabel('Y_c2')
+plt.title("Second Canonical Variate")
+plt.xlabel("X canonical variate 2")
+plt.ylabel("Y canonical variate 2")
+plt.ylim([-2.2, 2])
+plt.xlim([-2.5, 1.7])
+plt.legend()
+
+plt.savefig("analysis/fullData_analysis/pp_Results/CCA2.svg", format="svg")
+plt.show()
 

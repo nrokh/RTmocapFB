@@ -158,30 +158,8 @@ TF_rows = np.where(feedbackCond_file.cond == 2)[0]
 NF_rows = np.where(feedbackCond_file.cond == 0)[0]
 
 # ___________ FIG 1 _________________________________
-# make a violin plot: RET
-# fig, ax = plt.subplots(figsize = (8,6))
-# sf_data = store_allrKAM_RT4[SF_rows].flatten()
-# tf_data = store_allrKAM_RT4[TF_rows].flatten()
-# nf_data = store_allrKAM_RT4[NF_rows].flatten() # TODO: also try averaging?
-# violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
-#                              positions=[1, 2, 3], 
-#                              showmeans=True, 
-#                              showextrema=True, 
-#                              showmedians=False)
-
-# # Customize the plot
-# ax.set_title('rKAM across groups, RET')
-# ax.set_ylabel('rKAM')
-# ax.set_xticks([1, 2, 3])
-# ax.set_xticklabels(['SF', 'TF', 'NF'])
-
-# for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
-#     ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
-# plt.show()
-
-# __________ FIG 2 _____________________________
-# mean rKAM at RET
-fig, ax = plt.subplots(figsize = (8,6))
+#make a violin plot: RT4
+fig, ax = plt.subplots(figsize = (6,6))
 
 sf_data = np.mean(store_allrKAM_RT4[SF_rows],1) 
 print(sf_data)
@@ -204,6 +182,40 @@ ax.set_xticklabels(['SF', 'TF', 'NF'])
 
 for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
     ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
+
+plt.savefig("analysis/fullData_analysis/pp_Results/PredKAMR_rt4.svg", format="svg")
+plt.show()
+
+# for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
+#     ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
+# plt.show()
+
+# __________ FIG 2 _____________________________
+# mean rKAM at RET
+fig, ax = plt.subplots(figsize = (6,6))
+
+sf_data = np.mean(store_allrKAM_RET[SF_rows],1) 
+print(sf_data)
+tf_data = np.mean(store_allrKAM_RET[TF_rows],1) 
+print(tf_data)
+nf_data = np.mean(store_allrKAM_RET[NF_rows],1) 
+print(nf_data)
+
+violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
+                             positions=[1, 2, 3], 
+                             showmeans=True, 
+                             showextrema=True, 
+                             showmedians=False)
+
+# Customize the plot
+ax.set_title('rKAM across groups, RET')
+ax.set_ylabel('rKAM')
+ax.set_xticks([1, 2, 3])
+ax.set_xticklabels(['SF', 'TF', 'NF'])
+
+for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
+    ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
+plt.savefig("analysis/fullData_analysis/pp_Results/PredKAMR_ret.svg", format="svg")
 plt.show()
 
 print('_______________')
