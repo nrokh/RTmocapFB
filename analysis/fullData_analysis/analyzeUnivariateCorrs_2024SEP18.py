@@ -67,6 +67,7 @@ for i in range(1,37):
         # 8. proprio in vs out
 in_proprio_in_file = os.path.normpath(os.path.join(directory,'features\\in_proprio_in.csv'))
 in_proprio_in = np.abs(np.genfromtxt(in_proprio_in_file, delimiter=','))
+in_proprio_in = in_proprio_in[1:]
 in_proprio_out_file = os.path.normpath(os.path.join(directory,'features\\in_proprio_out.csv'))
 in_proprio_out = np.abs(np.genfromtxt(in_proprio_out_file, delimiter=','))
 
@@ -167,7 +168,7 @@ slope, intercept, r, p = calc_regression(in_resp[:,3], out_RMSE[:,4])
 line = slope * in_resp[:,3] + intercept
 
 plt.xlabel('responsiveness')
-#plt.ylim([0, 12])
+plt.ylim([0, 10])
 plt.ylabel('RMSE RT4')
 plt.plot(in_resp[:,3], line, color='black', label=f'Overall (R={r:.2f}, p={p:.3f})')
 
@@ -187,7 +188,7 @@ slope, intercept, r, p = calc_regression(in_resp[:,4], out_RMSE[:,5])
 line = slope * in_resp[:,4] + intercept
 
 plt.xlabel('responsiveness')
-#plt.ylim([0, 12])
+plt.ylim([0, 10])
 plt.ylabel('RMSE RET')
 plt.plot(in_resp[:,4], line, color='black', label=f'Overall (R={r:.2f}, p={p:.3f})')
 
@@ -206,40 +207,40 @@ plt.figure(figsize=(10, 6))
 plt.subplot(1,2,1)
 
 # get overall reg
-slope, intercept, r, p = calc_regression(in_proprio, out_RMSE[:,4])
-line = slope * in_proprio + intercept
+slope, intercept, r, p = calc_regression(in_proprio_in, out_RMSE[:,4])
+line = slope * in_proprio_in + intercept
 
 plt.xlabel('proprio error')
 #plt.ylim([0, 12])
 plt.ylabel('RMSE RT4')
-plt.plot(in_proprio, line, color='black', label=f'Overall (R={r:.2f}, p={p:.3f})')
+plt.plot(in_proprio_in, line, color='black', label=f'Overall (R={r:.2f}, p={p:.3f})')
 
 
 for i, (subgroup, color, label) in enumerate(zip(subgroups, colors, labels)):
     if len(subgroup) > 0:
-        slope_sub, intercept_sub, r_sub, p_sub = calc_regression(in_proprio[subgroup], out_RMSE[subgroup,4])
-        line_sub = slope_sub * in_proprio[subgroup] + intercept_sub
-        plt.plot(in_proprio[subgroup], line_sub, color=color, alpha = 0.5, label=f'{label} (R={r_sub:.2f}, p={p_sub:.3f})')
-        plt.scatter(in_proprio[subgroup], out_RMSE[subgroup,4], alpha=0.5, color = color)
+        slope_sub, intercept_sub, r_sub, p_sub = calc_regression(in_proprio_in[subgroup], out_RMSE[subgroup,4])
+        line_sub = slope_sub * in_proprio_in[subgroup] + intercept_sub
+        plt.plot(in_proprio_in[subgroup], line_sub, color=color, alpha = 0.5, label=f'{label} (R={r_sub:.2f}, p={p_sub:.3f})')
+        plt.scatter(in_proprio_in[subgroup], out_RMSE[subgroup,4], alpha=0.5, color = color)
 plt.legend()
 
 plt.subplot(1,2,2)
 
 # get overall reg
-slope, intercept, r, p = calc_regression(in_proprio, out_RMSE[:,5])
-line = slope * in_proprio + intercept
+slope, intercept, r, p = calc_regression(in_proprio_in, out_RMSE[:,5])
+line = slope * in_proprio_in + intercept
 
 plt.xlabel('proprio error')
 #plt.ylim([0, 12])
 plt.ylabel('RMSE RET')
-plt.plot(in_proprio, line, color='black', label=f'Overall (R={r:.2f}, p={p:.3f})')
+plt.plot(in_proprio_in, line, color='black', label=f'Overall (R={r:.2f}, p={p:.3f})')
 
 for i, (subgroup, color, label) in enumerate(zip(subgroups, colors, labels)):
     if len(subgroup) > 0:
-        slope_sub, intercept_sub, r_sub, p_sub = calc_regression(in_proprio[subgroup], out_RMSE[subgroup,5])
-        line_sub = slope_sub * in_proprio[subgroup] + intercept_sub
-        plt.plot(in_proprio[subgroup], line_sub, color=color, alpha = 0.5, label=f'{label} (R={r_sub:.2f}, p={p_sub:.3f})')
-        plt.scatter(in_proprio[subgroup], out_RMSE[subgroup,5], alpha=0.5, color = color)
+        slope_sub, intercept_sub, r_sub, p_sub = calc_regression(in_proprio_in[subgroup], out_RMSE[subgroup,5])
+        line_sub = slope_sub * in_proprio_in[subgroup] + intercept_sub
+        plt.plot(in_proprio_in[subgroup], line_sub, color=color, alpha = 0.5, label=f'{label} (R={r_sub:.2f}, p={p_sub:.3f})')
+        plt.scatter(in_proprio_in[subgroup], out_RMSE[subgroup,5], alpha=0.5, color = color)
 plt.legend()
 plt.show()
 
