@@ -25,7 +25,7 @@ store_allFPA_NF = np.zeros((subs_tot, 80))
 store_allFPA_RT4 = np.zeros((subs_tot, 200))
 store_allFPA_RET = np.zeros((subs_tot, 200))
 store_RMSE = np.zeros((subs_tot, 6))
-store_C_RMSE = np.zeros((subs_tot, 4))
+store_C_RMSE = np.zeros((subs_tot, 6))
 store_resp = np.zeros((subs_tot, 6))
 store_proprio_RMSE = np.zeros((subs_tot,1))
 store_proprio_MSE_in = np.zeros((subs_tot,1))
@@ -168,12 +168,20 @@ for subject in range(1,37):
 
     if vis:
         # fig: plot running mean
-        x = np.linspace(0, len(fullFPA), len(fullFPA))
-        plt.plot(x, fullFPA.iloc[:,2], 'o', alpha = 0.5, )
-        window_size = 20
-        kernel = np.ones(window_size)/window_size
-        runnavg = np.convolve(fullFPA.iloc[:,2], kernel, mode = 'same')
-        plt.plot(x, runnavg, '-')
+        x1 = np.linspace(0, len(baselineFPA.iloc[:,2]), len(baselineFPA.iloc[:,2]))
+        plt.plot(x1, baselineFPA.iloc[:,2], 'o')
+        x2 = np.linspace(len(baselineFPA.iloc[:,2])+10, len(toein1FPA.iloc[:,2]) + len(baselineFPA.iloc[:,2]) + 10, len(toein1FPA.iloc[:,2]))
+        plt.plot(x2, toein1FPA.iloc[:,2], 'o')
+
+        # window_size = 20
+        # kernel = np.ones(window_size)/window_size
+        # runnavg1 = np.convolve(baselineFPA.iloc[5:75,2], kernel, mode = 'same')
+        # plt.plot(x1[5:75], runnavg1, '-')
+        # runnavg2 = np.convolve(toein1FPA.iloc[5:395,2], kernel, mode = 'same')
+        # plt.plot(x2[5:395], runnavg1, '-')
+
+        plt.ylim([-20,20])
+        plt.savefig("analysis/fullData_analysis/pp_Results/SF_exampleTraining.svg", format="svg")
         plt.show()
 
     # a. get % of steps in-range: 5 conds x 1 
@@ -350,8 +358,8 @@ for subject in range(1,37):
     RMSE_all = [RMSENF, RMSET1, RMSET2, RMSET3, RMSET4, RMSER]
     store_RMSE[subject-1] = RMSE_all
 
-    C_RMSE_all = [RMSEC1, RMSEC2, RMSEC3, RMSEC4]
-    store_C_RMSE[subject-1] = RMSEC4
+    C_RMSE_all = [RMSENF, RMSEC1, RMSEC2, RMSEC3, RMSEC4, RMSER]
+    store_C_RMSE[subject-1] = C_RMSE_all
 
     # d.2. get ratio of steps too far in vs. too far out
     errorRatio_NF_in = np.sum(nfFPA.iloc[:, 2] <= targetFPA - 2)/np.sum( (nfFPA.iloc[:, 2] <= targetFPA - 2) | (nfFPA.iloc[:, 2] >= targetFPA + 2))
@@ -462,26 +470,132 @@ filename = os.path.normpath(os.path.join(directory, 'features\\out_errRatio_out.
 out_errRatio_out.to_csv(filename, index=False)
 
 # # plot group means for cumulative results: percent steps in range
-# # SF_rows = [0, 1, 6, 8, 11, 14, 18]
-# SF_rows = np.where(feedbackCond_file.cond == 1)[0]
-# print(SF_rows)
-# print('mean SF in-range: ' + str(np.mean(store_inRangePercent[SF_rows, 5])))
-# print('SD SF in-range: ' + str(np.std(store_inRangePercent[SF_rows, 5])))
-# print('SF normal: stats = ' + str(stats.normaltest(store_inRangePercent[SF_rows,5])))
+# SF_rows = [0, 1, 6, 8, 11, 14, 18]
+SF_rows = np.where(feedbackCond_file.cond == 1)[0]
+print(SF_rows)
+print('mean SF in-range: ' + str(np.mean(store_inRangePercent[SF_rows, 5])))
+print('SD SF in-range: ' + str(np.std(store_inRangePercent[SF_rows, 5])))
+print('SF normal: stats = ' + str(stats.normaltest(store_inRangePercent[SF_rows,5])))
 
-# # TF_rows = [2, 3, 7, 12, 15, 19, 20]
-# TF_rows = np.where(feedbackCond_file.cond == 2)[0]
-# print(TF_rows)
-# print('mean TF in-range: ' + str(np.mean(store_inRangePercent[TF_rows, 5])))
-# print('SD TF in-range: ' + str(np.std(store_inRangePercent[TF_rows, 5])))
-# print('TF normal: stats = ' + str(stats.normaltest(store_inRangePercent[TF_rows,5])))
+# TF_rows = [2, 3, 7, 12, 15, 19, 20]
+TF_rows = np.where(feedbackCond_file.cond == 2)[0]
+print(TF_rows)
+print('mean TF in-range: ' + str(np.mean(store_inRangePercent[TF_rows, 5])))
+print('SD TF in-range: ' + str(np.std(store_inRangePercent[TF_rows, 5])))
+print('TF normal: stats = ' + str(stats.normaltest(store_inRangePercent[TF_rows,5])))
 
-# # NF_rows = [4, 5, 9, 10, 13, 16, 17]
-# NF_rows = np.where(feedbackCond_file.cond == 0)[0]
-# print(NF_rows)
-# print('mean NF in-range: ' + str(np.mean(store_inRangePercent[NF_rows, 5])))
-# print('SD NF in-range: ' + str(np.std(store_inRangePercent[NF_rows, 5])))
-# print('NF normal: stats = ' + str(stats.normaltest(store_inRangePercent[NF_rows,5])))
+# NF_rows = [4, 5, 9, 10, 13, 16, 17]
+NF_rows = np.where(feedbackCond_file.cond == 0)[0]
+print(NF_rows)
+print('mean NF in-range: ' + str(np.mean(store_inRangePercent[NF_rows, 5])))
+print('SD NF in-range: ' + str(np.std(store_inRangePercent[NF_rows, 5])))
+print('NF normal: stats = ' + str(stats.normaltest(store_inRangePercent[NF_rows,5])))
+
+# PLOT: ACC over retraining
+x = np.arange(6)
+plt.figure(figsize=(6,6))
+plt.plot(x-0.05, np.mean(store_inRangePercent[SF_rows], axis=0), '-o', color = '#0f4c5c', label = 'SF')
+plt.errorbar(x-0.05, np.mean(store_inRangePercent[SF_rows], axis=0), yerr=np.std(store_inRangePercent[SF_rows], axis=0), fmt='none', ecolor='#0f4c5c', capsize=5)
+
+plt.plot(x, np.mean(store_inRangePercent[TF_rows], axis=0), '-o', color = '#5f0f40', label = 'TF')
+plt.errorbar(x, np.mean(store_inRangePercent[TF_rows], axis=0), yerr=np.std(store_inRangePercent[TF_rows], axis=0), fmt='none', ecolor='#5f0f40', capsize=5)
+
+plt.plot(x+0.05, np.mean(store_inRangePercent[NF_rows], axis=0), '-o', color = '#e36414', label = 'NF')
+plt.errorbar(x+0.05, np.mean(store_inRangePercent[NF_rows], axis=0), yerr=np.std(store_inRangePercent[NF_rows], axis=0), fmt='none', ecolor='#e36414', capsize=5)
+
+plt.legend()
+plt.ylim([0,100])
+plt.ylabel('Steps within target range (%)')
+plt.savefig("analysis/fullData_analysis/pp_Results/Acc_overExp.svg", format="svg")
+plt.show()
+
+# PLOT: RMSE over retraining
+plt.figure(figsize=(6,6))
+plt.plot(x-0.05, np.mean(store_RMSE[SF_rows], axis=0), '-o', color = '#0f4c5c', label = 'SF')
+plt.errorbar(x-0.05, np.mean(store_RMSE[SF_rows], axis=0), yerr=np.std(store_RMSE[SF_rows], axis=0), fmt='none', ecolor='#0f4c5c', capsize=5)
+
+plt.plot(x, np.mean(store_RMSE[TF_rows], axis=0), '-o', color = '#5f0f40', label = 'TF')
+plt.errorbar(x, np.mean(store_RMSE[TF_rows], axis=0), yerr=np.std(store_RMSE[TF_rows], axis=0), fmt='none', ecolor='#5f0f40', capsize=5)
+
+plt.plot(x+0.05, np.mean(store_RMSE[NF_rows], axis=0), '-o', color = '#e36414', label = 'NF')
+plt.errorbar(x+0.05, np.mean(store_RMSE[NF_rows], axis=0), yerr=np.std(store_RMSE[NF_rows], axis=0), fmt='none', ecolor='#e36414', capsize=5)
+
+plt.legend()
+plt.ylim([0,12])
+plt.ylabel('RMSE (deg)')
+plt.savefig("analysis/fullData_analysis/pp_Results/RMSE_overExp.svg", format="svg")
+plt.show()
+
+# PLOT: change in RMSE
+fig, ax = plt.subplots(figsize = (6,6))
+sf_data = 100*(store_RMSE[SF_rows,5] - store_RMSE[SF_rows,0])/store_RMSE[SF_rows,0]
+tf_data = 100*(store_RMSE[TF_rows,5] - store_RMSE[TF_rows,0])/store_RMSE[TF_rows,0]
+nf_data = 100*(store_RMSE[NF_rows,5] - store_RMSE[NF_rows,0])/store_RMSE[NF_rows,0]
+violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
+                             positions=[1, 2, 3], 
+                             showmeans=True, 
+                             showextrema=True, 
+                             showmedians=False)
+ax.set_title('Change in RMSE between NF and Retention')
+ax.set_ylabel('Relative change in RMSE')
+ax.set_xticks([1, 2, 3])
+ax.set_xticklabels(['SF', 'TF', 'NF'])
+
+for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
+    ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
+plt.savefig("analysis/fullData_analysis/pp_Results/DeltaRMSE.svg", format="svg")
+plt.show()
+
+# BONUS PLOTS: catch trial RMSE
+plt.figure(figsize=(6,6))
+plt.title('catch trial RMSEs')
+plt.plot(x-0.05, np.mean(store_C_RMSE[SF_rows], axis=0), '-o', color = '#0f4c5c', label = 'SF')
+plt.errorbar(x-0.05, np.mean(store_C_RMSE[SF_rows], axis=0), yerr=np.std(store_C_RMSE[SF_rows], axis=0), fmt='none', ecolor='#0f4c5c', capsize=5)
+
+plt.plot(x, np.mean(store_C_RMSE[TF_rows], axis=0), '-o', color = '#5f0f40', label = 'TF')
+plt.errorbar(x, np.mean(store_C_RMSE[TF_rows], axis=0), yerr=np.std(store_C_RMSE[TF_rows], axis=0), fmt='none', ecolor='#5f0f40', capsize=5)
+
+plt.plot(x+0.05, np.mean(store_C_RMSE[NF_rows], axis=0), '-o', color = '#e36414', label = 'NF')
+plt.errorbar(x+0.05, np.mean(store_C_RMSE[NF_rows], axis=0), yerr=np.std(store_C_RMSE[NF_rows], axis=0), fmt='none', ecolor='#e36414', capsize=5)
+plt.savefig("analysis/fullData_analysis/pp_Results/RMSE_overCatch.svg", format="svg")
+plt.show()
+
+# BONUS PLOTS: catch trial change in RMSE
+fig, ax = plt.subplots(figsize = (6,6))
+sf_data = 100*(store_C_RMSE[SF_rows,4] - store_RMSE[SF_rows,0])/store_RMSE[SF_rows,0]
+tf_data = 100*(store_C_RMSE[TF_rows,4] - store_RMSE[TF_rows,0])/store_RMSE[TF_rows,0]
+nf_data = 100*(store_C_RMSE[NF_rows,4] - store_RMSE[NF_rows,0])/store_RMSE[NF_rows,0]
+violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
+                             positions=[1, 2, 3], 
+                             showmeans=True, 
+                             showextrema=True, 
+                             showmedians=False)
+ax.set_title('Change in RMSE between NF and catch RT4')
+ax.set_ylabel('Relative change in RMSE')
+ax.set_xticks([1, 2, 3])
+ax.set_xticklabels(['SF', 'TF', 'NF'])
+
+for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
+    ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
+plt.savefig("analysis/fullData_analysis/pp_Results/DeltaCatchRMSE.svg", format="svg")
+plt.show()
+
+# print('_____________change in RMSE between NF and cRT4__________')
+# print('SF: ' + str((store_C_RMSE[SF_rows,4] - store_RMSE[SF_rows,0])/store_RMSE[SF_rows,0]))
+# print('TF: ' + str((store_C_RMSE[TF_rows,4] - store_RMSE[TF_rows,0])/store_RMSE[TF_rows,0]))
+# print('NF: ' + str((store_C_RMSE[NF_rows,4] - store_RMSE[NF_rows,0])/store_RMSE[NF_rows,0]))
+
+# print('_____________change in RMSE between cRT4 and RET__________')
+# print('_____________cRT4__________')
+# print('SF: ' + str(store_C_RMSE[SF_rows,4]))
+# print('TF: ' + str(store_C_RMSE[TF_rows,4]))
+# print('NF: ' + str(store_C_RMSE[NF_rows,4]))
+# print('_____________RET__________')
+# print('SF: ' + str(store_RMSE[SF_rows,5]))
+# print('TF: ' + str(store_RMSE[TF_rows,5]))
+# print('NF: ' + str(store_RMSE[NF_rows,5]))
+
+
 
 
 # # # NR 2024AUG14: output change in % acc after removing catch trials
@@ -559,43 +673,11 @@ out_errRatio_out.to_csv(filename, index=False)
 # print('resp NF vs RT4: TF:' + str((store_resp[TF_rows,4] - store_resp[TF_rows,0])/store_resp[TF_rows,0]))
 # print('resp NF vs RT4: NF:' + str((store_resp[NF_rows,4] - store_resp[NF_rows,0])/store_resp[NF_rows,0]))
 
-# # make an RMSE plot:
-# fig, ax = plt.subplots(figsize = (8,6))
-# sf_data = (store_RMSE[SF_rows,5] - store_RMSE[SF_rows,0])/store_RMSE[SF_rows,0]
-# tf_data = (store_RMSE[TF_rows,5] - store_RMSE[TF_rows,0])/store_RMSE[TF_rows,0]
-# nf_data = (store_RMSE[NF_rows,5] - store_RMSE[NF_rows,0])/store_RMSE[NF_rows,0]
-# violin_parts = ax.violinplot([sf_data, tf_data, nf_data], 
-#                              positions=[1, 2, 3], 
-#                              showmeans=True, 
-#                              showextrema=True, 
-#                              showmedians=False)
-
-# # Customize the plot
-# ax.set_title('Change in RMSE between NF and Retention')
-# ax.set_ylabel('Relative change in RMSE')
-# ax.set_xticks([1, 2, 3])
-# ax.set_xticklabels(['SF', 'TF', 'NF'])
-
-# for i, data in enumerate([sf_data, tf_data, nf_data], start=1):
-#     ax.scatter(np.random.normal(i, 0.04, len(data)), data, alpha=0.3, s=15)
-# plt.show()
 
 
 
-# x = np.arange(6)
-# plt.plot(x-0.05, np.mean(store_inRangePercent[SF_rows], axis=0), '-o', color = '#05668D', label = 'SF')
-# plt.errorbar(x-0.05, np.mean(store_inRangePercent[SF_rows], axis=0), yerr=np.std(store_inRangePercent[SF_rows], axis=0), fmt='none', ecolor='#05668D', capsize=5)
 
-# plt.plot(x, np.mean(store_inRangePercent[TF_rows], axis=0), '-o', color = '#679436', label = 'TF')
-# plt.errorbar(x, np.mean(store_inRangePercent[TF_rows], axis=0), yerr=np.std(store_inRangePercent[TF_rows], axis=0), fmt='none', ecolor='#679436', capsize=5)
 
-# plt.plot(x+0.05, np.mean(store_inRangePercent[NF_rows], axis=0), '-o', color = '#805E73', label = 'NF')
-# plt.errorbar(x+0.05, np.mean(store_inRangePercent[NF_rows], axis=0), yerr=np.std(store_inRangePercent[NF_rows], axis=0), fmt='none', ecolor='#805E73', capsize=5)
-
-# plt.legend()
-# plt.ylim([0,100])
-# plt.ylabel('Steps within target range (%)')
-# plt.show()
 
 # # plot group means for cumulative results: percent steps in range during NF conds
 # plt.plot(x, np.mean(store_inRangeNFPercent[SF_rows], axis=0), '-o', color = '#05668D', label = 'SF')
