@@ -3,18 +3,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import pandas as pd
+import seaborn as sns
+import ptitprince as pt
 
 ###################### Load Data ###################### 
-sub_ID = pd.read_excel('analysis/survey_analysis/all_survey_results.xlsx', sheet_name='All', usecols='B')
-fb_group = pd.read_excel('analysis/survey_analysis/all_survey_results.xlsx', sheet_name='All', usecols='C')
-tlx = pd.read_excel('analysis/survey_analysis/all_survey_results.xlsx', sheet_name='TLX')
-ocean = pd.read_excel('analysis/survey_analysis/all_survey_results.xlsx', sheet_name='OCEAN')
-tam = pd.read_excel('analysis/survey_analysis/all_survey_results.xlsx', sheet_name='TAM')
-open_ended = pd.read_excel('analysis/survey_analysis/all_survey_results.xlsx', sheet_name='Open')
-switch = pd.read_excel('analysis/survey_analysis/all_survey_results.xlsx', sheet_name='Switch')
+sub_ID = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='All', usecols='B')
+fb_group = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='All', usecols='C')
+tlx = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='TLX')
+ocean = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='OCEAN')
+tam = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='TAM')
+open_ended = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='Open')
+switch = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='Switch')
 
 ## TLX Scoring
-tlx['RTLX'] = tlx.iloc[:, 0:6].sum(axis=1) / 6 # RTLX (raw TLX)
+tlx['RTLX'] = round(tlx.iloc[:, 0:6].sum(axis=1) / 6, 1) # RTLX (raw TLX)
 
 ###################### TAM Scoring ###################### 
 """
@@ -82,106 +85,150 @@ switch['SW2'] = switch.iloc[:, 4].astype(str)
 switch['SW1'] = switch['SW1'].apply(lambda x: 2 if x[0] == 'S' else 1)
 switch['SW2'] = switch['SW2'].apply(lambda x: 2 if x[0] == 'S' else 1)
 
-###################### Plotting and Saving ###################### 
+###################### Saving ###################### 
 # save to combined df
 all_data = pd.concat([sub_ID, fb_group, tlx.iloc[:,0:6], tlx['RTLX'], tam['PU'], tam['PEOU'], ocean['Extraversion'], ocean['Agreeableness'], ocean['Conscientiousness'], ocean['Neuroticism'], ocean['Openness'], switch['SW1'], switch['SW2']], axis=1)
 all_data.columns = ['subject','test_group','mental_demand', 'physical_demand', 'temporal_demand', 'effort', 'frustration', 'performance', 'RTLX', 'PU', 'PEOU','extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness', 'switch1', 'switch2']
-
-# Map test_group values to 'NF', 'TF', 'SF'
 all_data['test_group'] = all_data['test_group'].map({0: 'NF', 1: 'TF', 2: 'SF'})
-
-# Plot the RTLX scores for each group as a boxplot
-sns.set_theme(style="whitegrid")
-fig, ax = plt.subplots(figsize=(12, 8))
-sns.boxplot(x='test_group', y='RTLX', data=all_data, ax=ax, palette=['#A85751', '#1B998B', '#424B54' ])
-ax.set_title('RTLX Scores by FB Group', fontsize=16, fontweight='bold')
-ax.set_ylabel('RTLX Score', fontsize=14)
-ax.set_xlabel('Group', fontsize=14)
-ax.tick_params(axis='x', labelsize=12)
-ax.tick_params(axis='y', labelsize=12)
-ax.yaxis.grid(True)
-ax.xaxis.grid(True)
-ax.set_ylim(0, 100)
-plt.tight_layout()
-plt.savefig('analysis/survey_analysis/rtlx_scores_by_group.png')
-plt.show()
-
-
-# Plot each of the tlx subscales as 6 subplots, boxplots for each group
-fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-axes = axes.flatten()
-for i, col in enumerate(all_data.columns[2:8]): 
-    sns.boxplot(x='test_group', y=col, data=all_data, ax=axes[i], palette=['#A85751', '#1B998B', '#424B54' ])
-    axes[i].set_title(f'{col} by FB Group', fontsize=16, fontweight='bold')
-    axes[i].set_ylabel(col, fontsize=14)
-    axes[i].set_xlabel('Group', fontsize=14)
-    axes[i].tick_params(axis='x', labelsize=12)
-    axes[i].tick_params(axis='y', labelsize=12)
-    axes[i].yaxis.grid(True)
-    axes[i].xaxis.grid(True)
-    axes[i].set_ylim(-10, 100)
-plt.tight_layout()
-plt.savefig('analysis/survey_analysis/tlx_scores_by_group.png')
-plt.show()
-
-
-# Plot PU and PEOU for each group
-fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-sns.boxplot(x='test_group', y='PU', data=all_data, ax=axes[0], palette=['#A85751', '#1B998B', '#424B54' ])
-axes[0].set_title('Perceived Usefulness by FB Group', fontsize=16, fontweight='bold')
-axes[0].set_ylabel('Perceived Usefulness', fontsize=14)
-axes[0].set_xlabel('Group', fontsize=14)
-axes[0].tick_params(axis='x', labelsize=12)
-axes[0].tick_params(axis='y', labelsize=12)
-axes[0].yaxis.grid(True)
-axes[0].xaxis.grid(True)
-axes[0].set_ylim(0,35)
-
-sns.boxplot(x='test_group', y='PEOU', data=all_data, ax=axes[1], palette=['#A85751', '#1B998B', '#424B54' ])
-axes[1].set_title('Perceived Ease of Use by FB Group', fontsize=16, fontweight='bold')
-axes[1].set_ylabel('Perceived Ease of Use', fontsize=14)
-axes[1].set_xlabel('Group', fontsize=14)
-axes[1].tick_params(axis='x', labelsize=12)
-axes[1].tick_params(axis='y', labelsize=12)
-axes[1].yaxis.grid(True)
-axes[1].xaxis.grid(True)
-axes[1].set_ylim(0,35)
-plt.tight_layout()
-plt.figtext(0.5, 0.01, "*note: this is for general vibrotactile feedback", ha="center", fontsize=12, style='italic')
-plt.savefig('analysis/survey_analysis/tam_scores_by_group.png')
-plt.show()
-
-
-# make a grouped bar plot of the SW1 and SW2 scores for each group, showing how many people chose each option for each group
-fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack()
-switch2_counts = all_data.groupby(['test_group', 'switch2']).size().unstack()
-switch1_counts.plot(kind='bar', stacked=True, ax=axes[0], color=['#1B998B', '#A85751'])
-axes[0].set_title('Enjoyed More by FB Group', fontsize=16, fontweight='bold')
-axes[0].set_ylabel('Count', fontsize=14)
-axes[0].set_xlabel('Group', fontsize=14)
-axes[0].tick_params(axis='x', labelsize=12)
-axes[0].tick_params(axis='y', labelsize=12)
-axes[0].yaxis.grid(True)
-axes[0].xaxis.grid(True)
-axes[0].get_legend().set_visible(False)
-
-switch2_counts.plot(kind='bar', stacked=True, ax=axes[1], color=['#1B998B', '#A85751'])
-axes[1].set_title('Perceived Use for Learning by FB Group', fontsize=16, fontweight='bold')
-axes[1].set_ylabel('Count', fontsize=14)
-axes[1].set_xlabel('Group', fontsize=14)
-axes[1].tick_params(axis='x', labelsize=12)
-axes[1].tick_params(axis='y', labelsize=12)
-axes[1].yaxis.grid(True)
-axes[1].xaxis.grid(True)
-plt.tight_layout()
-legend = plt.legend( loc='upper right', labels=['TF', 'SF'])
-plt.savefig('analysis/survey_analysis/switch_scores_by_group.png')
-plt.show()
-
 
 # save to file
 all_data.to_csv('analysis/survey_analysis/parsed_survey_data.csv', index=False)
+###################### Plotting ###################### TODO: fix this
+
+# pt.half_violinplot(x = "test_group", y = "RTLX", data = all_data, palette=['#A85751', '#1B998B', '#424B54' ])
+# plt.legend(loc='upper right', labels=['NF', 'TF', 'SF'])
+# plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # Plot the RTLX scores for each group as a boxplot
+# sns.set_theme(style="whitegrid")
+# fig, ax = plt.subplots(figsize=(12, 8))
+# sns.boxplot(x='test_group', y='RTLX', data=all_data, ax=ax, palette=['#A85751', '#1B998B', '#424B54' ])
+# ax.set_title('RTLX Scores by FB Group', fontsize=16, fontweight='bold')
+# ax.set_ylabel('RTLX Score', fontsize=14)
+# ax.set_xlabel('Group', fontsize=14)
+# ax.tick_params(axis='x', labelsize=12)
+# ax.tick_params(axis='y', labelsize=12)
+# ax.yaxis.grid(True)
+# ax.xaxis.grid(True)
+# ax.set_ylim(0, 100)
+# plt.tight_layout()
+# plt.savefig('analysis/survey_analysis/rtlx_scores_by_group.png')
+# plt.show()
+
+
+# # Plot each of the tlx subscales as 6 subplots, boxplots for each group
+# fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+# axes = axes.flatten()
+# for i, col in enumerate(all_data.columns[2:8]): 
+#     sns.boxplot(x='test_group', y=col, data=all_data, ax=axes[i], palette=['#A85751', '#1B998B', '#424B54' ])
+#     axes[i].set_title(f'{col} by FB Group', fontsize=16, fontweight='bold')
+#     axes[i].set_ylabel(col, fontsize=14)
+#     axes[i].set_xlabel('Group', fontsize=14)
+#     axes[i].tick_params(axis='x', labelsize=12)
+#     axes[i].tick_params(axis='y', labelsize=12)
+#     axes[i].yaxis.grid(True)
+#     axes[i].xaxis.grid(True)
+#     axes[i].set_ylim(-10, 100)
+# plt.tight_layout()
+# plt.savefig('analysis/survey_analysis/tlx_scores_by_group.png')
+# plt.show()
+
+
+# # Plot PU and PEOU for each group
+# fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+# sns.boxplot(x='test_group', y='PU', data=all_data, ax=axes[0], palette=['#A85751', '#1B998B', '#424B54' ])
+# axes[0].set_title('Perceived Usefulness by FB Group', fontsize=16, fontweight='bold')
+# axes[0].set_ylabel('Perceived Usefulness', fontsize=14)
+# axes[0].set_xlabel('Group', fontsize=14)
+# axes[0].tick_params(axis='x', labelsize=12)
+# axes[0].tick_params(axis='y', labelsize=12)
+# axes[0].yaxis.grid(True)
+# axes[0].xaxis.grid(True)
+# axes[0].set_ylim(0,35)
+
+# sns.boxplot(x='test_group', y='PEOU', data=all_data, ax=axes[1], palette=['#A85751', '#1B998B', '#424B54' ])
+# axes[1].set_title('Perceived Ease of Use by FB Group', fontsize=16, fontweight='bold')
+# axes[1].set_ylabel('Perceived Ease of Use', fontsize=14)
+# axes[1].set_xlabel('Group', fontsize=14)
+# axes[1].tick_params(axis='x', labelsize=12)
+# axes[1].tick_params(axis='y', labelsize=12)
+# axes[1].yaxis.grid(True)
+# axes[1].xaxis.grid(True)
+# axes[1].set_ylim(0,35)
+# plt.tight_layout()
+# plt.figtext(0.5, 0.01, "*note: this is for general vibrotactile feedback", ha="center", fontsize=12, style='italic')
+# plt.savefig('analysis/survey_analysis/tam_scores_by_group.png')
+# plt.show()
+
+
+# # make a grouped bar plot of the SW1 and SW2 scores for each group, showing how many people chose each option for each group
+# fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+# switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack()
+# switch2_counts = all_data.groupby(['test_group', 'switch2']).size().unstack()
+# switch1_counts.plot(kind='bar', stacked=True, ax=axes[0], color=['#1B998B', '#A85751'])
+# axes[0].set_title('Enjoyed More by FB Group', fontsize=16, fontweight='bold')
+# axes[0].set_ylabel('Count', fontsize=14)
+# axes[0].set_xlabel('Group', fontsize=14)
+# axes[0].tick_params(axis='x', labelsize=12)
+# axes[0].tick_params(axis='y', labelsize=12)
+# axes[0].yaxis.grid(True)
+# axes[0].xaxis.grid(True)
+# axes[0].get_legend().set_visible(False)
+
+# switch2_counts.plot(kind='bar', stacked=True, ax=axes[1], color=['#1B998B', '#A85751'])
+# axes[1].set_title('Perceived Use for Learning by FB Group', fontsize=16, fontweight='bold')
+# axes[1].set_ylabel('Count', fontsize=14)
+# axes[1].set_xlabel('Group', fontsize=14)
+# axes[1].tick_params(axis='x', labelsize=12)
+# axes[1].tick_params(axis='y', labelsize=12)
+# axes[1].yaxis.grid(True)
+# axes[1].xaxis.grid(True)
+# plt.tight_layout()
+# legend = plt.legend( loc='upper right', labels=['TF', 'SF'])
+# plt.savefig('analysis/survey_analysis/switch_scores_by_group.png')
+# plt.show()
+
+
+
 
 
 
