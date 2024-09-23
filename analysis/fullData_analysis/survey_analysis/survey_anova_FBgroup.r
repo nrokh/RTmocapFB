@@ -2,12 +2,12 @@
 data <- read.csv(
   "analysis/fullData_analysis/survey_analysis/parsed_survey_data.csv"
 )
-data <- data[order(data$test_group),]
+data <- data[order(data$test_group), ]
 
 # # RTLX
-# nf_group <- data[data$test_group == "NF",]$RTLX
-# sf_group <- data[data$test_group == "SF",]$RTLX
-# tf_group <- data[data$test_group == "TF",]$RTLX
+# nf_group <- data[data$test_group == "NF", ]$RTLX
+# sf_group <- data[data$test_group == "SF", ]$RTLX
+# tf_group <- data[data$test_group == "TF", ]$RTLX
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -27,12 +27,17 @@ data <- data[order(data$test_group),]
 # anova_result_rtlx <- aov(value ~ group, data = data)
 # print(summary(anova_result_rtlx))
 
+# # Perform t-test - RTLX... p = 0.0357*, 0.0597
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_rtlx <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_rtlx <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
+
 # #########################################################################################################
 
 # # Mental demand (md)
-# nf_group <- data[data$test_group == "NF",]$mental_demand
-# sf_group <- data[data$test_group == "SF",]$mental_demand
-# tf_group <- data[data$test_group == "TF",]$mental_demand
+# nf_group <- data[data$test_group == "NF", ]$mental_demand
+# sf_group <- data[data$test_group == "SF", ]$mental_demand
+# tf_group <- data[data$test_group == "TF", ]$mental_demand
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -56,12 +61,17 @@ data <- data[order(data$test_group),]
 # kruskal_result_md <- kruskal.test(value ~ group, data = data)
 # print(kruskal_result_md)
 
+# # Perform t-test - mental demand... p = 0.0283*, 0.0489*
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_md <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_md <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
+
 # #########################################################################################################
 
-# Physical demand (pd)
-# nf_group <- data[data$test_group == "NF",]$physical_demand
-# sf_group <- data[data$test_group == "SF",]$physical_demand
-# tf_group <- data[data$test_group == "TF",]$physical_demand
+# # Physical demand (pd)
+# nf_group <- data[data$test_group == "NF", ]$physical_demand
+# sf_group <- data[data$test_group == "SF", ]$physical_demand
+# tf_group <- data[data$test_group == "TF", ]$physical_demand
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -82,15 +92,20 @@ data <- data[order(data$test_group),]
 # print(summary(anova_result_pd))
 
 # # Normality cannot be assumed, perform Kruskal-Wallis test - physical demand... p = 0.106
-# kruskal_result_md <- kruskal.test(value ~ group, data = data)
-# print(kruskal_result_md)
+# kruskal_result_pd <- kruskal.test(value ~ group, data = data)
+# print(kruskal_result_pd)
+
+# # Perform t-test - physical demand... p = 0.0792, 0.0825
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_pd <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_pd <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
 
 # #########################################################################################################
 
 # # Temporal demand (td)
-# nf_group <- data[data$test_group == "NF",]$temporal_demand
-# sf_group <- data[data$test_group == "SF",]$temporal_demand
-# tf_group <- data[data$test_group == "TF",]$temporal_demand
+# nf_group <- data[data$test_group == "NF", ]$temporal_demand
+# sf_group <- data[data$test_group == "SF", ]$temporal_demand
+# tf_group <- data[data$test_group == "TF", ]$temporal_demand
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -111,15 +126,20 @@ data <- data[order(data$test_group),]
 # print(summary(anova_result_td))
 
 # # Normality cannot be assumed, perform Kruskal-Wallis test - temporal demand... p = 0.6602
-# kruskal_result_md <- kruskal.test(value ~ group, data = data)
-# print(kruskal_result_md)
+# kruskal_result_td <- kruskal.test(value ~ group, data = data)
+# print(kruskal_result_td)
+
+# # Perform t-test - temporal demand... p = 0.6956, 0.6928
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_td <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_td <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
 
 # #########################################################################################################
 
 # # Effort (efrt)
-# nf_group <- data[data$test_group == "NF",]$effort
-# sf_group <- data[data$test_group == "SF",]$effort
-# tf_group <- data[data$test_group == "TF",]$effort
+# nf_group <- data[data$test_group == "NF", ]$effort
+# sf_group <- data[data$test_group == "SF", ]$effort
+# tf_group <- data[data$test_group == "TF", ]$effort
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -128,7 +148,7 @@ data <- data[order(data$test_group),]
 # )
 
 # # Test for normality - effort... p = 0.00105*
-# sw_test <- shapiro.test(data$value) 
+# sw_test <- shapiro.test(data$value)
 # print(sw_test)
 
 # # Test for equal variance - effort... p = 0.7966
@@ -143,12 +163,17 @@ data <- data[order(data$test_group),]
 # kruskal_result_md <- kruskal.test(value ~ group, data = data)
 # print(kruskal_result_md)
 
+# # Perform t-test - effort... p = 0.064, 0.0562
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_md <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_md <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
+
 # #########################################################################################################
 
 # # Frustration (frstrn)
-# nf_group <- data[data$test_group == "NF",]$frustration
-# sf_group <- data[data$test_group == "SF",]$frustration
-# tf_group <- data[data$test_group == "TF",]$frustration
+# nf_group <- data[data$test_group == "NF", ]$frustration
+# sf_group <- data[data$test_group == "SF", ]$frustration
+# tf_group <- data[data$test_group == "TF", ]$frustration
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -169,15 +194,20 @@ data <- data[order(data$test_group),]
 # print(summary(anova_result_frstrn))
 
 # # Normality cannot be assumed, perform Kruskal-Wallis test - frustration... p = 0.2839
-# kruskal_result_md <- kruskal.test(value ~ group, data = data)
-# print(kruskal_result_md)
+# kruskal_result_frstrn <- kruskal.test(value ~ group, data = data)
+# print(kruskal_result_frstrn)
+
+# # Perform t-test - frsutration... p = 0.1361, 0.089
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_frstrn <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_frstrn <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
 
 # #########################################################################################################
 
 # # Performance (perform)
-# nf_group <- data[data$test_group == "NF",]$performance
-# sf_group <- data[data$test_group == "SF",]$performance
-# tf_group <- data[data$test_group == "TF",]$performance
+# nf_group <- data[data$test_group == "NF", ]$performance
+# sf_group <- data[data$test_group == "SF", ]$performance
+# tf_group <- data[data$test_group == "TF", ]$performance
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -198,15 +228,20 @@ data <- data[order(data$test_group),]
 # print(summary(anova_result_perform))
 
 # # Normality cannot be assumed (slight), perform Kruskal-Wallis test - effort... p = 0.941
-# kruskal_result_md <- kruskal.test(value ~ group, data = data)
-# print(kruskal_result_md)
+# kruskal_result_perform <- kruskal.test(value ~ group, data = data)
+# print(kruskal_result_perform)
+
+# # Perform t-test - performance... p = 0.9552, 0.9577
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_perform <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_perform <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
 
 # #########################################################################################################
 
 # # Perceived usefulness (PU)
-# nf_group <- data[data$test_group == "NF",]$PU
-# sf_group <- data[data$test_group == "SF",]$PU
-# tf_group <- data[data$test_group == "TF",]$PU
+# nf_group <- data[data$test_group == "NF", ]$PU
+# sf_group <- data[data$test_group == "SF", ]$PU
+# tf_group <- data[data$test_group == "TF", ]$PU
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -223,15 +258,20 @@ data <- data[order(data$test_group),]
 # print(blt_test)
 
 # # Perform one-way ANOVA - perceived usefulness... p = 0.126
-# anova_result_PU <- aov(value ~ group, data = data)
-# print(summary(anova_result_PU))
+# anova_result_pu <- aov(value ~ group, data = data)
+# print(summary(anova_result_pu))
+
+# # Perform t-test - PU... p = 0.167, 0.1976
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_pu <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_pu <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
 
 # #########################################################################################################
 
 # # Perceived ease of use (PEOU)
-# nf_group <- data[data$test_group == "NF",]$PEOU
-# sf_group <- data[data$test_group == "SF",]$PEOU
-# tf_group <- data[data$test_group == "TF",]$PEOU
+# nf_group <- data[data$test_group == "NF", ]$PEOU
+# sf_group <- data[data$test_group == "SF", ]$PEOU
+# tf_group <- data[data$test_group == "TF", ]$PEOU
 
 # # Combine into single dataframe
 # data <- data.frame(
@@ -248,6 +288,10 @@ data <- data[order(data$test_group),]
 # print(blt_test)
 
 # # Perform one-way ANOVA - perceived ease of use... p = 0.722
-# anova_result_PEOU <- aov(value ~ group, data = data)
-# print(summary(anova_result_PEOU))
+# anova_result_peou <- aov(value ~ group, data = data)
+# print(summary(anova_result_peou))
 
+# # Perform t-test - PEOU... p = 0.9587, 0.9628
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_peou <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_peou <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
