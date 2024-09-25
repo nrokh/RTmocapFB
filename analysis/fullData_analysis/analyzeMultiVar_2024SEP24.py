@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import tkinter as tk
 from tkinter import filedialog
+import statsmodels.api as sm
+from sklearn.linear_model import LinearRegression 
+
 
 # load dir
 np.set_printoptions(suppress=True) # suppress scientific notation
@@ -12,19 +15,7 @@ root = tk.Tk()
 root.withdraw() 
 directory = filedialog.askdirectory()
 
-import numpy as np
-import pandas as pd
-import os
-import matplotlib.pyplot as plt
-from scipy import stats
-import tkinter as tk
-from tkinter import filedialog
-
-# load dir
-np.set_printoptions(suppress=True) # suppress scientific notation
-root = tk.Tk()
-root.withdraw() 
-directory = filedialog.askdirectory()
+norm = 1
 
 def calc_regression(x, y):
     slope, intercept, r, p, _ = stats.linregress(x, y)
@@ -122,3 +113,142 @@ SF_rows = np.where(feedbackCond_file == 1)[0]
 TF_rows = np.where(feedbackCond_file == 2)[0]
 FB_rows = np.where((feedbackCond_file == 1) | (feedbackCond_file == 2))[0]
 NF_rows = np.where(feedbackCond_file == 0)[0]
+
+# ___________________________ MULTIVAR LIN REG _________________________
+
+# RT4 RMSE:
+print("RT4 RMSE:")
+X = np.stack((in_proprio_in, in_bFPA, np.abs(in_ROM_in)-in_bFPA,  in_cond_fb, in_resp[:,4]), axis=1) # shape = 36xN
+if norm:
+        X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
+Y = out_RMSE[:,4]
+if norm:
+        Y = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
+
+num_samples = X.shape[0]
+mse_scores = []
+y_pred_all = []
+y_true_all = []
+
+for i in range(num_samples):
+    # split
+    X_train = np.delete(X, i, axis=0)
+    Y_train = np.delete(Y, i)
+    X_test = X[i].reshape(1, -1)
+    Y_test = Y[i]
+
+    # train
+    model = LinearRegression()
+    model.fit(X_train, Y_train)
+
+    # test
+    y_pred = model.predict(X_test)[0]
+    mse = np.square(model.predict(X_test) - Y_test).mean()
+    mse_scores.append(mse)
+
+    # store pred and real
+    y_pred_all.append(y_pred)
+    y_true_all.append(Y_test)
+
+# get mean MSE
+avg_mse = np.mean(mse_scores)
+
+print(f"average MSE: {avg_mse:.4f}")
+
+# plot
+plt.figure(figsize=(10, 6))
+plt.scatter(y_true_all, y_pred_all)
+plt.plot([min(y_true_all), max(y_true_all)], [min(y_true_all), max(y_true_all)], 'r--', label='perfect fit')
+plt.xlabel('RMSE (real)')
+plt.ylabel('RMSE (pred)')
+plt.title('Retraining (RT4)')
+plt.legend()
+plt.show()
+
+
+# RET RMSE:
+print("RET RMSE:")
+X = np.stack((in_proprio_in, in_bFPA, np.abs(in_ROM_in)-in_bFPA,  in_cond_fb, in_resp[:,4]), axis=1) # shape = 36xN
+if norm:
+        X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
+Y = out_RMSE[:,5]
+if norm:
+        Y = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
+
+num_samples = X.shape[0]
+mse_scores = []
+y_pred_all = []
+y_true_all = []
+
+for i in range(num_samples):
+    # split
+    X_train = np.delete(X, i, axis=0)
+    Y_train = np.delete(Y, i)
+    X_test = X[i].reshape(1, -1)
+    Y_test = Y[i]
+
+    # train
+    model = LinearRegression()
+    model.fit(X_train, Y_train)
+
+    # test
+    y_pred = model.predict(X_test)[0]
+    mse = np.square(model.predict(X_test) - Y_test).mean()
+    mse_scores.append(mse)
+
+    # store pred and real
+    y_pred_all.append(y_pred)
+    y_true_all.append(Y_test)
+
+# get mean MSE
+avg_mse = np.mean(mse_scores)
+
+print(f"Average Mean Squared Error (LOSO CV): {avg_mse:.4f}")
+
+# plot pred vs real
+plt.figure(figsize=(10, 6))
+plt.scatter(y_true_all, y_pred_all)
+plt.plot([min(y_true_all), max(y_true_all)], [min(y_true_all), max(y_true_all)], 'r--', label='perfect fit')
+plt.xlabel('RMSE (real)')
+plt.ylabel('RMSE (pred)')
+plt.title('Retention (RET)')
+plt.legend()
+plt.show()
+
+# RT4 RMSE:
+print("RT4 RMSE:")
+X = np.stack((in_proprio_in, in_bFPA, np.abs(in_ROM_in)-in_bFPA,  in_cond_fb, in_resp[:,3]), axis=1) # shape = 36xN
+if norm:
+        X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
+Y = out_RMSE[:,4]
+if norm:
+        Y = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
+
+#X = sm.add_constant(X) # adds an intercept value
+model = sm.OLS(Y,X).fit()
+results = model.summary()
+
+print("feature weights:")
+print(model.params)
+
+print("\nfeature significance (p-values):")
+print(model.pvalues)
+
+# RETRMSE:
+print("RET RMSE:")
+X = np.stack((in_proprio_in, in_bFPA, np.abs(in_ROM_in)-in_bFPA,  in_cond_fb, in_resp[:,4]), axis=1) # shape = 36xN
+if norm:
+        X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
+Y = out_RMSE[:,5]
+if norm:
+        Y = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
+
+#X = sm.add_constant(X) # adds an intercept value
+model = sm.OLS(Y,X).fit()
+results = model.summary()
+
+print("feature weights:")
+print(model.params)
+
+print("\nfeature significance (p-values):")
+print(model.pvalues)
