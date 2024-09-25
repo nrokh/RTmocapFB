@@ -23,6 +23,7 @@ store_meanFPASD = np.zeros((subs_tot, 6, 2)) #toein1-4, ret
 store_MAE = np.zeros((subs_tot, 6))
 store_allFPA_NF = np.zeros((subs_tot, 80))
 store_allFPA_RT4 = np.zeros((subs_tot, 200))
+store_allFPA_RT1 = np.zeros((subs_tot, 200))
 store_allFPA_RET = np.zeros((subs_tot, 200))
 store_RMSE = np.zeros((subs_tot, 6))
 store_C_RMSE = np.zeros((subs_tot, 6))
@@ -49,6 +50,7 @@ vis = 0
 rmCatchSteps = 1
 rmInRange = 0
 zeroInRange = 0
+save = 0
 
 # supporting functions
 def calculate_responsiveness(input_FPA, targetFPA):
@@ -252,10 +254,12 @@ for subject in range(1,37):
         allFPA_RT4 = bFPA_deg - toein3FPA.iloc[:,2]
     else:
         allFPA_RT4 = bFPA_deg - toein4FPA.iloc[:,2]
+    allFPA_RT1 = bFPA_deg - toein1FPA.iloc[:,2]
     allFPA_NF = bFPA_deg - nfFPA.iloc[:,2]
     allFPA_RET = bFPA_deg - retFPA.iloc[:,2]
 
     store_allFPA_NF[subject-1] =  allFPA_NF
+    store_allFPA_RT1[subject-1] = allFPA_RT1
     store_allFPA_RT4[subject-1] = allFPA_RT4
     store_allFPA_RET[subject-1] = allFPA_RET
 
@@ -264,6 +268,10 @@ for subject in range(1,37):
         store_allFPA_NF = pd.DataFrame(allFPA_NF)
         output_NF = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_NF.csv'))
         store_allFPA_NF.to_csv(output_NF, index=False)
+
+        store_allFPA_RT1 = pd.DataFrame(allFPA_RT1)
+        output_RT1 = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_RT1.csv'))
+        store_allFPA_RT1.to_csv(output_RT1, index=False)
 
         store_allFPA_RT4 = pd.DataFrame(allFPA_RT4)
         output_RT4 = os.path.normpath(os.path.join(directory, 's0' + str(subject)  + '\\tFPA_RT4.csv'))
@@ -276,6 +284,10 @@ for subject in range(1,37):
         store_allFPA_NF = pd.DataFrame(allFPA_NF)
         output_NF = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_NF.csv'))
         store_allFPA_NF.to_csv(output_NF, index=False)
+
+        store_allFPA_RT1 = pd.DataFrame(allFPA_RT1)
+        output_RT1 = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_RT1.csv'))
+        store_allFPA_RT1.to_csv(output_RT1, index=False)
 
         store_allFPA_RT4 = pd.DataFrame(allFPA_RT4)
         output_RT4 = os.path.normpath(os.path.join(directory, 's' + str(subject)  + '\\tFPA_RT4.csv'))
@@ -411,63 +423,64 @@ for subject in range(1,37):
     store_ROM_in[subject-1] = np.mean(ROM.iloc[6:,2])
 
 # 3. save all inputs and outputs to /features folder
-# a. responsiveness
-in_resp = pd.DataFrame(store_resp)
-filename = os.path.normpath(os.path.join(directory, 'features\\in_resp.csv'))
-in_resp.to_csv(filename, index=False)
+if save:
+    # a. responsiveness
+    in_resp = pd.DataFrame(store_resp)
+    filename = os.path.normpath(os.path.join(directory, 'features\\in_resp.csv'))
+    in_resp.to_csv(filename, index=False)
 
-# b. proprioception RMSE
-in_proprio_RMSE = pd.DataFrame(store_proprio_RMSE)
-filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_RMSE.csv'))
-in_proprio_RMSE.to_csv(filename, index=False)
+    # b. proprioception RMSE
+    in_proprio_RMSE = pd.DataFrame(store_proprio_RMSE)
+    filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_RMSE.csv'))
+    in_proprio_RMSE.to_csv(filename, index=False)
 
-# c. bFPA
-in_bFPA = pd.DataFrame(store_bFPA)
-filename = os.path.normpath(os.path.join(directory, 'features\\in_bFPA.csv'))
-in_bFPA.to_csv(filename, index=False)
+    # c. bFPA
+    in_bFPA = pd.DataFrame(store_bFPA)
+    filename = os.path.normpath(os.path.join(directory, 'features\\in_bFPA.csv'))
+    in_bFPA.to_csv(filename, index=False)
 
-# d. vb test
-in_vbtest = pd.DataFrame(store_vbtest_acc)
-filename = os.path.normpath(os.path.join(directory, 'features\\in_vbtest.csv'))
-in_vbtest.to_csv(filename, index=False)
+    # d. vb test
+    in_vbtest = pd.DataFrame(store_vbtest_acc)
+    filename = os.path.normpath(os.path.join(directory, 'features\\in_vbtest.csv'))
+    in_vbtest.to_csv(filename, index=False)
 
-# e. ROM TI and TO
-in_ROM_in = pd.DataFrame(store_ROM_in)
-filename = os.path.normpath(os.path.join(directory, 'features\\in_ROM_in.csv'))
-in_ROM_in.to_csv(filename, index=False)
+    # e. ROM TI and TO
+    in_ROM_in = pd.DataFrame(store_ROM_in)
+    filename = os.path.normpath(os.path.join(directory, 'features\\in_ROM_in.csv'))
+    in_ROM_in.to_csv(filename, index=False)
 
-in_ROM_out = pd.DataFrame(store_ROM_out)
-filename = os.path.normpath(os.path.join(directory, 'features\\in_ROM_out.csv'))
-in_ROM_out.to_csv(filename, index=False)
+    in_ROM_out = pd.DataFrame(store_ROM_out)
+    filename = os.path.normpath(os.path.join(directory, 'features\\in_ROM_out.csv'))
+    in_ROM_out.to_csv(filename, index=False)
 
-# f. proprio in/out
-in_proprio_in = pd.DataFrame(store_proprio_MSE_in)
-filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_in.csv'))
-in_proprio_in.to_csv(filename, index=False)
+    # f. proprio in/out
+    in_proprio_in = pd.DataFrame(store_proprio_MSE_in)
+    filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_in.csv'))
+    in_proprio_in.to_csv(filename, index=False)
 
-in_proprio_out = pd.DataFrame(store_proprio_MSE_out)
-filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_out.csv'))
-in_proprio_out.to_csv(filename, index=False)
+    in_proprio_out = pd.DataFrame(store_proprio_MSE_out)
+    filename = os.path.normpath(os.path.join(directory, 'features\\in_proprio_out.csv'))
+    in_proprio_out.to_csv(filename, index=False)
 
 
-# out: rmse
-out_RMSE = pd.DataFrame(store_RMSE)
-filename = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
-out_RMSE.to_csv(filename, index=False)
+    # out: rmse
+    out_RMSE = pd.DataFrame(store_RMSE)
+    filename = os.path.normpath(os.path.join(directory, 'features\\out_RMSE.csv'))
+    out_RMSE.to_csv(filename, index=False)
 
-# out: catch trial rmse
-out_cRMSE = pd.DataFrame(store_C_RMSE)
-filename = os.path.normpath(os.path.join(directory, 'features\\out_cRMSE.csv'))
-out_cRMSE.to_csv(filename, index=False)
+    # out: catch trial rmse
+    out_cRMSE = pd.DataFrame(store_C_RMSE)
+    filename = os.path.normpath(os.path.join(directory, 'features\\out_cRMSE.csv'))
+    out_cRMSE.to_csv(filename, index=False)
 
-# out: error ratios
-out_errRatio_in = pd.DataFrame(store_errorRatio_in)
-filename = os.path.normpath(os.path.join(directory, 'features\\out_errRatio_in.csv'))
-out_errRatio_in.to_csv(filename, index=False)
+    # out: error ratios
+    out_errRatio_in = pd.DataFrame(store_errorRatio_in)
+    filename = os.path.normpath(os.path.join(directory, 'features\\out_errRatio_in.csv'))
+    out_errRatio_in.to_csv(filename, index=False)
 
-out_errRatio_out = pd.DataFrame(store_errorRatio_out)
-filename = os.path.normpath(os.path.join(directory, 'features\\out_errRatio_out.csv'))
-out_errRatio_out.to_csv(filename, index=False)
+    out_errRatio_out = pd.DataFrame(store_errorRatio_out)
+    filename = os.path.normpath(os.path.join(directory, 'features\\out_errRatio_out.csv'))
+    out_errRatio_out.to_csv(filename, index=False)
 
 # # plot group means for cumulative results: percent steps in range
 # SF_rows = [0, 1, 6, 8, 11, 14, 18]
