@@ -8,6 +8,10 @@ from sklearn.linear_model import Lasso
 import matplotlib.pyplot as plt
 from statsmodels.multivariate.cancorr import CanCorr
 from sklearn.model_selection import KFold
+from sklearn.model_selection import LeaveOneOut
+from sklearn.metrics import mean_squared_error
+from scipy import stats
+
 import scipy
 
 np.set_printoptions(suppress=True) # suppress scientific notation
@@ -19,7 +23,7 @@ directory = filedialog.askdirectory()
 # b. set up
 n_features_in = 7  # input
 n_features_out = 3  # output
-norm = 1 # normalization?
+norm = 0 # normalization?
 
 
 # ___________________________________________________________________________________
@@ -142,6 +146,69 @@ if norm:
 
 
 # # ___________________________ CCA: ____________________
+Y_pred = np.zeros_like(Y)
+Y_real = np.zeros_like(Y)
+loo = LeaveOneOut()
+
+for train_index, test_index in loo.split(X):
+    X_train, X_test = X[train_index], X[test_index]
+    Y_train, Y_test = Y[train_index], Y[test_index]
+
+    cca = CCA(n_components=min(X.shape[1], Y.shape[1]))
+    cca.fit(X_train, Y_train)
+
+    Y_pred[test_index] = cca.predict(X_test)
+    Y_real[test_index] = Y_test
+
+# report MSE:
+mse = np.sqrt(mean_squared_error(Y_real[:,0], Y_pred[:,0]))
+print("RT4 RMSE" + str(mse))
+r2, p_val = stats.pearsonr(Y_real[:,0], Y_pred[:,0])
+print("RT4 R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
+
+# plot pred vs real
+plt.figure(figsize=(10, 6))
+plt.scatter(Y_real[:,0], Y_pred[:,0])
+plt.plot([min(Y_real[:,0]), max(Y_real[:,0])], [min(Y_real[:,0]), max(Y_real[:,0])], 'r--', label='perfect fit')
+plt.xlabel('RMSE (real)')
+plt.ylabel('RMSE (pred)')
+plt.title('RT4 RMSE')
+plt.legend()
+plt.show()
+
+mse = np.sqrt(mean_squared_error(Y_real[:,1], Y_pred[:,1]))
+print("RET RMSE" + str(mse))
+r2, p_val = stats.pearsonr(Y_real[:,1], Y_pred[:,1])
+print("RET R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
+
+# plot pred vs real
+plt.figure(figsize=(10, 6))
+plt.scatter(Y_real[:,1], Y_pred[:,1])
+plt.plot([min(Y_real[:,1]), max(Y_real[:,1])], [min(Y_real[:,1]), max(Y_real[:,1])], 'r--', label='perfect fit')
+plt.xlabel('RMSE (real)')
+plt.ylabel('RMSE (pred)')
+plt.title('RET RMSE')
+plt.legend()
+plt.show()
+
+mse = np.sqrt(mean_squared_error(Y_real[:,2], Y_pred[:,2]))
+print("ERROR RATIO : " + str(mse))
+r2, p_val = stats.pearsonr(Y_real[:,2], Y_pred[:,2])
+print("Error ratio R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
+
+# plot pred vs real
+plt.figure(figsize=(10, 6))
+plt.scatter(Y_real[:,2], Y_pred[:,2])
+plt.plot([min(Y_real[:,2]), max(Y_real[:,2])], [min(Y_real[:,2]), max(Y_real[:,2])], 'r--', label='perfect fit')
+plt.xlabel('error ratio (real)')
+plt.ylabel('error ratio (pred)')
+plt.title('Error ratio RMSE')
+plt.legend()
+plt.show()
+
+
+
+
 # cca_coeffs = []
 # X_c_folds = []
 # Y_c_folds = []

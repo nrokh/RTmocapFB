@@ -7,6 +7,8 @@ import tkinter as tk
 from tkinter import filedialog
 import statsmodels.api as sm
 from sklearn.linear_model import LinearRegression 
+from sklearn.metrics import mean_squared_error
+from scipy import stats
 
 
 # load dir
@@ -15,7 +17,7 @@ root = tk.Tk()
 root.withdraw() 
 directory = filedialog.askdirectory()
 
-norm = 1
+norm = 0
 
 def calc_regression(x, y):
     slope, intercept, r, p, _ = stats.linregress(x, y)
@@ -151,9 +153,11 @@ for i in range(num_samples):
     y_true_all.append(Y_test)
 
 # get mean MSE
-avg_mse = np.mean(mse_scores)
+mse = np.sqrt(mean_squared_error(y_true_all, y_pred_all))
 
-print(f"average MSE: {avg_mse:.4f}")
+print(f"average RMSE: {mse:.4f}")
+r2, p_val = stats.pearsonr(y_true_all, y_pred_all)
+print("RT4 R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
 
 # plot
 plt.figure(figsize=(10, 6))
@@ -201,9 +205,11 @@ for i in range(num_samples):
     y_true_all.append(Y_test)
 
 # get mean MSE
-avg_mse = np.mean(mse_scores)
+mse = np.sqrt(mean_squared_error(y_true_all, y_pred_all))
 
-print(f"Average Mean Squared Error (LOSO CV): {avg_mse:.4f}")
+print(f"Average Mean Squared Error (LOSO CV): {mse:.4f}")
+r2, p_val = stats.pearsonr(y_true_all, y_pred_all)
+print("RT4 R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
 
 # plot pred vs real
 plt.figure(figsize=(10, 6))
@@ -212,6 +218,57 @@ plt.plot([min(y_true_all), max(y_true_all)], [min(y_true_all), max(y_true_all)],
 plt.xlabel('RMSE (real)')
 plt.ylabel('RMSE (pred)')
 plt.title('Retention (RET)')
+plt.legend()
+plt.show()
+
+# DIRECTION OF ERROR:
+print("ERROR RATIO:")
+X = np.stack((in_proprio_in, in_bFPA, np.abs(in_ROM_in)-in_bFPA,  in_cond_fb, in_resp[:,4]), axis=1) # shape = 36xN
+if norm:
+        X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
+Y = out_errRatio_out[1:,5]
+if norm:
+        Y = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
+
+num_samples = X.shape[0]
+mse_scores = []
+y_pred_all = []
+y_true_all = []
+
+for i in range(num_samples):
+    # split
+    X_train = np.delete(X, i, axis=0)
+    Y_train = np.delete(Y, i)
+    X_test = X[i].reshape(1, -1)
+    Y_test = Y[i]
+
+    # train
+    model = LinearRegression()
+    model.fit(X_train, Y_train)
+
+    # test
+    y_pred = model.predict(X_test)[0]
+    mse = np.square(model.predict(X_test) - Y_test).mean()
+    mse_scores.append(mse)
+
+    # store pred and real
+    y_pred_all.append(y_pred)
+    y_true_all.append(Y_test)
+
+# get mean MSE
+mse = np.sqrt(mean_squared_error(y_true_all, y_pred_all))
+
+print(f"Average Mean Squared Error (LOSO CV): {mse:.4f}")
+r2, p_val = stats.pearsonr(y_true_all, y_pred_all)
+print("ERROR RATIO R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
+
+# plot pred vs real
+plt.figure(figsize=(10, 6))
+plt.scatter(y_true_all, y_pred_all)
+plt.plot([min(y_true_all), max(y_true_all)], [min(y_true_all), max(y_true_all)], 'r--', label='perfect fit')
+plt.xlabel('RMSE (real)')
+plt.ylabel('RMSE (pred)')
+plt.title('Error ratio')
 plt.legend()
 plt.show()
 
@@ -240,6 +297,25 @@ X = np.stack((in_proprio_in, in_bFPA, np.abs(in_ROM_in)-in_bFPA,  in_cond_fb, in
 if norm:
         X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
 Y = out_RMSE[:,5]
+if norm:
+        Y = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
+
+#X = sm.add_constant(X) # adds an intercept value
+model = sm.OLS(Y,X).fit()
+results = model.summary()
+
+print("feature weights:")
+print(model.params)
+
+print("\nfeature significance (p-values):")
+print(model.pvalues)
+
+# Error ratio:
+print("error ratio:")
+X = np.stack((in_proprio_in, in_bFPA, np.abs(in_ROM_in)-in_bFPA,  in_cond_fb, in_resp[:,4]), axis=1) # shape = 36xN
+if norm:
+        X = (X - np.mean(X, axis=0) )/np.std(X, axis=0, ddof=1)
+Y = out_errRatio_out[1:,5]
 if norm:
         Y = (Y - np.mean(Y, axis=0) )/np.std(Y, axis=0, ddof=1)
 
