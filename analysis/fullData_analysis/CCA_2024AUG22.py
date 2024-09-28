@@ -146,8 +146,14 @@ if norm:
 
 
 # # ___________________________ CCA: ____________________
+
+
+SF_rows = np.where(feedbackCond_file.cond == 1)[0]
+TF_rows = np.where(feedbackCond_file.cond == 2)[0]
+NF_rows = np.where(feedbackCond_file.cond == 0)[0]
+
 Y_pred = np.zeros_like(Y)
-Y_real = np.zeros_like(Y)
+X_pred = np.zeros_like(Y)
 loo = LeaveOneOut()
 
 for train_index, test_index in loo.split(X):
@@ -157,54 +163,97 @@ for train_index, test_index in loo.split(X):
     cca = CCA(n_components=min(X.shape[1], Y.shape[1]))
     cca.fit(X_train, Y_train)
 
-    Y_pred[test_index] = cca.predict(X_test)
-    Y_real[test_index] = Y_test
+    X_pred[test_index], Y_pred[test_index] = cca.transform(X_test, Y_test)
 
-# report MSE:
-mse = np.sqrt(mean_squared_error(Y_real[:,0], Y_pred[:,0]))
-print("RT4 RMSE" + str(mse))
-r2, p_val = stats.pearsonr(Y_real[:,0], Y_pred[:,0])
-print("RT4 R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
+results = []
+for i in range(3):
+    
+    plt.figure(figsize=(6, 6))
+    plt.scatter(X_pred[SF_rows, i], Y_pred[SF_rows, i], alpha=0.7, color = '#0f4c5c', label = 'SF', s = 60)
+    plt.scatter(X_pred[TF_rows, i], Y_pred[TF_rows, i], alpha=0.7, color = '#5f0f40', label = 'TF', s = 60)
+    plt.scatter(X_pred[NF_rows, i], Y_pred[NF_rows, i], alpha=0.7, color = '#e36414', label = 'NF', s = 60)
+    plt.title("First Canonical Variate")
+    plt.xlabel("X canonical variate 1")
+    plt.ylabel("Y canonical variate 1")
+    plt.ylim([-2.2, 2])
+    plt.xlim([-2.5, 1.7])
+    plt.legend()
+    plt.show()
 
-# plot pred vs real
-plt.figure(figsize=(10, 6))
-plt.scatter(Y_real[:,0], Y_pred[:,0])
-plt.plot([min(Y_real[:,0]), max(Y_real[:,0])], [min(Y_real[:,0]), max(Y_real[:,0])], 'r--', label='perfect fit')
-plt.xlabel('RMSE (real)')
-plt.ylabel('RMSE (pred)')
-plt.title('RT4 RMSE')
-plt.legend()
-plt.show()
+    r, p = stats.pearsonr(X_pred[:, i], Y_pred[:, i])
+    
+    # Calculate F-value
+    n = len(X_pred)
+    dof = n - 2
+    f = (r**2 * dof) / (1 - r**2)
+    
+    results.append({
+        'Component': i + 1,
+        'Pearson R': r,
+        'F-value': f,
+        'p-value': p
+    })
+        
 
-mse = np.sqrt(mean_squared_error(Y_real[:,1], Y_pred[:,1]))
-print("RET RMSE" + str(mse))
-r2, p_val = stats.pearsonr(Y_real[:,1], Y_pred[:,1])
-print("RET R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
 
-# plot pred vs real
-plt.figure(figsize=(10, 6))
-plt.scatter(Y_real[:,1], Y_pred[:,1])
-plt.plot([min(Y_real[:,1]), max(Y_real[:,1])], [min(Y_real[:,1]), max(Y_real[:,1])], 'r--', label='perfect fit')
-plt.xlabel('RMSE (real)')
-plt.ylabel('RMSE (pred)')
-plt.title('RET RMSE')
-plt.legend()
-plt.show()
+# Print results
+for result in results:
+    print(f"Canonical Component {result['Component']}:")
+    print(f"  Pearson's R: {result['Pearson R']:.4f}")
+    print(f"  F-value: {result['F-value']:.4f}")
+    print(f"  p-value: {result['p-value']:.4f}")
+    print()
 
-mse = np.sqrt(mean_squared_error(Y_real[:,2], Y_pred[:,2]))
-print("ERROR RATIO : " + str(mse))
-r2, p_val = stats.pearsonr(Y_real[:,2], Y_pred[:,2])
-print("Error ratio R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
 
-# plot pred vs real
-plt.figure(figsize=(10, 6))
-plt.scatter(Y_real[:,2], Y_pred[:,2])
-plt.plot([min(Y_real[:,2]), max(Y_real[:,2])], [min(Y_real[:,2]), max(Y_real[:,2])], 'r--', label='perfect fit')
-plt.xlabel('error ratio (real)')
-plt.ylabel('error ratio (pred)')
-plt.title('Error ratio RMSE')
-plt.legend()
-plt.show()
+
+
+
+
+# # report MSE:
+# mse = np.sqrt(mean_squared_error(Y_real[:,0], Y_pred[:,0]))
+# print("RT4 RMSE" + str(mse))
+# r2, p_val = stats.pearsonr(Y_real[:,0], Y_pred[:,0])
+# print("RT4 R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
+
+# # plot pred vs real
+# plt.figure(figsize=(10, 6))
+# plt.scatter(Y_real[:,0], Y_pred[:,0])
+# plt.plot([min(Y_real[:,0]), max(Y_real[:,0])], [min(Y_real[:,0]), max(Y_real[:,0])], 'r--', label='perfect fit')
+# plt.xlabel('RMSE (real)')
+# plt.ylabel('RMSE (pred)')
+# plt.title('RT4 RMSE')
+# plt.legend()
+# plt.show()
+
+# mse = np.sqrt(mean_squared_error(Y_real[:,1], Y_pred[:,1]))
+# print("RET RMSE" + str(mse))
+# r2, p_val = stats.pearsonr(Y_real[:,1], Y_pred[:,1])
+# print("RET R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
+
+# # plot pred vs real
+# plt.figure(figsize=(10, 6))
+# plt.scatter(Y_real[:,1], Y_pred[:,1])
+# plt.plot([min(Y_real[:,1]), max(Y_real[:,1])], [min(Y_real[:,1]), max(Y_real[:,1])], 'r--', label='perfect fit')
+# plt.xlabel('RMSE (real)')
+# plt.ylabel('RMSE (pred)')
+# plt.title('RET RMSE')
+# plt.legend()
+# plt.show()
+
+# mse = np.sqrt(mean_squared_error(Y_real[:,2], Y_pred[:,2]))
+# print("ERROR RATIO : " + str(mse))
+# r2, p_val = stats.pearsonr(Y_real[:,2], Y_pred[:,2])
+# print("Error ratio R2 score: " + str(np.square(r2)) + " p= " + str(p_val))
+
+# # plot pred vs real
+# plt.figure(figsize=(10, 6))
+# plt.scatter(Y_real[:,2], Y_pred[:,2])
+# plt.plot([min(Y_real[:,2]), max(Y_real[:,2])], [min(Y_real[:,2]), max(Y_real[:,2])], 'r--', label='perfect fit')
+# plt.xlabel('error ratio (real)')
+# plt.ylabel('error ratio (pred)')
+# plt.title('Error ratio RMSE')
+# plt.legend()
+# plt.show()
 
 
 
