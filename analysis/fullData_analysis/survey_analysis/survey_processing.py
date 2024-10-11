@@ -15,8 +15,16 @@ ocean = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_res
 tam = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='TAM')
 open_ended = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='Open')
 switch = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='Switch')
+borg = pd.read_excel('analysis/fullData_analysis/survey_analysis/all_survey_results.xlsx', sheet_name='Borg')
 
-## TLX Scoring
+###################### Borg ###################### 
+for col in borg.columns:
+    borg[col] = borg[col].apply(lambda x: x.split(':')[0] if isinstance(x, str) and ':' in x else x)
+borg = borg.apply(pd.to_numeric)
+borg['Borg_RPE_mean'] = round(borg.mean(axis=1), 1)
+borg['Borg_RPE_ret'] = borg.iloc[:, 6]
+
+###################### TLX Scoring ###################### 
 tlx['RTLX'] = round(tlx.iloc[:, 0:6].sum(axis=1) / 6, 1) # RTLX (raw TLX)
 
 ###################### TAM Scoring ###################### 
@@ -87,72 +95,60 @@ switch['SW2'] = switch['SW2'].apply(lambda x: 2 if x[0] == 'S' else 1)
 
 ###################### Saving ###################### 
 # save to combined df
-all_data = pd.concat([sub_ID, fb_group, tlx.iloc[:,0:6], tlx['RTLX'], tam['PU'], tam['PEOU'], ocean['Extraversion'], ocean['Agreeableness'], ocean['Conscientiousness'], ocean['Neuroticism'], ocean['Openness'], switch['SW1'], switch['SW2']], axis=1)
-all_data.columns = ['subject','test_group','mental_demand', 'physical_demand', 'temporal_demand', 'effort', 'frustration', 'performance', 'RTLX', 'PU', 'PEOU','extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness', 'switch1', 'switch2']
+all_data = pd.concat([sub_ID, fb_group, tlx.iloc[:,0:6], tlx['RTLX'], tam['PU'], tam['PEOU'], ocean['Extraversion'], ocean['Agreeableness'], ocean['Conscientiousness'], ocean['Neuroticism'], ocean['Openness'], switch['SW1'], switch['SW2'], borg['Borg_RPE_mean'], borg['Borg_RPE_ret']], axis=1)
+all_data.columns = ['subject','test_group','mental_demand', 'physical_demand', 'temporal_demand', 'effort', 'frustration', 'performance', 'RTLX', 'PU', 'PEOU','extraversion', 'agreeableness', 'conscientiousness', 'neuroticism', 'openness', 'switch1', 'switch2', 'Borg_RPE_mean', 'Borg_RPE_ret']
 all_data['test_group'] = all_data['test_group'].map({0: 'NF', 1: 'TF', 2: 'SF'})
 
 # save to file
-all_data.to_csv('analysis/survey_analysis/parsed_survey_data.csv', index=False)
-###################### Plotting ###################### TODO: fix this
+all_data.to_csv('analysis/fullData_analysis/survey_analysis/parsed_survey_data.csv', index=False)
+###################### Plotting ###################### 
 
-# pt.half_violinplot(x = "test_group", y = "RTLX", data = all_data, palette=['#A85751', '#1B998B', '#424B54' ])
-# plt.legend(loc='upper right', labels=['NF', 'TF', 'SF'])
-# plt.show()
+# Plot RTLX scores by feedback condition
+def plot_scores_by_condition(ax, data, column, title):
+    feedback_conditions = ['Feedback', 'No Feedback']
+    feedback_data = data[(data['test_group'] == 'SF') | (data['test_group'] == 'TF')][column]
+    no_feedback_data = data[data['test_group'] == 'NF'][column]
+    
+    # Violin plot for Feedback and No Feedback
+    violin_parts = ax.violinplot([feedback_data, no_feedback_data], positions=range(1, 3), showmeans=True, showextrema=True, showmedians=False)
+    
+    # Scatter plot for SF and TF within Feedback, and NF within No Feedback
+    sf_data = data[data['test_group'] == 'SF'][column]
+    tf_data = data[data['test_group'] == 'TF'][column]
+    nf_data = data[data['test_group'] == 'NF'][column]
+    
+    ax.scatter(np.random.normal(1, 0.04, len(sf_data)), sf_data, alpha=0.3, s=50, label='SF', color='blue')
+    ax.scatter(np.random.normal(1, 0.04, len(tf_data)), tf_data, alpha=0.3, s=50, label='TF', color='green')
+    ax.scatter(np.random.normal(2, 0.04, len(nf_data)), nf_data, alpha=0.3, s=50, label='NF', color='red')
+    
+    ax.set_title(title)
+    ax.set_ylabel(f'{column} Score')
+    ax.set_xticks(range(1, 3))
+    ax.set_xticklabels(feedback_conditions)
+    ax.legend()
 
+fig = plt.figure(figsize=(18, 12))
 
+# Create a grid spec with 2 rows and 2 columns
+gs = fig.add_gridspec(2, 2, width_ratios=[2, 1])
 
+# Plot RTLX scores by feedback condition (taking up 2 rows, 1 column)
+ax0 = fig.add_subplot(gs[:, 0])
+plot_scores_by_condition(ax0, all_data, 'RTLX', 'RTLX Scores by Feedback Condition')
+ax0.set_ylim(0, 100)
 
+# Plot mental demand scores by feedback condition (top right)
+ax1 = fig.add_subplot(gs[0, 1])
+plot_scores_by_condition(ax1, all_data, 'mental_demand', 'Mental Demand Scores by Feedback Condition')
+ax1.set_ylim(0, 100)
 
+# Plot Borg RPE (retention) scores by feedback condition (bottom right)
+ax2 = fig.add_subplot(gs[1, 1])
+plot_scores_by_condition(ax2, all_data, 'Borg_RPE_ret', 'Borg RPE Scores (Retention) by Feedback Condition')
+ax2.set_ylim(6, 20)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # Plot the RTLX scores for each group as a boxplot
-# sns.set_theme(style="whitegrid")
-# fig, ax = plt.subplots(figsize=(12, 8))
-# sns.boxplot(x='test_group', y='RTLX', data=all_data, ax=ax, palette=['#A85751', '#1B998B', '#424B54' ])
-# ax.set_title('RTLX Scores by FB Group', fontsize=16, fontweight='bold')
-# ax.set_ylabel('RTLX Score', fontsize=14)
-# ax.set_xlabel('Group', fontsize=14)
-# ax.tick_params(axis='x', labelsize=12)
-# ax.tick_params(axis='y', labelsize=12)
-# ax.yaxis.grid(True)
-# ax.xaxis.grid(True)
-# ax.set_ylim(0, 100)
-# plt.tight_layout()
-# plt.savefig('analysis/survey_analysis/rtlx_scores_by_group.png')
-# plt.show()
+plt.tight_layout()
+plt.show()
 
 
 # # Plot each of the tlx subscales as 6 subplots, boxplots for each group
@@ -200,32 +196,28 @@ all_data.to_csv('analysis/survey_analysis/parsed_survey_data.csv', index=False)
 # plt.show()
 
 
-# # make a grouped bar plot of the SW1 and SW2 scores for each group, showing how many people chose each option for each group
-# fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-# switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack()
-# switch2_counts = all_data.groupby(['test_group', 'switch2']).size().unstack()
-# switch1_counts.plot(kind='bar', stacked=True, ax=axes[0], color=['#1B998B', '#A85751'])
-# axes[0].set_title('Enjoyed More by FB Group', fontsize=16, fontweight='bold')
-# axes[0].set_ylabel('Count', fontsize=14)
-# axes[0].set_xlabel('Group', fontsize=14)
-# axes[0].tick_params(axis='x', labelsize=12)
-# axes[0].tick_params(axis='y', labelsize=12)
-# axes[0].yaxis.grid(True)
-# axes[0].xaxis.grid(True)
-# axes[0].get_legend().set_visible(False)
+# make a grouped bar plot of the SW1 and SW2 scores for each group, showing how many people chose each option for each group
+fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack()
+switch2_counts = all_data.groupby(['test_group', 'switch2']).size().unstack()
+switch1_counts.plot(kind='bar', stacked=True, ax=axes[0], color=['#1B998B', '#A85751'])
+axes[0].set_title('Enjoyed More by FB Group', fontsize=16, fontweight='bold')
+axes[0].set_ylabel('Count', fontsize=14)
+axes[0].set_xlabel('Group', fontsize=14)
+axes[0].tick_params(axis='x', labelsize=12)
+axes[0].tick_params(axis='y', labelsize=12)
+axes[0].get_legend().set_visible(False)
 
-# switch2_counts.plot(kind='bar', stacked=True, ax=axes[1], color=['#1B998B', '#A85751'])
-# axes[1].set_title('Perceived Use for Learning by FB Group', fontsize=16, fontweight='bold')
-# axes[1].set_ylabel('Count', fontsize=14)
-# axes[1].set_xlabel('Group', fontsize=14)
-# axes[1].tick_params(axis='x', labelsize=12)
-# axes[1].tick_params(axis='y', labelsize=12)
-# axes[1].yaxis.grid(True)
-# axes[1].xaxis.grid(True)
-# plt.tight_layout()
-# legend = plt.legend( loc='upper right', labels=['TF', 'SF'])
+switch2_counts.plot(kind='bar', stacked=True, ax=axes[1], color=['#1B998B', '#A85751'])
+axes[1].set_title('Perceived Use for Learning by FB Group', fontsize=16, fontweight='bold')
+axes[1].set_ylabel('Count', fontsize=14)
+axes[1].set_xlabel('Group', fontsize=14)
+axes[1].tick_params(axis='x', labelsize=12)
+axes[1].tick_params(axis='y', labelsize=12)
+plt.tight_layout()
+legend = plt.legend( loc='upper right', labels=['TF', 'SF'])
 # plt.savefig('analysis/survey_analysis/switch_scores_by_group.png')
-# plt.show()
+plt.show()
 
 
 

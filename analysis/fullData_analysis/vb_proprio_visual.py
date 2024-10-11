@@ -18,19 +18,158 @@ subs_tot = 36
 feedbackCond_csv_file = os.path.normpath(os.path.join(directory, 'feedbackGroups.csv'))
 fb_cond = pd.read_csv(feedbackCond_csv_file).values.flatten()[:36] # 2 = SF, 1 = TF, 0 = NF
 
-# ################################################################################################################################################################
+################################################################################################################################################################
 
-# # Load VB test data from day 1, look at accuracy for each duration difference (30, 80, 240, 300 ms)
-# vbtest = []
-# duration_diff_ms = []
-# vibration_side = [1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 
-#                   0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0] # 1 = right, 0 = left
-# duration_pairs_ms = [[300 , 380], [300, 270], [330, 300], [300, 600], [270, 300], [60, 300], [220, 300], [300, 330], [380, 300],
-#                 [300, 270], [300, 220], [300, 60], [330, 300], [300, 60], [300, 380], [220, 300], [300, 600], [270, 300], [600, 300],
-#                 [270, 300], [60, 300], [300, 380], [300, 220], [300, 330], [300, 60], [600, 300], [300, 220], [380, 300], [330, 300],
-#                 [600, 300], [300, 380], [300, 270], [330, 300], [300, 600], [270, 300], [60, 300], [220, 300], [300, 330], [380, 300],
-#                 [300, 270], [300, 220], [300, 60], [330, 300], [300, 60], [300, 380], [220, 300], [300, 600], [270, 300], [600, 300],
-#                 [270, 300], [60, 300], [300, 380], [300, 220], [300, 330], [300, 60], [600, 300], [300, 220], [380, 300], [330, 300], [600, 300]] # vibration pairs used in the VB test (ms)
+# Load VB test data from day 1, look at accuracy for each duration difference (30, 80, 240, 300 ms)
+vbtest = []
+duration_diff_ms = []
+vibration_side = [1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 
+                  0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0] # 1 = right, 0 = left
+duration_pairs_ms = [[300 , 380], [300, 270], [330, 300], [300, 600], [270, 300], [60, 300], [220, 300], [300, 330], [380, 300],
+                [300, 270], [300, 220], [300, 60], [330, 300], [300, 60], [300, 380], [220, 300], [300, 600], [270, 300], [600, 300],
+                [270, 300], [60, 300], [300, 380], [300, 220], [300, 330], [300, 60], [600, 300], [300, 220], [380, 300], [330, 300],
+                [600, 300], [300, 380], [300, 270], [330, 300], [300, 600], [270, 300], [60, 300], [220, 300], [300, 330], [380, 300],
+                [300, 270], [300, 220], [300, 60], [330, 300], [300, 60], [300, 380], [220, 300], [300, 600], [270, 300], [600, 300],
+                [270, 300], [60, 300], [300, 380], [300, 220], [300, 330], [300, 60], [600, 300], [300, 220], [380, 300], [330, 300], [600, 300]] # vibration pairs used in the VB test (ms)
+
+
+sorted_duration_pairs_ms = np.array([[300, pair[1]] if pair[0] == 300 else [300, pair[0]] for pair in duration_pairs_ms])
+duration_to_index = {60: 0, 220: 1, 270: 2, 330: 3, 380: 4, 600: 5}
+vib_pairs = [[] for _ in range(6)]
+
+for i, pair in enumerate(sorted_duration_pairs_ms):
+    index = duration_to_index.get(pair[1])
+    if index is not None:
+        vib_pairs[index].append(i)
+
+vbtest = []
+for i in range(subs_tot):
+    sub = i+1
+    sub_str = str(sub).zfill(2)
+    vbtest_file = os.path.normpath(os.path.join(directory, 's'+sub_str,'s'+sub_str+'_day1_vbtest.csv'))
+    vbtest.append(np.genfromtxt(vbtest_file, delimiter=','))
+    if sub == 4:
+        vbtest[3][0] = 1
+
+# Calculate the accuracy for each vibration pair
+vbtest_acc = np.zeros((subs_tot, 6))
+for i in range(subs_tot):
+    for j in range(6):
+        idx = vib_pairs[j]
+        for k in idx:
+            if vbtest[i][k] == 1:
+                vbtest_acc[i][j] += 1
+
+trial_counts = np.array([len(vib_pairs[j]) for j in range(6)])
+vbtest_acc = vbtest_acc / trial_counts
+df = pd.DataFrame(vbtest_acc, columns=[60, 220, 270, 330, 380, 600])
+df['Feedback Condition'] = fb_cond
+df = pd.melt(df, id_vars=['Feedback Condition'], value_vars=[60, 220, 270, 330, 380, 600],
+                var_name='Vibration Pair (ms)', value_name='Accuracy')
+
+fig, axs = plt.subplots(2, 2, figsize=(15, 10))
+
+feedback_conditions = ['NF', 'TF', 'SF']
+min_pt_size = 60  # Minimum circle size
+durations = [60, 220, 270, 330, 380, 600]
+
+for i, cond in enumerate(feedback_conditions):
+    ax = axs[i // 2, i % 2]
+    for duration in durations:
+        subset = df[(df['Feedback Condition'] == i) & (df['Vibration Pair (ms)'] == duration)]
+        sizes = subset.groupby('Accuracy').size().reindex(subset['Accuracy']).fillna(0).apply(lambda x: min_pt_size*x)  # Scale factor for size
+        sns.scatterplot(x=[duration] * len(subset), y='Accuracy', data=subset, 
+                        color='black', marker='o', s=sizes, ax=ax, label=duration)
+    ax.set_title(f'VB Test Accuracy for {cond} Feedback Condition')
+    ax.set_ylim(0.2, 1.1)  # Set y-axis limits
+    ax.set_xticks(durations)  # Set x-axis ticks to the specific durations
+    ax.axvline(x=300, color='gray', linestyle='--')  # Draw dashed vertical line at 300 ms
+    ax.legend().set_visible(False)  # Turn off the legend
+
+# Create a legend for the sizes of the dots
+handles, labels = [], []
+for trials in range(1, 13):  # 1 to 12 trials
+    size = min_pt_size * trials  # Scale factor for size based on group size
+    handles.append(plt.scatter([], [], s=size, color='black', alpha=0.6))
+    labels.append(f'{trials} trials')
+
+fig.legend(handles, labels, title='Dot Size (Number of Trials)', loc='upper right')
+
+# Violin plot for total accuracy
+ax = axs[1, 1]
+sns.violinplot(x='Feedback Condition', y='Accuracy', data=df, ax=ax, palette=['#424B54', '#1B998B', '#A85751'])
+ax.set_xticklabels(['NF', 'TF', 'SF'])
+ax.set_title('Total VB Test Accuracy by Feedback Condition')
+ax.set_ylim(0.2, 1.1)  # Set y-axis limits
+
+plt.tight_layout()
+plt.show()
+
+
+# Stats for the accuracy for VB test... do we want to include this?
+nf_acc = df[(df['Feedback Condition'] == 0) & (df['Duration Difference (ms)'] == 'Total')]['Accuracy']
+tf_acc = df[(df['Feedback Condition'] == 1) & (df['Duration Difference (ms)'] == 'Total')]['Accuracy']
+sf_acc = df[(df['Feedback Condition'] == 2) & (df['Duration Difference (ms)'] == 'Total')]['Accuracy']
+
+# Shapiro-Wilk test for normality
+nf_shapiro = stats.shapiro(nf_acc) #p = 0.122
+tf_shapiro = stats.shapiro(tf_acc) #p = 0.0135*
+sf_shapiro = stats.shapiro(sf_acc) #p = 0.310
+total_shapiro = stats.shapiro(df[df['Duration Difference (ms)'] == 'Total']['Accuracy']) #p = 0.183
+
+# Bartlett's test for equal variance... p = 0.556
+bartlett = stats.bartlett(nf_acc, tf_acc, sf_acc)
+
+################################################################################################################################################################
+
+# Load proprioception data from Day 1 TODO: check that the in_proprio_in and in_proprio_out files are correct and not flipped
+files = ['in_proprio_in.csv', 'in_proprio_out.csv', 'in_proprio_RMSE.csv']
+data = {}
+
+for file in files:
+    file_path = os.path.normpath(os.path.join(directory, 'features', file))
+    data[file.split('.')[0]] = np.abs(np.genfromtxt(file_path, delimiter=',')) if 'RMSE' not in file else np.genfromtxt(file_path, delimiter=',')
+
+in_proprio_in = -data['in_proprio_in'][1:].flatten()
+in_proprio_out = data['in_proprio_out'][1:].flatten()
+in_proprio_RMSE = data['in_proprio_RMSE'][1:].flatten()
+
+# Make a dataframe for the proprioception data with the feedback condition
+df = pd.DataFrame({'Feedback Condition': fb_cond, 'Toe-In': in_proprio_in, 'Toe-Out': in_proprio_out, 'RMSE': in_proprio_RMSE})
+
+# Plot the toe-in and toe-out proprioception data 
+fig, axs = plt.subplots(1, 2, figsize=(15, 5))
+
+# Define a function to plot the data
+def plot_proprioception_error(ax, data, title):
+    feedback_conditions = ['SF', 'TF', 'NF']
+    violin_parts = ax.violinplot(data, positions=range(1, 4), showmeans=True, showextrema=True, showmedians=False)
+    ax.set_title(title)
+    ax.set_ylabel('Proprioceptive Error (degrees)')
+    ax.set_xticks(range(1, 4))
+    ax.set_xticklabels(feedback_conditions)
+    for i, cond_data in enumerate(data, start=1):
+        ax.scatter(np.random.normal(i, 0.04, len(cond_data)), cond_data, alpha=0.3, s=15)
+
+# Separate data for each feedback condition
+data_in = [df[df['Feedback Condition'] == i]['Toe-In'] for i in range(2, -1, -1)]
+data_out = [df[df['Feedback Condition'] == i]['Toe-Out'] for i in range(2, -1, -1)]
+
+# Plot Toe-In Proprioceptive Error
+plot_proprioception_error(axs[0], data_in, 'Toe-In Proprioceptive Error by Feedback Condition')
+
+# Plot Toe-Out Proprioceptive Error
+plot_proprioception_error(axs[1], data_out, 'Toe-Out Proprioceptive Error by Feedback Condition')
+
+plt.tight_layout()
+plt.show()
+
+
+
+
+
+
+########################
 
 # # Calculate the difference between durations (ms
 # for i in range(len(duration_pairs_ms)):
@@ -77,11 +216,12 @@ fb_cond = pd.read_csv(feedbackCond_csv_file).values.flatten()[:36] # 2 = SF, 1 =
 
 # # Scatter plots for each feedback condition - TODO: figure out how to condense this to one subplot... currently doing in affinity designer
 # feedback_conditions = ['NF', 'TF', 'SF']
+# scaling_factor = 100  # Define the scaling factor 'a'
 # for i, cond in enumerate(feedback_conditions):
 #     ax = axs[i // 2, i % 2]
 #     for duration in ['30 ms', '80 ms', '240 ms', '300 ms']:
 #         subset = df[(df['Feedback Condition'] == i) & (df['Duration Difference (ms)'] == duration)]
-#         sizes = subset.groupby('Accuracy').size().reindex(subset['Accuracy']).fillna(0).apply(lambda x: 40 + (x - 1) * (1500 - 40) / (12 - 1))  # Scale factor for size
+#         sizes = subset.groupby('Accuracy').size().reindex(subset['Accuracy']).fillna(0).apply(lambda x: scaling_factor * x)  # Linear scale factor for size
 #         sns.scatterplot(x='Duration Difference (ms)', y='Accuracy', data=subset, 
 #                         color='black', marker='o', s=sizes, ax=ax, label=duration)
 #     ax.set_title(f'VB Test Accuracy for {cond} Feedback Condition')
@@ -91,11 +231,12 @@ fb_cond = pd.read_csv(feedbackCond_csv_file).values.flatten()[:36] # 2 = SF, 1 =
 # # Create a legend for the sizes of the dots
 # handles, labels = [], []
 # for trials in range(1, 13):  # 1 to 12 trials
-#     size = 40 + (trials - 1) * (1500 - 40) / (12 - 1)  # Scale factor for size
+#     size = scaling_factor * trials  # Linear scale factor for size based on group size
 #     handles.append(plt.scatter([], [], s=size, color='black', alpha=0.6))
 #     labels.append(f'{trials} trials')
 
 # fig.legend(handles, labels, title='Dot Size (Number of Trials)', loc='upper right')
+# #print out the size of the dots for 1-12 trials in the legend
 
 # # Violin plot for total accuracy
 # ax = axs[1, 1]
@@ -106,61 +247,3 @@ fb_cond = pd.read_csv(feedbackCond_csv_file).values.flatten()[:36] # 2 = SF, 1 =
 
 # plt.tight_layout()
 # plt.show()
-
-# # Stats for the accuracy for VB test... do we want to include this?
-# nf_acc = df[(df['Feedback Condition'] == 0) & (df['Duration Difference (ms)'] == 'Total')]['Accuracy']
-# tf_acc = df[(df['Feedback Condition'] == 1) & (df['Duration Difference (ms)'] == 'Total')]['Accuracy']
-# sf_acc = df[(df['Feedback Condition'] == 2) & (df['Duration Difference (ms)'] == 'Total')]['Accuracy']
-
-# # Shapiro-Wilk test for normality
-# nf_shapiro = stats.shapiro(nf_acc) #p = 0.122
-# tf_shapiro = stats.shapiro(tf_acc) #p = 0.0135*
-# sf_shapiro = stats.shapiro(sf_acc) #p = 0.310
-# total_shapiro = stats.shapiro(df[df['Duration Difference (ms)'] == 'Total']['Accuracy']) #p = 0.183
-
-# # Bartlett's test for equal variance... p = 0.556
-# bartlett = stats.bartlett(nf_acc, tf_acc, sf_acc)
-
-################################################################################################################################################################
-
-# Load proprioception data from Day 1 TODO: check that the in_proprio_in and in_proprio_out files are correct and not flipped
-files = ['in_proprio_in.csv', 'in_proprio_out.csv', 'in_proprio_RMSE.csv']
-data = {}
-
-for file in files:
-    file_path = os.path.normpath(os.path.join(directory, 'features', file))
-    data[file.split('.')[0]] = np.abs(np.genfromtxt(file_path, delimiter=',')) if 'RMSE' not in file else np.genfromtxt(file_path, delimiter=',')
-
-in_proprio_in = -data['in_proprio_in'][1:].flatten()
-in_proprio_out = data['in_proprio_out'][1:].flatten()
-in_proprio_RMSE = data['in_proprio_RMSE'][1:].flatten()
-
-# Make a dataframe for the proprioception data with the feedback condition
-df = pd.DataFrame({'Feedback Condition': fb_cond, 'Toe-In': in_proprio_in, 'Toe-Out': in_proprio_out, 'RMSE': in_proprio_RMSE})
-
-# Plot the toe-in and toe-out proprioception data (make the toe-in negative) and plot as scatter plot with 0-deg error in the center of the plot, separating the toe-in and toe-out data... the y axis should be the feedback condition group and the x axis should be the proprioceptive error
-fig, axs = plt.subplots(1, 2, figsize=(15, 5))
-
-# Define a function to plot the data
-def plot_proprioception_error(ax, data, title):
-    feedback_conditions = ['SF', 'TF', 'NF']
-    violin_parts = ax.violinplot(data, positions=range(1, 4), showmeans=True, showextrema=True, showmedians=False)
-    ax.set_title(title)
-    ax.set_ylabel('Proprioceptive Error (degrees)')
-    ax.set_xticks(range(1, 4))
-    ax.set_xticklabels(feedback_conditions)
-    for i, cond_data in enumerate(data, start=1):
-        ax.scatter(np.random.normal(i, 0.04, len(cond_data)), cond_data, alpha=0.3, s=15)
-
-# Separate data for each feedback condition
-data_in = [df[df['Feedback Condition'] == i]['Toe-In'] for i in range(2, -1, -1)]
-data_out = [df[df['Feedback Condition'] == i]['Toe-Out'] for i in range(2, -1, -1)]
-
-# Plot Toe-In Proprioceptive Error
-plot_proprioception_error(axs[0], data_in, 'Toe-In Proprioceptive Error by Feedback Condition')
-
-# Plot Toe-Out Proprioceptive Error
-plot_proprioception_error(axs[1], data_out, 'Toe-Out Proprioceptive Error by Feedback Condition')
-
-plt.tight_layout()
-plt.show()
