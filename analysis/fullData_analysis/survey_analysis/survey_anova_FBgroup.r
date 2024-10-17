@@ -340,7 +340,7 @@ data <- data.frame(
 )
 
 # Test for normality - Borg Ret... p = 0.05757
-sw_test <- shapiro.test(data$value) 
+sw_test <- shapiro.test(data$value)
 print(sw_test)
 
 # Test for equal variance - Borg Ret... p = 0.6153
