@@ -103,52 +103,52 @@ all_data['test_group'] = all_data['test_group'].map({0: 'NF', 1: 'TF', 2: 'SF'})
 all_data.to_csv('analysis/fullData_analysis/survey_analysis/parsed_survey_data.csv', index=False)
 ###################### Plotting ###################### 
 
-# Plot RTLX scores by feedback condition
-def plot_scores_by_condition(ax, data, column, title):
-    feedback_conditions = ['Feedback', 'No Feedback']
-    feedback_data = data[(data['test_group'] == 'SF') | (data['test_group'] == 'TF')][column]
-    no_feedback_data = data[data['test_group'] == 'NF'][column]
+# # Plot RTLX scores by feedback condition
+# def plot_scores_by_condition(ax, data, column, title):
+#     feedback_conditions = ['Feedback', 'No Feedback']
+#     feedback_data = data[(data['test_group'] == 'SF') | (data['test_group'] == 'TF')][column]
+#     no_feedback_data = data[data['test_group'] == 'NF'][column]
     
-    # Violin plot for Feedback and No Feedback
-    violin_parts = ax.violinplot([feedback_data, no_feedback_data], positions=range(1, 3), showmeans=True, showextrema=True, showmedians=False)
+#     # Violin plot for Feedback and No Feedback
+#     violin_parts = ax.violinplot([feedback_data, no_feedback_data], positions=range(1, 3), showmeans=True, showextrema=True, showmedians=False)
     
-    # Scatter plot for SF and TF within Feedback, and NF within No Feedback
-    sf_data = data[data['test_group'] == 'SF'][column]
-    tf_data = data[data['test_group'] == 'TF'][column]
-    nf_data = data[data['test_group'] == 'NF'][column]
+#     # Scatter plot for SF and TF within Feedback, and NF within No Feedback
+#     sf_data = data[data['test_group'] == 'SF'][column]
+#     tf_data = data[data['test_group'] == 'TF'][column]
+#     nf_data = data[data['test_group'] == 'NF'][column]
     
-    ax.scatter(np.random.normal(1, 0.04, len(sf_data)), sf_data, alpha=0.3, s=50, label='SF', color='blue')
-    ax.scatter(np.random.normal(1, 0.04, len(tf_data)), tf_data, alpha=0.3, s=50, label='TF', color='green')
-    ax.scatter(np.random.normal(2, 0.04, len(nf_data)), nf_data, alpha=0.3, s=50, label='NF', color='red')
+#     ax.scatter(np.random.normal(1, 0.04, len(sf_data)), sf_data, alpha=0.3, s=50, label='SF', color='blue')
+#     ax.scatter(np.random.normal(1, 0.04, len(tf_data)), tf_data, alpha=0.3, s=50, label='TF', color='green')
+#     ax.scatter(np.random.normal(2, 0.04, len(nf_data)), nf_data, alpha=0.3, s=50, label='NF', color='red')
     
-    ax.set_title(title)
-    ax.set_ylabel(f'{column} Score')
-    ax.set_xticks(range(1, 3))
-    ax.set_xticklabels(feedback_conditions)
-    ax.legend()
+#     ax.set_title(title)
+#     ax.set_ylabel(f'{column} Score')
+#     ax.set_xticks(range(1, 3))
+#     ax.set_xticklabels(feedback_conditions)
+#     ax.legend()
 
-fig = plt.figure(figsize=(18, 12))
+# fig = plt.figure(figsize=(18, 12))
 
-# Create a grid spec with 2 rows and 2 columns
-gs = fig.add_gridspec(2, 2, width_ratios=[2, 1])
+# # Create a grid spec with 2 rows and 2 columns
+# gs = fig.add_gridspec(2, 2, width_ratios=[2, 1])
 
-# Plot RTLX scores by feedback condition (taking up 2 rows, 1 column)
-ax0 = fig.add_subplot(gs[:, 0])
-plot_scores_by_condition(ax0, all_data, 'RTLX', 'RTLX Scores by Feedback Condition')
-ax0.set_ylim(0, 100)
+# # Plot RTLX scores by feedback condition (taking up 2 rows, 1 column)
+# ax0 = fig.add_subplot(gs[:, 0])
+# plot_scores_by_condition(ax0, all_data, 'RTLX', 'RTLX Scores by Feedback Condition')
+# ax0.set_ylim(0, 100)
 
-# Plot mental demand scores by feedback condition (top right)
-ax1 = fig.add_subplot(gs[0, 1])
-plot_scores_by_condition(ax1, all_data, 'mental_demand', 'Mental Demand Scores by Feedback Condition')
-ax1.set_ylim(0, 100)
+# # Plot mental demand scores by feedback condition (top right)
+# ax1 = fig.add_subplot(gs[0, 1])
+# plot_scores_by_condition(ax1, all_data, 'mental_demand', 'Mental Demand Scores by Feedback Condition')
+# ax1.set_ylim(0, 100)
 
-# Plot Borg RPE (retention) scores by feedback condition (bottom right)
-ax2 = fig.add_subplot(gs[1, 1])
-plot_scores_by_condition(ax2, all_data, 'Borg_RPE_ret', 'Borg RPE Scores (Retention) by Feedback Condition')
-ax2.set_ylim(6, 20)
+# # Plot Borg RPE (retention) scores by feedback condition (bottom right)
+# ax2 = fig.add_subplot(gs[1, 1])
+# plot_scores_by_condition(ax2, all_data, 'Borg_RPE_ret', 'Borg RPE Scores (Retention) by Feedback Condition')
+# ax2.set_ylim(6, 20)
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
 
 
 # # Plot each of the tlx subscales as 6 subplots, boxplots for each group
@@ -200,7 +200,7 @@ plt.show()
 fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack()
 switch2_counts = all_data.groupby(['test_group', 'switch2']).size().unstack()
-switch1_counts.plot(kind='bar', stacked=True, ax=axes[0], color=['#1B998B', '#A85751'])
+switch1_counts.plot(kind='bar', stacked=True, ax=axes[0], color=['#5F0D3E','#0D4C5C'])
 axes[0].set_title('Enjoyed More by FB Group', fontsize=16, fontweight='bold')
 axes[0].set_ylabel('Count', fontsize=14)
 axes[0].set_xlabel('Group', fontsize=14)
@@ -208,7 +208,7 @@ axes[0].tick_params(axis='x', labelsize=12)
 axes[0].tick_params(axis='y', labelsize=12)
 axes[0].get_legend().set_visible(False)
 
-switch2_counts.plot(kind='bar', stacked=True, ax=axes[1], color=['#1B998B', '#A85751'])
+switch2_counts.plot(kind='bar', stacked=True, ax=axes[1], color=['#5F0D3E','#0D4C5C'])
 axes[1].set_title('Perceived Use for Learning by FB Group', fontsize=16, fontweight='bold')
 axes[1].set_ylabel('Count', fontsize=14)
 axes[1].set_xlabel('Group', fontsize=14)
@@ -216,8 +216,40 @@ axes[1].tick_params(axis='x', labelsize=12)
 axes[1].tick_params(axis='y', labelsize=12)
 plt.tight_layout()
 legend = plt.legend( loc='upper right', labels=['TF', 'SF'])
-# plt.savefig('analysis/survey_analysis/switch_scores_by_group.png')
+
 plt.show()
+
+# plt.savefig('analysis/survey_analysis/switch_scores_by_group.png')
+fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+# Group and count switch1 by test_group
+switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack().fillna(0)
+switch1_counts = switch1_counts.reindex(['TF', 'SF', 'NF'])  # Ensure the order is TF, SF, NF
+switch1_counts['total'] = switch1_counts.sum(axis=1)
+
+# Plot pie chart for switch1 counts
+switch1_counts['total'].plot(kind='pie', ax=axes[0], labels=['TF', 'SF', 'NF'], colors=['#A85751', '#1B998B', '#424B54'], autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
+axes[0].set_ylabel('')  # Remove y-label for pie chart
+axes[0].set_title('Switch1 Counts by Group', fontsize=16, fontweight='bold')
+
+#in the second subplot, plot the count for NF_1, NF_2, TF_1, TF_2, SF_1, SF_2 as a pie chart... there should be 6 slices
+switch1_combined_counts = all_data.groupby(['test_group', 'switch1']).size().unstack().fillna(0)
+switch1_combined_counts = switch1_combined_counts.reset_index().melt(id_vars='test_group', value_name='count')
+
+# Create a new column for combined labels
+switch1_combined_counts['label'] = switch1_combined_counts['test_group'] + '_' + switch1_combined_counts['switch1'].astype(str)
+
+# Ensure the order is 'TF_1', 'TF_2', 'SF_1', 'SF_2', 'NF_1', 'NF_2'
+order = ['TF_1', 'TF_2', 'SF_1', 'SF_2', 'NF_1', 'NF_2']
+switch1_combined_counts = switch1_combined_counts.set_index('label').reindex(order).reset_index()
+
+# Plot pie chart
+switch1_combined_counts['count'].plot(kind='pie', ax=axes[1], labels=order, colors=['#A85751', '#1B998B', '#424B54', '#A85751', '#1B998B', '#424B54'], autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
+axes[1].set_ylabel('')  # Remove y-label for pie chart
+axes[1].set_title('Switch1 Combined Counts by Group', fontsize=16, fontweight='bold')
+
+plt.show()
+
 
 
 
