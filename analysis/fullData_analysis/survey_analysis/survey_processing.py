@@ -196,59 +196,80 @@ all_data.to_csv('analysis/fullData_analysis/survey_analysis/parsed_survey_data.c
 # plt.show()
 
 
-# make a grouped bar plot of the SW1 and SW2 scores for each group, showing how many people chose each option for each group
-fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack()
-switch2_counts = all_data.groupby(['test_group', 'switch2']).size().unstack()
-switch1_counts.plot(kind='bar', stacked=True, ax=axes[0], color=['#5F0D3E','#0D4C5C'])
-axes[0].set_title('Enjoyed More by FB Group', fontsize=16, fontweight='bold')
-axes[0].set_ylabel('Count', fontsize=14)
-axes[0].set_xlabel('Group', fontsize=14)
-axes[0].tick_params(axis='x', labelsize=12)
-axes[0].tick_params(axis='y', labelsize=12)
-axes[0].get_legend().set_visible(False)
+# # make a grouped bar plot of the SW1 and SW2 scores for each group
+# fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+# switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack()
+# switch2_counts = all_data.groupby(['test_group', 'switch2']).size().unstack()
+# switch1_counts.plot(kind='bar', stacked=True, ax=axes[0], color=['#5F0D3E','#0D4C5C'])
+# axes[0].set_title('Enjoyed More by FB Group', fontsize=16, fontweight='bold')
+# axes[0].set_ylabel('Count', fontsize=14)
+# axes[0].set_xlabel('Group', fontsize=14)
+# axes[0].tick_params(axis='x', labelsize=12)
+# axes[0].tick_params(axis='y', labelsize=12)
+# axes[0].get_legend().set_visible(False)
 
-switch2_counts.plot(kind='bar', stacked=True, ax=axes[1], color=['#5F0D3E','#0D4C5C'])
-axes[1].set_title('Perceived Use for Learning by FB Group', fontsize=16, fontweight='bold')
-axes[1].set_ylabel('Count', fontsize=14)
-axes[1].set_xlabel('Group', fontsize=14)
-axes[1].tick_params(axis='x', labelsize=12)
-axes[1].tick_params(axis='y', labelsize=12)
-plt.tight_layout()
-legend = plt.legend( loc='upper right', labels=['TF', 'SF'])
+# switch2_counts.plot(kind='bar', stacked=True, ax=axes[1], color=['#5F0D3E','#0D4C5C'])
+# axes[1].set_title('Perceived Use for Learning by FB Group', fontsize=16, fontweight='bold')
+# axes[1].set_ylabel('Count', fontsize=14)
+# axes[1].set_xlabel('Group', fontsize=14)
+# axes[1].tick_params(axis='x', labelsize=12)
+# axes[1].tick_params(axis='y', labelsize=12)
+# plt.tight_layout()
+# legend = plt.legend( loc='upper right', labels=['TF', 'SF'])
 
-plt.show()
-
+# plt.show()
 # plt.savefig('analysis/survey_analysis/switch_scores_by_group.png')
-fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
-# Group and count switch1 by test_group
-switch1_counts = all_data.groupby(['test_group', 'switch1']).size().unstack().fillna(0)
-switch1_counts = switch1_counts.reindex(['TF', 'SF', 'NF'])  # Ensure the order is TF, SF, NF
-switch1_counts['total'] = switch1_counts.sum(axis=1)
+# # make a nested pie chart for the switch data
+def plot_switch_pie_chart(data, switch_column, title):
+    fig, ax = plt.subplots(figsize=(8, 8))
 
-# Plot pie chart for switch1 counts
-switch1_counts['total'].plot(kind='pie', ax=axes[0], labels=['TF', 'SF', 'NF'], colors=['#A85751', '#1B998B', '#424B54'], autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
-axes[0].set_ylabel('')  # Remove y-label for pie chart
-axes[0].set_title('Switch1 Counts by Group', fontsize=16, fontweight='bold')
+    switch_counts = data.groupby(['test_group', switch_column]).size().unstack(fill_value=0)
+    switch_counts = switch_counts.reindex(['TF', 'SF', 'NF']) 
+    switch_counts['total'] = switch_counts.sum(axis=1)
 
-#in the second subplot, plot the count for NF_1, NF_2, TF_1, TF_2, SF_1, SF_2 as a pie chart... there should be 6 slices
-switch1_combined_counts = all_data.groupby(['test_group', 'switch1']).size().unstack().fillna(0)
-switch1_combined_counts = switch1_combined_counts.reset_index().melt(id_vars='test_group', value_name='count')
+    # Plot outer pie chart for switch counts
+    switch_counts['total'].plot(
+        kind='pie', 
+        ax=ax, 
+        labels=['TF', 'SF', 'NF'], 
+        colors=['#A85751', '#1B998B', '#424B54'], 
+        autopct='%1.1f%%', 
+        startangle=90, 
+        radius=1, 
+        wedgeprops=dict(width=0.3)
+    )
 
-# Create a new column for combined labels
-switch1_combined_counts['label'] = switch1_combined_counts['test_group'] + '_' + switch1_combined_counts['switch1'].astype(str)
+    switch_combined_counts = data.groupby(['test_group', switch_column]).size().unstack(fill_value=0)
+    switch_combined_counts = switch_combined_counts.reset_index().melt(id_vars='test_group', value_name='count')
 
-# Ensure the order is 'TF_1', 'TF_2', 'SF_1', 'SF_2', 'NF_1', 'NF_2'
-order = ['TF_1', 'TF_2', 'SF_1', 'SF_2', 'NF_1', 'NF_2']
-switch1_combined_counts = switch1_combined_counts.set_index('label').reindex(order).reset_index()
+    switch_combined_counts['label'] = switch_combined_counts['test_group'] + '_' + switch_combined_counts[switch_column].astype(str)
+    order = ['TF_1', 'TF_2', 'SF_1', 'SF_2', 'NF_1', 'NF_2']
+    switch_combined_counts = switch_combined_counts.set_index('label').reindex(order).reset_index()
+    print(switch_combined_counts)
 
-# Plot pie chart
-switch1_combined_counts['count'].plot(kind='pie', ax=axes[1], labels=order, colors=['#A85751', '#1B998B', '#424B54', '#A85751', '#1B998B', '#424B54'], autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
-axes[1].set_ylabel('')  # Remove y-label for pie chart
-axes[1].set_title('Switch1 Combined Counts by Group', fontsize=16, fontweight='bold')
+    # Plot inner pie chart for combined counts
+    switch_combined_counts['count'].plot(
+        kind='pie', 
+        ax=ax, 
+        labels=order, 
+        colors=['#A85751', '#A85751', '#1B998B', '#1B998B', '#424B54', '#424B54'], 
+        autopct='%1.1f%%', 
+        startangle=90, 
+        radius=0.7, 
+        wedgeprops=dict(width=0.3)
+    )
 
-plt.show()
+    ax.set_ylabel('') 
+    ax.set_title(title, fontsize=16, fontweight='bold')
+
+    plt.show()
+
+# Plot for switch1
+plot_switch_pie_chart(all_data, 'switch1', 'Switch1 Counts by Group and Combined')
+
+# Plot for switch2
+plot_switch_pie_chart(all_data, 'switch2', 'Switch2 Counts by Group and Combined')
 
 
 
