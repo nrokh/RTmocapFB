@@ -51,6 +51,88 @@ for i in range(subs_tot):
     if sub == 4:
         vbtest[3][0] = 1
 
+# Export the dataframe to a csv file - to look at L and R side comparisons for each vibration pair
+index_to_vib_pair = {0: 60, 1: 220, 2: 270, 3: 330, 4: 380, 5: 600}
+vib_pairs_flat = np.array([index_to_vib_pair[i] for i, idx in enumerate(vib_pairs) for j in idx])
+
+vbtest_df = pd.DataFrame(columns=['Subject', 'Vibration Side', 'Vibration Pair (ms)', 'Accuracy'])
+for i in range(subs_tot):
+    for j in range(len(vib_pairs_flat)):
+        vbtest_df = pd.concat([vbtest_df, pd.DataFrame([{'Subject': i+1, 'Vibration Side': vibration_side[j], 'Vibration Pair (ms)': vib_pairs_flat[j], 'Accuracy': vbtest[i][j]}])], ignore_index=True)
+
+vbtest_df.to_csv(os.path.normpath(os.path.join(directory, 'vbtest_accuracy_sides.csv')), index=False)
+
+# Calculate the accuracy for each vibration pair on each side
+vbtest_acc_left = np.zeros((subs_tot, 6)) # 0 = left
+vbtest_acc_right = np.zeros((subs_tot, 6)) # 1 = right
+
+for i in range(subs_tot):
+    for j in range(6):
+        idx = vib_pairs[j]
+        for k in idx: 
+            if vibration_side[k] == 0:
+                if vbtest[i][k] == 1:
+                    vbtest_acc_left[i][j] += 1
+            else:
+                if vbtest[i][k] == 1:
+                    vbtest_acc_right[i][j] += 1
+
+trial_counts_side = np.array([len(vib_pairs[j])/2 for j in range(6)])
+vbtest_acc_left = vbtest_acc_left / trial_counts_side
+vbtest_acc_right = vbtest_acc_right / trial_counts_side
+df_left = pd.DataFrame(vbtest_acc_left, columns=[60, 220, 270, 330, 380, 600])
+df_right = pd.DataFrame(vbtest_acc_right, columns=[60, 220, 270, 330, 380, 600])
+df_left['Feedback Condition'] = fb_cond
+df_right['Feedback Condition'] = fb_cond
+df_left = pd.melt(df_left, id_vars=['Feedback Condition'], value_vars=[60, 220, 270, 330, 380, 600],
+                var_name='Vibration Pair (ms)', value_name='Accuracy')
+df_right = pd.melt(df_right, id_vars=['Feedback Condition'], value_vars=[60, 220, 270, 330, 380, 600],
+                var_name='Vibration Pair (ms)', value_name='Accuracy')
+
+fig, axs = plt.subplots(2,3)
+feedback_conditions = ['NF', 'TF', 'SF']
+min_pt_size = 60  # Minimum circle size
+durations = [60, 220, 270, 330, 380, 600]
+
+# Left side
+for i, cond in enumerate(feedback_conditions):
+    ax = axs[0, i]
+    for duration in durations:
+        subset = df_left[(df_left['Feedback Condition'] == i) & (df_left['Vibration Pair (ms)'] == duration)]
+        sizes = subset.groupby('Accuracy').size().reindex(subset['Accuracy']).fillna(0).apply(lambda x: min_pt_size * x)  # Scale factor for size
+        sns.scatterplot(x=[duration] * len(subset), y='Accuracy', data=subset, 
+                        color='black', marker='o', s=sizes, ax=ax, label=duration)
+    ax.set_title(f'VB Test Accuracy for {cond} Feedback Condition (Left Side)')
+    ax.set_ylim(0, 1.1)  # Set y-axis limits
+    ax.set_xticks(durations)  # Set x-axis ticks to the specific durations
+    ax.axvline(x=300, color='gray', linestyle='--')  # Draw dashed vertical line at 300 ms
+    ax.legend().set_visible(False)  # Turn off the legend
+
+# Right side
+for i, cond in enumerate(feedback_conditions):
+    ax = axs[1, i]
+    for duration in durations:
+        subset = df_right[(df_right['Feedback Condition'] == i) & (df_right['Vibration Pair (ms)'] == duration)]
+        sizes = subset.groupby('Accuracy').size().reindex(subset['Accuracy']).fillna(0).apply(lambda x: min_pt_size * x)  # Scale factor for size
+        sns.scatterplot(x=[duration] * len(subset), y='Accuracy', data=subset, 
+                        color='black', marker='o', s=sizes, ax=ax, label=duration)
+    ax.set_title(f'VB Test Accuracy for {cond} Feedback Condition (Right Side)')
+    ax.set_ylim(0, 1.1)  # Set y-axis limits
+    ax.set_xticks(durations)  # Set x-axis ticks to the specific durations
+    ax.axvline(x=300, color='gray', linestyle='--')  # Draw dashed vertical line at 300 ms
+    ax.legend().set_visible(False)  # Turn off the legend
+
+# Create a legend for the sizes of the dots
+handles, labels = [], []
+for trials in range(1, 13):  # 1 to 12 trials
+    size = min_pt_size * trials  # Scale factor for size based on group size
+    handles.append(plt.scatter([], [], s=size, color='black', alpha=0.6))
+    labels.append(f'{trials} trials')
+
+fig.legend(handles, labels, title='Dot Size (Number of Trials)', loc='upper right')
+plt.tight_layout()
+plt.show()
+
 # Calculate the accuracy for each vibration pair
 vbtest_acc = np.zeros((subs_tot, 6))
 for i in range(subs_tot):
@@ -69,10 +151,6 @@ df = pd.melt(df, id_vars=['Feedback Condition'], value_vars=[60, 220, 270, 330, 
 
 fig, axs = plt.subplots(2, 2, figsize=(15, 10))
 
-feedback_conditions = ['NF', 'TF', 'SF']
-min_pt_size = 60  # Minimum circle size
-durations = [60, 220, 270, 330, 380, 600]
-
 for i, cond in enumerate(feedback_conditions):
     ax = axs[i // 2, i % 2]
     for duration in durations:
@@ -81,7 +159,7 @@ for i, cond in enumerate(feedback_conditions):
         sns.scatterplot(x=[duration] * len(subset), y='Accuracy', data=subset, 
                         color='black', marker='o', s=sizes, ax=ax, label=duration)
     ax.set_title(f'VB Test Accuracy for {cond} Feedback Condition')
-    ax.set_ylim(0.2, 1.1)  # Set y-axis limits
+    ax.set_ylim(0, 1.1)  # Set y-axis limits
     ax.set_xticks(durations)  # Set x-axis ticks to the specific durations
     ax.axvline(x=300, color='gray', linestyle='--')  # Draw dashed vertical line at 300 ms
     ax.legend().set_visible(False)  # Turn off the legend
@@ -100,7 +178,7 @@ ax = axs[1, 1]
 sns.violinplot(x='Feedback Condition', y='Accuracy', data=df, ax=ax, palette=['#424B54', '#1B998B', '#A85751'])
 ax.set_xticklabels(['NF', 'TF', 'SF'])
 ax.set_title('Total VB Test Accuracy by Feedback Condition')
-ax.set_ylim(0.2, 1.1)  # Set y-axis limits
+ax.set_ylim(0, 1.1)  # Set y-axis limits
 
 plt.tight_layout()
 plt.show()
