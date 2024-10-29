@@ -11,16 +11,20 @@ import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
 import random
+import heartpy as hp
+import scipy
 
 
 base_cyberduck_path = "C:/Users/vsun/Documents/Research/GaitGuide_Feedback_Study/Empatica_Data/main_subjects/participant_data_day/"
 sorted_data_path = "C:/Users/vsun/Documents/Research/GaitGuide_Feedback_Study/Empatica_Data/main_subjects/sorted_sub_data/"
+df_empatica = pd.read_csv("C:/Users/vsun/Documents/Code/RTmocapFB/analysis/empatica/empatica_times.csv")
 
 flag_sort = False # set to True if you want to sort the data into subject folders
 flag_concat = True # set to True if you want the concatenated raw + biomarker data
 flag_extra_data = False # set to True if you want to include extra data from avro files (temperature, accelerometer, gyroscope, systolic peaks)
+flag_raw_data = True
 
-# make a function that will read in the date in MM-DD-YYYY format and time in HH:MM for central european time and return the epoch time in microseconds
+# function to read in the date in MM-DD-YYYY format and time in HH:MM for central european time and return the epoch time
 def convert_time(date, time, session_len = 5):
     date = date.split("/")
     time = time.split(":")
@@ -31,9 +35,15 @@ def convert_time(date, time, session_len = 5):
     minute = int(time[1])
     end_minute = minute + session_len
     
+    if end_minute > 59:
+        hour_end = hour + 1
+        end_minute = end_minute % 60
+    else:
+        hour_end = hour
+    
     # Create a timestamp in CET
     cet_time = pd.Timestamp(year=year, month=month, day=day, hour=hour, minute=minute, tz='CET')
-    cet_time_end = pd.Timestamp(year=year, month=month, day=day, hour=hour, minute=end_minute, tz='CET')
+    cet_time_end = pd.Timestamp(year=year, month=month, day=day, hour=hour_end, minute=end_minute, tz='CET')
     
     # Convert to UTC
     utc_time = cet_time.tz_convert('UTC') 
@@ -42,7 +52,22 @@ def convert_time(date, time, session_len = 5):
     # Return the epoch time in microseconds and the end of the session time 
     return int(utc_time.value * 1e-9) , int(utc_time_end.value * 1e-9)
 
-#make a function to read BVP and EDA data from the avro files given the start and end times of the retention session
+# function to convert the timestamp in the bm files to epoch time
+def convert_time_utc(timestamp_iso):
+    # change timestamp_iso in YYYY-MM-DDT00:00:00Z to 10 digit epoch time and make it a new column in the dataframe
+    date = timestamp_iso.split("T")[0].split("-")
+    year = int(date[0])
+    month = int(date[1])
+    day = int(date[2])
+    hour = int(timestamp_iso.split("T")[1].split(":")[0])
+    minute = int(timestamp_iso.split("T")[1].split(":")[1])
+
+    # Create a timestamp in UTC
+    utc_time = pd.Timestamp(year=year, month=month, day=day, hour=hour, minute=minute, tz='UTC')
+
+    return int(utc_time.value * 1e-9)
+
+# function to read BVP and EDA data from the avro files given the start and end times of a session (raw data)
 def read_avro_data_timeframe(avro_file_path, subject_data, utc_start, utc_end):
     avro_file_path = idx_fol + "/1-1-" + str(df_empatica.iloc[idx]["Subject"].split('S')[-1]) + "_" + str(avro_file_start) + ".avro"
     reader = DataFileReader(open(avro_file_path, "rb"), DatumReader())
@@ -67,7 +92,7 @@ def read_avro_data_timeframe(avro_file_path, subject_data, utc_start, utc_end):
     else:
         subject_data["eda"] = {"timestamp": timestamp, "eda": eda["values"]}
 
-    # round the timestamp so it matches the length of the retention session times (10 digits) and make it a new key in the dictionary
+    # round the timestamp so it matches the length of the session times (10 digits) and make it a new key in the dictionary
     subject_data["bvp"]["timestamp_rounded"] = [int(str(ts)[:-6]) for ts in subject_data["bvp"]["timestamp"]]
     subject_data["eda"]["timestamp_rounded"] = [int(str(ts)[:-6]) for ts in subject_data["eda"]["timestamp"]]
 
@@ -78,19 +103,30 @@ def read_avro_data_timeframe(avro_file_path, subject_data, utc_start, utc_end):
     start_idx_eda = subject_data["eda"]["timestamp_rounded"].index(utc_start)
     end_idx_eda = len(subject_data["eda"]["timestamp_rounded"]) - 1 - subject_data["eda"]["timestamp_rounded"][::-1].index(utc_end)
 
-    # get the bvp and eda data during the retention session
-    subject_data["bvp"]["bvp_ret"] = subject_data["bvp"]["bvp"][start_idx_bvp:end_idx_bvp]
-    subject_data["eda"]["eda_ret"] = subject_data["eda"]["eda"][start_idx_eda:end_idx_eda]
+    # get the bvp and eda data during the session
+    subject_data["bvp"]["bvp_session"] = subject_data["bvp"]["bvp"][start_idx_bvp:end_idx_bvp]
+    subject_data["eda"]["eda_session"] = subject_data["eda"]["eda"][start_idx_eda:end_idx_eda]
 
-    # save the mean and std of the bvp and eda data during the retention session
-    subject_data["bvp"]["bvp_ret_mean"] = np.mean(subject_data["bvp"]["bvp_ret"])
-    subject_data["bvp"]["bvp_ret_std"] = np.std(subject_data["bvp"]["bvp_ret"])
-    subject_data["eda"]["eda_ret_mean"] = np.mean(subject_data["eda"]["eda_ret"])
-    subject_data["eda"]["eda_ret_std"] = np.std(subject_data["eda"]["eda_ret"])
+    # plot the bvp 
+    plt.plot(subject_data["bvp"]["bvp_session"])
+    plt.title("BVP during retention")
+    plt.show()
     
     return subject_data
 
+# similar to the function above but for the biomarker data 
+def read_bm_data_timeframe(bm_file_path, subject_data, utc_start, utc_end):
+    pulse_data = pd.read_csv(bm_file_path)
+    pulse_data["timestamp_utc"] = pulse_data["timestamp_iso"].apply(convert_time_utc)
 
+    start_idx = pulse_data[pulse_data["timestamp_utc"] == utc_start].index[0]
+    end_idx = pulse_data[pulse_data["timestamp_utc"] == utc_end].index[0]
+
+    subject_data["pulse_rate_session"] = pulse_data["pulse_rate_bpm"][start_idx:end_idx]
+    subject_data["pulse_rate_session_mean"] = np.mean(subject_data["pulse_rate_session"])
+    subject_data["pulse_rate_session_std"] = np.std(subject_data["pulse_rate_session"])
+
+    return subject_data
 
 if flag_sort:
     ################ SORT DATA ################ 
@@ -123,188 +159,107 @@ if flag_sort:
     df = pd.DataFrame(main_data)
     df.columns = df.iloc[0]
 
-df_empatica = pd.read_csv("C:/Users/vsun/Documents/Code/RTmocapFB/analysis/empatica/empatica_times.csv")
+all_ret_data = {}
 for idx in range(len(df_empatica)):
     day2_date = df_empatica.iloc[idx]["Day 2 Date"]
     ret_time = df_empatica.iloc[idx]["Day 2 Retention"]
     utc_ret, utc_ret_end = convert_time(day2_date, ret_time)
 
-    # get the BVP and EDA data during retention from the sorted data
-    idx_fol = sorted_data_path + df_empatica.iloc[idx]["Subject"].split('S')[-1] + "/raw_data" 
-    subject_ret_data = {}
-    sub_avro_files = os.listdir(idx_fol)
-    sub_avro_files = [int(avro_file.split("-")[-1].split("_")[1].split(".")[0]) for avro_file in sub_avro_files]
-    sub_avro_files.sort()
+    if flag_raw_data:
+        # get the BVP and EDA data during retention from the sorted data
+        idx_fol = sorted_data_path + df_empatica.iloc[idx]["Subject"].split('S')[-1] + "/raw_data" 
+        subject_ret_data = {}
+        sub_avro_files = os.listdir(idx_fol)
+        sub_avro_files = [int(avro_file.split("-")[-1].split("_")[1].split(".")[0]) for avro_file in sub_avro_files]
+        sub_avro_files.sort()
 
-    for i in range(len(sub_avro_files) - 1):
-        avro_file_start = sub_avro_files[i]
-        avro_file_end = sub_avro_files[i + 1]
-        
-        if avro_file_start <= utc_ret and avro_file_end >= utc_ret_end:
-            subject_ret_data = read_avro_data_timeframe(avro_file_start, subject_ret_data, utc_ret, utc_ret_end)
-
-        elif avro_file_start <= utc_ret <= avro_file_end or avro_file_start <= utc_ret_end <= avro_file_end:
-            #fix this if the retention time is in the middle of two avro files
-            print("Retention time is across two avro files")
-        else:
-            continue
-
-
-
-
-################ CONCATENATE RAW DATA AND BIOMARKERS ################
-# raw data that we care about: temperature, EDA, steps, BVP, tags, systolic peaks
-# biomarkers that we care about: sleep detection, wearing detection (?)
-
-# load the data from "C:\Users\vasu1\Code\RTmocapFB\analysis\scheduler_notes_29Jul2024.xlsx" to get the subject IDs and the days they were in the study
-
-# if flag_concat:
-#     for subject_folder in os.listdir(sorted_data_path):
-#         #create a dictionary to store the subject's data and then export it to a concatenated csv file
-#         subject_data = {}
-#         # cycle through all the raw data files and concatenate them into a single csv file
-#         for avro_file in os.listdir(sorted_data_path + subject_folder + "/raw_data"):
+        for i in range(len(sub_avro_files) - 1):
+            avro_file_start = sub_avro_files[i]
+            avro_file_end = sub_avro_files[i + 1]
             
-#             avro_file_path = sorted_data_path + subject_folder + "/raw_data/" + avro_file
-#             reader = DataFileReader(open(avro_file_path, "rb"), DatumReader())  #rb = read binary, binary mode to prevent corrupting the data file
-#             schema = json.loads(reader.meta.get('avro.schema').decode('utf-8'))
-#             data= next(reader)
-            
-        
-#         #     # Eda - electrodermal activity
-#         #     eda = data["rawData"]["eda"]
-#         #     timestamp = [round(eda["timestampStart"] + i * (1e6 / eda["samplingFrequency"]))
-#         #         for i in range(len(eda["values"]))]
-#         #     if "eda" in subject_data:
-#         #         subject_data["eda"]["timestamp"] += timestamp
-#         #         subject_data["eda"]["eda"] += eda["values"]
-#         #     else:
-#         #         subject_data["eda"] = {"timestamp": timestamp, "eda": eda["values"]}
-            
-#         #     # BVP
-#         #     bvp = data["rawData"]["bvp"]
-#         #     timestamp = [round(bvp["timestampStart"] + i * (1e6 / bvp["samplingFrequency"]))
-#         #         for i in range(len(bvp["values"]))]
-#         #     if "bvp" in subject_data:
-#         #         subject_data["bvp"]["timestamp"] += timestamp
-#         #         subject_data["bvp"]["bvp"] += bvp["values"]
-#         #     else:
-#         #         subject_data["bvp"] = {"timestamp": timestamp, "bvp": bvp["values"]}
-
-#         #     # Tags
-#         #     tags = data["rawData"]["tags"]
-#         #     if "tags" in subject_data:
-#         #         subject_data["tags"]["tags"] += tags["tagsTimeMicros"]
-#         #     else:
-#         #         subject_data["tags"] = {"tags": tags["tagsTimeMicros"]}
-
-#         #     # Steps
-#         #     steps = data["rawData"]["steps"]
-#         #     timestamp = [round(steps["timestampStart"] + i * (1e6 / steps["samplingFrequency"]))
-#         #         for i in range(len(steps["values"]))]
-#         #     if "steps" in subject_data:
-#         #         subject_data["steps"]["timestamp"] += timestamp
-#         #         subject_data["steps"]["steps"] += steps["values"]
-#         #     else:
-#         #         subject_data["steps"] = {"timestamp": timestamp, "steps": steps["values"]}
-            
-#         #     # if flag_extra_data:
-#         #         # Systolic peaks
-#         #         sps = data["rawData"]["systolicPeaks"]
-#         #         if "systolic_peaks" in subject_data:
-#         #             subject_data["systolic_peaks"]["peaks"] += sps["peaksTimeNanos"]
-#         #         else:
-#         #             subject_data["systolic_peaks"] = {"peaks": sps["peaksTimeNanos"]}
-
-#         #         # Temperature
-#         #         tmp = data["rawData"]["temperature"]
-#         #         timestamp = [round(tmp["timestampStart"] + i * (1e6 / tmp["samplingFrequency"]))
-#         #             for i in range(len(tmp["values"]))]
-#         #         if "temperature" in subject_data:
-#         #             subject_data["temperature"]["timestamp"] += timestamp
-#         #             subject_data["temperature"]["temperature"] += tmp["values"]
-#         #         else:
-#         #             subject_data["temperature"] = {"timestamp": timestamp, "temperature": tmp["values"]}
+            if avro_file_start <= utc_ret and avro_file_end >= utc_ret_end:
+                subject_ret_data = read_avro_data_timeframe(avro_file_start, subject_ret_data, utc_ret, utc_ret_end)
+                # calculate the fft of the BVP data
                 
-#         #         # Accelerometer
-#         #         acc = data["rawData"]["accelerometer"]
-#         #         timestamp = [round(acc["timestampStart"] + i * (1e6 / acc["samplingFrequency"]))
-#         #             for i in range(len(acc["x"]))]
-#         #         # Convert ADC counts in g
-#         #         delta_physical = acc["imuParams"]["physicalMax"] - acc["imuParams"]["physicalMin"]
-#         #         delta_digital = acc["imuParams"]["digitalMax"] - acc["imuParams"]["digitalMin"]
-#         #         x_g = [val * delta_physical / delta_digital for val in acc["x"]]
-#         #         y_g = [val * delta_physical / delta_digital for val in acc["y"]]
-#         #         z_g = [val * delta_physical / delta_digital for val in acc["z"]]
-#         #         if "accelerometer" in subject_data:
-#         #             subject_data["accelerometer"]["timestamp"] += timestamp
-#         #             subject_data["accelerometer"]["x"] += x_g
-#         #             subject_data["accelerometer"]["y"] += y_g
-#         #             subject_data["accelerometer"]["z"] += z_g
-#         #         else:
-#         #             subject_data["accelerometer"] = {"timestamp": timestamp, "x": x_g, "y": y_g, "z": z_g}
-#         #         # Gyroscope
-#         #         gyro = data["rawData"]["gyroscope"]
-#         #         timestamp = [round(gyro["timestampStart"] + i * (1e6 / gyro["samplingFrequency"]))
-#         #             for i in range(len(gyro["x"]))]
-#         #         # Convert ADC counts in dps (degree per second)
-#         #         delta_physical = gyro["imuParams"]["physicalMax"] - gyro["imuParams"]["physicalMin"]
-#         #         delta_digital = gyro["imuParams"]["digitalMax"] - gyro["imuParams"]["digitalMin"]
-#         #         x_dps = [val * delta_physical / delta_digital for val in gyro["x"]]
-#         #         y_dps = [val * delta_physical / delta_digital for val in gyro["y"]]
-#         #         z_dps = [val * delta_physical / delta_digital for val in gyro["z"]]
-#         #         if "gyroscope" in subject_data:
-#         #             subject_data["gyroscope"]["timestamp"] += timestamp
-#         #             subject_data["gyroscope"]["x"] += x_dps
-#         #             subject_data["gyroscope"]["y"] += y_dps
-#         #             subject_data["gyroscope"]["z"] += z_dps
-#         #         else:
-#         #             subject_data["gyroscope"] = {"timestamp": timestamp, "x": x_dps, "y": y_dps, "z": z_dps}
+                ## sanity check for noicy signal - the empatica data looks filtered... show this to validate 
+                # x = np.sin(2 * np.pi * 5 * np.arange(0, 5*60, 1/64))
+                # noise = np.random.normal(0,1,5*60*64)
+                # x += noise
+
+                # bvp_fft = np.fft.rfft(x)
+                # bvp_freqs = np.fft.rfftfreq(len(x), d=1/64.0) # the empatica sampling rate for the PPG sensor is 64 Hz
+                # bvp_fft_abs = np.abs(bvp_fft)
+                # plt.plot(bvp_freqs, bvp_fft_abs)
+                # plt.title("FFT of BVP during retention")
+                # plt.xlabel("Frequency (Hz)")
+                # plt.ylabel("Magnitude")
+                # plt.show()
+
+                bvp_fft = np.fft.rfft(subject_ret_data["bvp"]["bvp_session"])
+                bvp_freqs = np.fft.rfftfreq(len(subject_ret_data["bvp"]["bvp_session"]), d=1/64.0) # the empatica sampling rate for the PPG sensor is 64 Hz
+                bvp_fft_abs = np.abs(bvp_fft)
+                plt.plot(bvp_freqs, bvp_fft_abs)
+                plt.title("FFT of BVP during retention")
+                plt.xlabel("Frequency (Hz)")
+                plt.ylabel("Magnitude")
+                plt.show()
+        
+                # filter the BVP data
+                filtered_bvp = hp.filter_signal(subject_ret_data["bvp"]["bvp_session"], [0.8, 3.5], sample_rate=64.0, order=3, filtertype='bandpass') # frequencies below 0.8Hz (48 BPM) and above 3.5 Hz (210 BPM)
+                plt.figure(figsize=(12,6))
+                plt.plot(filtered_bvp, label='Filtered BVP')
+                plt.plot(subject_ret_data["bvp"]["bvp_session"], label='Original BVP')
+                plt.plot(filtered_bvp)
                 
-#         # # sort each of the subject's data by timestamp and then match the timestamps of eda, bvp, tags, and steps to export to a csv file with 5 columns (timestamp, eda, bvp, tags, steps)
-#         # # sort the data by timestamp (microseconds)
-#         # main_key = ["eda", "bvp", "steps"]
-#         # for key in main_key:
-#         #     df = pd.DataFrame(subject_data[key])
-#         #     df = df.sort_values(by=["timestamp"])
-#         #     subject_data[key] = df
-        
-#         # # change the timestamps to milliseconds for easier comparison
-#         # for key in main_key:
-#         #     earliest_timestamp = min(subject_data["eda"]["timestamp"][0], subject_data["bvp"]["timestamp"][0], subject_data["steps"]["timestamp"][0])
-#         #     #add timestep_us to each key to make it easier to compare timestamps
-#         #     subject_data[key]["timestep_us"] = subject_data[key]["timestamp"] - earliest_timestamp
+                plt.title("Original and Filtered BVP during retention")
+                plt.legend()
 
-#         # # create a df with eda, bvp, and steps where there is one common timestamp for all three data types
-#         # timestamps = list(set(subject_data["eda"]["timestamp"]) & set(subject_data["bvp"]["timestamp"]) & set(subject_data["steps"]["timestamp"]))
-#         # timestamps.sort()
-        
-#         # # Filter the data to keep only the common timestamps
-#         # for key in main_key:
-#         #     subject_data[key] = subject_data[key][subject_data[key]["timestamp"].isin(common_timestamps)]
+                plt.show()
 
-#         # # the subject's new dataframe should have one timestamp, eda, bvp, and steps with everything synced
-#         # new_df = pd.DataFrame()
-#         # new_df["timestamp"] = timestamps
-#         # new_df["eda"] = [subject_data["eda"][subject_data["eda"]["timestamp"] == ts]["eda"].values[0] for ts in timestamps]
-#         # new_df["bvp"] = [subject_data["bvp"][subject_data["bvp"]["timestamp"] == ts]["bvp"].values[0] for ts in timestamps]
-#         # new_df["steps"] = [subject_data["steps"][subject_data["steps"]["timestamp"] == ts]["steps"].values[0] for ts in timestamps]
-#         # new_df["tags"] = [1 if ts in list(subject_data["tags"]["tags"]) else 0 for ts in timestamps]
+                # 10/29 @ 6Pm - leaving off here... the peak detection is not working as expected, i need to look at this package more 
+                wd, m = hp.process(subject_ret_data["bvp"]["bvp_session"], sample_rate=64.0, high_precision=True) # the empatica sampling rate for the PPG sensor is 64 Hz
+                plt.figure(figsize=(12,6))
+                hp.plotter(wd, m)
+            
+                print("plotting")
+
+            elif avro_file_start <= utc_ret <= avro_file_end or avro_file_start <= utc_ret_end <= avro_file_end:
+                #TODO: fix this if the retention time is in the middle of two avro files
+                print("Retention time is across two avro files")
+            else:
+                continue
+    else: 
+        idx_fol = sorted_data_path + df_empatica.iloc[idx]["Subject"].split('S')[-1] + "/biomarkers/"
+        subject_ret_data = {}
+        day2_date = day2_date.split("/")
+        day2_date = day2_date[2] + "-" + day2_date[0].zfill(2) + "-" + day2_date[1].zfill(2)
+        pulse_file = idx_fol + "1-1-" + str(df_empatica.iloc[idx]["Subject"].split('S')[-1]) + "_" + day2_date + "_pulse-rate.csv"
+        if os.path.exists(pulse_file):
+            print("Reading biomarker data for subject " + df_empatica.iloc[idx]["Subject"])
+            subject_ret_data = read_bm_data_timeframe(pulse_file, subject_ret_data, utc_ret, utc_ret_end)
+            all_ret_data[df_empatica.iloc[idx]["Subject"]] = subject_ret_data
 
 
 
-#         # # # export the data to a csv file
-#         # # with open(sorted_data_path + subject_folder + "/concatenated_data.csv", 'w', newline='') as f:
-#         # #     writer = csv.writer(f)
-#         # #     writer.writerow(["timestamp", "eda", "bvp", "tags", "steps"])
-#         # #     for ts in timestamps:
-#         # #         eda_val = subject_data["eda"][subject_data["eda"]["timestamp"] == ts]["eda"].values[0] if ts in list(subject_data["eda"]["timestamp"]) else np.nan
-#         # #         bvp_val = subject_data["bvp"][subject_data["bvp"]["timestamp"] == ts]["bvp"].values[0] if ts in list(subject_data["bvp"]["timestamp"]) else np.nan
-#         # #         tags_val = 1 if ts in list(subject_data["tags"]["tags"]) else 0
-#         # #         steps_val = subject_data["steps"][subject_data["steps"]["timestamp"] == ts]["steps"].values[0] if ts in list(subject_data["steps"]["timestamp"]) else np.nan
-#         # #         writer.writerow([ts, eda_val, bvp_val, tags_val, steps_val])
-    
-# ################ PROCESSING THE BVP: OUTSIDE LAB AND DURING STUDY ################
-# # get the data from the concatenated csv file for each subject 
 
-# for subject_folder in os.listdir(sorted_data_path):
+if flag_raw_data:
+    print("will export the raw data here")
+else:
+    # Export the mean and std for the pulse rate data during retention to a csv file, where the rows are the subjects and the columns are the mean and std
+    with open("C:/Users/vsun/Documents/Code/RTmocapFB/analysis/empatica/retention_data.csv", "w", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Subject", "Pulse Rate Mean", "Pulse Rate Std"])
+        for subject in all_ret_data:
+            writer.writerow([subject, all_ret_data[subject]["pulse_rate_session_mean"], all_ret_data[subject]["pulse_rate_session_std"]])
+
+
+
+
+
+            
+            
+
+            
+
+
+
