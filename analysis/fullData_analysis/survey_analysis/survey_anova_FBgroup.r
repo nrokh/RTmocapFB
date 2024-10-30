@@ -328,10 +328,40 @@ data <- data[order(data$test_group), ]
 
 #########################################################################################################
 
-# Borg retention
-nf_group <- data[data$test_group == "NF", ]$Borg_RPE_ret
-sf_group <- data[data$test_group == "SF", ]$Borg_RPE_ret
-tf_group <- data[data$test_group == "TF", ]$Borg_RPE_ret
+# # Borg retention
+# nf_group <- data[data$test_group == "NF", ]$Borg_RPE_ret
+# sf_group <- data[data$test_group == "SF", ]$Borg_RPE_ret
+# tf_group <- data[data$test_group == "TF", ]$Borg_RPE_ret
+
+# # Combine into single dataframe
+# data <- data.frame(
+#   value = c(nf_group, sf_group, tf_group),
+#   group = factor(rep(c("NF", "SF", "TF"), each = 12))
+# )
+
+# # Test for normality - Borg Ret... p = 0.05757
+# sw_test <- shapiro.test(data$value)
+# print(sw_test)
+
+# # Test for equal variance - Borg Ret... p = 0.6153
+# blt_test <- bartlett.test(value ~ group, data = data)
+# print(blt_test)
+
+# # Perform one-way ANOVA - Borg Ret... p = 0.242
+# anova_result_borgr <- aov(value ~ group, data = data)
+# print(summary(anova_result_borgr))
+
+# # Perform t-test - Borg Ret... p = 0.5159, 5464
+# fb_group <- c(sf_group, tf_group)
+# ind_ttest_borgr <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+# w_ttest_borgr <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
+
+#########################################################################################################
+
+# Pulse rate mean during retention trial (using biomarkers from Empatica) 
+nf_group <- data[data$test_group == "NF", ]$pulse_rate_mean
+sf_group <- data[data$test_group == "SF", ]$pulse_rate_mean
+tf_group <- data[data$test_group == "TF", ]$pulse_rate_mean
 
 # Combine into single dataframe
 data <- data.frame(
@@ -339,19 +369,16 @@ data <- data.frame(
   group = factor(rep(c("NF", "SF", "TF"), each = 12))
 )
 
-# Test for normality - Borg Ret... p = 0.05757
+# Test for normality - Pulse Rate... p = 0.3172
 sw_test <- shapiro.test(data$value)
 print(sw_test)
 
-# Test for equal variance - Borg Ret... p = 0.6153
+# Test for equal variance - Pulse Rate... p = 0.8742
 blt_test <- bartlett.test(value ~ group, data = data)
 print(blt_test)
 
-# Perform one-way ANOVA - Borg Ret... p = 0.242
-anova_result_borgr <- aov(value ~ group, data = data)
-print(summary(anova_result_borgr))
-
-# Perform t-test - Borg Ret... p = 0.5159, 5464
+# Perform t-test - Pulse Rate... p = 0.3351, 0.3094
 fb_group <- c(sf_group, tf_group)
-ind_ttest_borgr <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
-w_ttest_borgr <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
+ind_ttest_pr <- t.test(nf_group, fb_group, paired = FALSE, var.equal = TRUE)
+w_ttest_pr <- t.test(nf_group, fb_group, paired = FALSE, var.equal = FALSE)
+
